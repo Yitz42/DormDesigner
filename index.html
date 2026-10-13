@@ -1,0 +1,1290 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<link rel="icon" href="logo.png">
+<style>[hidden]{display:none!important}body{margin:0}img{max-width:100%}</style>
+<title>DormDesigner</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Alegreya:wght@500;700;800&family=Figtree:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: an architect's plan sheet. UMBC floor plans stay in plain ink; DormDesigner's decor is the only color on them. */
+:root {
+  --paper: #F5F3FA;
+  --surface: #FFFFFF;
+  --ink: #1D1730;
+  --muted: #5F5873;
+  --rule: #DCD6E8;
+  --plan-bg: #FFFFFF;
+  --plan-floor: #FBFAFD;
+  --plan-grid: #EEEAF5;
+  --plan-ink: #2B2442;
+  --plan-furn: #F1EEF6;
+  --plan-label: #6E6785;
+  --brand-1: #4B3BFF;
+  --brand-2: #A93CFF;
+  --brand-3: #F03CF5;
+  --brand-4: #FF3D8A;
+  --accent: #C8206D;
+  --accent-ink: #FFFFFF;
+  --accent-soft: #FBE3EE;
+  --ok: #1F7A52;
+  --font-display: "Alegreya", Georgia, "Times New Roman", serif;
+  --font-body: "Figtree", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, Menlo, Consolas, monospace;
+  --radius: 14px;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --paper: #100C19; --surface: #1A1526; --ink: #EEEAF7; --muted: #A49CBA; --rule: #2F2843;
+    --plan-bg: #161120; --plan-floor: #1B1528; --plan-grid: #241D33; --plan-ink: #D9D2EC; --plan-furn: #251E35; --plan-label: #9C94B3;
+    --accent: #FF6FAE; --accent-ink: #1A0D16; --accent-soft: #3A1830; --ok: #5FD39E;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --paper: #100C19; --surface: #1A1526; --ink: #EEEAF7; --muted: #A49CBA; --rule: #2F2843;
+  --plan-bg: #161120; --plan-floor: #1B1528; --plan-grid: #241D33; --plan-ink: #D9D2EC; --plan-furn: #251E35; --plan-label: #9C94B3;
+  --accent: #FF6FAE; --accent-ink: #1A0D16; --accent-soft: #3A1830; --ok: #5FD39E;
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+@media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+body {
+  background: var(--paper);
+  color: var(--ink);
+  font: 400 1rem/1.6 var(--font-body);
+  -webkit-font-smoothing: antialiased;
+}
+a { color: var(--accent); text-underline-offset: 3px; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; border-radius: 6px; }
+h1, h2, h3 { font-family: var(--font-display); line-height: 1.08; margin: 0; text-wrap: balance; letter-spacing: -0.01em; }
+h2 { font-size: clamp(2rem, 4vw, 2.9rem); font-weight: 800; }
+h3 { font-size: 1.45rem; font-weight: 700; }
+p { margin: 0; }
+.wrap { max-width: 1180px; margin: 0 auto; padding-inline: 20px; }
+.eyebrow {
+  font: 500 0.75rem/1.2 var(--font-mono);
+  letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted);
+}
+.lede { color: var(--muted); font-size: 1.1rem; max-width: 60ch; }
+.section { padding-block: clamp(64px, 9vw, 112px); }
+.section-head { display: grid; gap: 14px; margin-bottom: 40px; max-width: 760px; }
+.num { font-variant-numeric: tabular-nums; }
+
+/* Brand */
+.mark { width: 34px; height: 34px; flex: none; }
+.wordmark {
+  font: 800 1.2rem/1 var(--font-display); letter-spacing: 0.06em; text-transform: uppercase;
+  background: linear-gradient(90deg, var(--brand-2), var(--brand-3) 60%, var(--brand-4));
+  -webkit-background-clip: text; background-clip: text; color: transparent;
+}
+
+/* Header */
+.top {
+  position: sticky; top: env(safe-area-inset-top, 0px); z-index: 20;
+  background: color-mix(in srgb, var(--paper) 86%, transparent);
+  backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+  border-bottom: 1px solid var(--rule);
+}
+.top .wrap { display: flex; align-items: center; gap: 24px; min-height: 64px; }
+.brand { display: flex; align-items: center; gap: 10px; text-decoration: none; }
+.nav { display: flex; gap: 22px; margin-left: auto; }
+.nav a { color: var(--ink); text-decoration: none; font-weight: 500; font-size: 0.95rem; }
+.nav a:hover { color: var(--accent); }
+@media (max-width: 860px) { .nav { display: none; } .top .btn { margin-left: auto; } }
+
+.btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+  font: 600 0.98rem/1 var(--font-body); padding: 13px 20px; border-radius: 999px;
+  text-decoration: none; cursor: pointer; border: 1px solid transparent;
+  transition: transform .15s ease, box-shadow .15s ease; white-space: nowrap;
+}
+@media (max-width: 420px) { .wordmark { font-size: 1rem; letter-spacing: .03em; } .top .wrap { gap: 12px; } }
+.btn-primary {
+  color: #FFFFFF;
+  background: linear-gradient(100deg, var(--brand-1), var(--brand-2) 55%, #D42A78);
+  box-shadow: 0 6px 18px -8px rgba(110, 40, 200, .6);
+}
+.btn-primary:hover { transform: translateY(-1px); box-shadow: 0 10px 22px -8px rgba(110, 40, 200, .7); }
+.btn-ghost { color: var(--ink); background: transparent; border-color: var(--rule); }
+.btn-ghost:hover { border-color: var(--ink); }
+.btn-sm { padding: 10px 16px; font-size: 0.9rem; }
+
+/* Hero */
+.hero { padding-block: clamp(40px, 7vw, 88px) clamp(48px, 7vw, 80px); }
+.hero .wrap { display: grid; grid-template-columns: 1fr 1.08fr; gap: clamp(32px, 5vw, 64px); align-items: center; }
+.hero-copy { display: grid; gap: 22px; min-width: 0; }
+.hero h1 { font-size: clamp(2.7rem, 6.2vw, 4.6rem); font-weight: 800; }
+.hero h1 em {
+  font-style: italic; font-weight: 700;
+  background: linear-gradient(90deg, var(--brand-1), var(--brand-2) 45%, var(--brand-4));
+  -webkit-background-clip: text; background-clip: text; color: transparent;
+  padding-right: .06em;
+}
+.hero .ctas { display: flex; flex-wrap: wrap; gap: 12px; }
+.facts { display: flex; flex-wrap: wrap; gap: 8px 22px; font: 400 0.82rem/1.4 var(--font-mono); color: var(--muted); padding-top: 6px; border-top: 1px solid var(--rule); }
+.facts span { padding-top: 12px; }
+.facts b { color: var(--ink); font-weight: 500; }
+@media (max-width: 900px) { .hero .wrap { grid-template-columns: 1fr; } }
+
+/* Plan sheet card */
+.sheet {
+  background: var(--plan-bg); border: 1px solid var(--rule); border-radius: var(--radius);
+  box-shadow: 0 24px 50px -30px rgba(40, 20, 80, .35);
+  overflow: hidden; min-width: 0;
+}
+.sheet-head, .sheet-foot {
+  display: flex; flex-wrap: wrap; gap: 6px 14px; align-items: center; justify-content: space-between;
+  padding: 12px 16px; font: 400 0.75rem/1.35 var(--font-mono); color: var(--plan-label);
+  letter-spacing: 0.04em;
+}
+.sheet-head { border-bottom: 1px dashed var(--rule); }
+.sheet-foot { border-top: 1px dashed var(--rule); }
+.sheet-head strong { color: var(--plan-ink); font-weight: 500; text-transform: uppercase; letter-spacing: 0.08em; }
+.plan { display: block; width: 100%; height: auto; padding: 14px; }
+
+/* SVG plan classes (theme-aware) */
+.p-floor { fill: var(--plan-floor); }
+.p-gridline { stroke: var(--plan-grid); stroke-width: .6; fill: none; }
+.p-wall { stroke: var(--plan-ink); stroke-width: 4; fill: none; stroke-linejoin: miter; stroke-linecap: square; }
+.p-iwall { stroke: var(--plan-ink); stroke-width: 2.6; fill: none; stroke-linecap: square; }
+.p-gap { stroke: var(--plan-floor); stroke-width: 6; }
+.p-wingap { stroke: var(--plan-bg); stroke-width: 5.4; }
+.p-win { stroke: var(--plan-ink); stroke-width: .8; }
+.p-leaf { stroke: var(--plan-ink); stroke-width: 1.4; }
+.p-arc { stroke: var(--plan-label); stroke-width: .7; stroke-dasharray: 2 2; fill: none; }
+.p-furn { fill: var(--plan-furn); stroke: var(--plan-ink); stroke-width: 1; }
+.p-fix { fill: var(--plan-bg); stroke: var(--plan-ink); stroke-width: .9; }
+.p-fixline { stroke: var(--plan-ink); stroke-width: .7; fill: none; }
+.p-flabel { fill: var(--plan-label); font: 500 7px var(--font-mono); letter-spacing: .02em; }
+.p-room { fill: var(--plan-ink); font: 500 9px var(--font-mono); letter-spacing: .08em; text-transform: uppercase; paint-order: stroke; stroke: var(--plan-floor); stroke-width: 3px; stroke-linejoin: round; }
+.p-dim { fill: var(--plan-label); font: 400 7.5px var(--font-mono); paint-order: stroke; stroke: var(--plan-floor); stroke-width: 3px; stroke-linejoin: round; }
+.p-appl { fill: var(--plan-bg); stroke-width: 1.4; }
+.p-appl-label { fill: var(--plan-label); font: 500 5.5px var(--font-mono); }
+.decor > * { transform-box: fill-box; transform-origin: center; animation: pop .45s cubic-bezier(.2, .9, .3, 1.2) both; }
+.decor > *:nth-child(3n+1) { animation-delay: .04s; }
+.decor > *:nth-child(3n+2) { animation-delay: .1s; }
+.decor > *:nth-child(3n) { animation-delay: .16s; }
+@keyframes pop { from { opacity: .55; transform: scale(.9); } to { opacity: 1; transform: none; } }
+@media (prefers-reduced-motion: reduce) { .decor > * { animation: none; } }
+
+/* Problem band */
+.band { border-block: 1px solid var(--rule); background: var(--surface); }
+.band .wrap { display: grid; grid-template-columns: 1.2fr 1fr; gap: 32px 56px; padding-block: 40px; align-items: center; }
+.band blockquote { margin: 0; font: 600 clamp(1.35rem, 2.6vw, 1.75rem)/1.3 var(--font-display); text-wrap: balance; }
+.band .src { margin-top: 12px; font: 400 0.8rem var(--font-mono); color: var(--muted); }
+.pains { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 14px 24px; }
+.pains div { display: grid; gap: 2px; min-width: 0; }
+.pains b { font-weight: 600; }
+.pains span { color: var(--muted); font-size: 0.9rem; line-height: 1.45; }
+@media (max-width: 800px) { .band .wrap { grid-template-columns: 1fr; } }
+
+/* Steps */
+.steps { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0; counter-reset: step; border-top: 2px solid var(--ink); }
+.step { padding: 22px 22px 6px 0; display: grid; gap: 10px; align-content: start; min-width: 0; }
+.step + .step { padding-left: 22px; border-left: 1px solid var(--rule); }
+.step::before {
+  counter-increment: step; content: "0" counter(step);
+  font: 500 0.8rem var(--font-mono); color: var(--accent); letter-spacing: .1em;
+}
+.step p { color: var(--muted); font-size: 0.97rem; }
+@media (max-width: 900px) {
+  .steps { grid-template-columns: 1fr 1fr; }
+  .step:nth-child(3) { padding-left: 0; border-left: 0; }
+  .step:nth-child(n+3) { border-top: 1px solid var(--rule); }
+}
+@media (max-width: 560px) {
+  .steps { grid-template-columns: 1fr; }
+  .step + .step { padding-left: 0; border-left: 0; border-top: 1px solid var(--rule); }
+}
+
+/* Packages */
+.tiers { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; align-items: stretch; }
+.tier {
+  background: var(--surface); border: 1px solid var(--rule); border-radius: var(--radius);
+  padding: 26px 24px; display: flex; flex-direction: column; gap: 18px; min-width: 0;
+}
+.tier-head { display: grid; gap: 4px; }
+.tier .price { font: 800 2.9rem/1 var(--font-display); letter-spacing: -0.02em; }
+.tier .per { font: 400 0.8rem var(--font-mono); color: var(--muted); }
+.tier .includes { font: 500 0.75rem var(--font-mono); text-transform: uppercase; letter-spacing: .1em; color: var(--muted); }
+.tier ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 7px; }
+.tier li { display: flex; gap: 10px; align-items: baseline; font-size: 0.95rem; }
+.tier li::before { content: ""; flex: none; width: 6px; height: 6px; border-radius: 2px; background: var(--brand-2); transform: translateY(-2px); }
+.tier .kit li::before { background: var(--rule); }
+.keep {
+  font: 500 0.66rem/1 var(--font-mono); text-transform: uppercase; letter-spacing: .08em;
+  color: var(--ok); border: 1px solid currentColor; border-radius: 999px; padding: 3px 6px; white-space: nowrap;
+}
+.tier .custom { border-top: 1px dashed var(--rule); padding-top: 16px; display: grid; gap: 8px; }
+.tier .custom p { font-size: 0.9rem; color: var(--muted); }
+.tier .custom b { color: var(--ink); font-weight: 600; }
+.tier .btn { margin-top: auto; }
+.tier-deluxe { border-color: transparent; background:
+  linear-gradient(var(--surface), var(--surface)) padding-box,
+  linear-gradient(160deg, var(--brand-1), var(--brand-2), var(--brand-4)) border-box;
+  border: 2px solid transparent; }
+.tiers-note { margin-top: 18px; color: var(--muted); font-size: 0.92rem; display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+@media (max-width: 960px) { .tiers { grid-template-columns: 1fr; max-width: 560px; } }
+
+/* Planner */
+.planner-sec { background: var(--surface); border-block: 1px solid var(--rule); }
+.planner { display: grid; grid-template-columns: 330px minmax(0, 1fr); gap: 28px; align-items: start; }
+.controls { display: grid; gap: 26px; min-width: 0; }
+fieldset { border: 0; margin: 0; padding: 0; display: grid; gap: 10px; min-width: 0; }
+legend { padding: 0; margin-bottom: 10px; font: 500 0.75rem var(--font-mono); text-transform: uppercase; letter-spacing: .1em; color: var(--muted); }
+.opt-group { font: 500 0.7rem var(--font-mono); color: var(--muted); letter-spacing: .08em; text-transform: uppercase; margin-top: 4px; }
+.radio-list { display: grid; gap: 6px; }
+.opt { position: relative; display: block; cursor: pointer; }
+.opt input { position: absolute; opacity: 0; inset: 0; margin: 0; cursor: pointer; }
+.opt .box {
+  display: flex; justify-content: space-between; gap: 10px; align-items: baseline;
+  padding: 9px 12px; border: 1px solid var(--rule); border-radius: 10px; background: var(--paper);
+  transition: border-color .15s, background .15s;
+}
+.opt .box small { color: var(--muted); font: 400 0.75rem var(--font-mono); white-space: nowrap; }
+.opt:hover .box { border-color: var(--muted); }
+.opt input:checked + .box { border-color: var(--accent); background: var(--accent-soft); box-shadow: inset 0 0 0 1px var(--accent); }
+.opt input:focus-visible + .box { outline: 2px solid var(--accent); outline-offset: 2px; }
+.seg { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
+.seg .box { flex-direction: column; gap: 2px; align-items: flex-start; }
+.seg .box b { font-weight: 600; font-size: 0.92rem; }
+.swatches { display: flex; flex-wrap: wrap; gap: 10px; }
+.swatch .box { flex-direction: column; align-items: center; gap: 6px; padding: 8px 6px; min-width: 66px; }
+.swatch .chips { display: flex; }
+.swatch .chips i { width: 14px; height: 14px; border-radius: 50%; border: 2px solid var(--paper); margin-left: -4px; }
+.swatch .chips i:first-child { margin-left: 0; }
+.swatch .box span { font-size: 0.78rem; }
+.majors { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+
+.stage { display: grid; gap: 16px; min-width: 0; }
+.toggle { display: inline-flex; border: 1px solid var(--rule); border-radius: 999px; padding: 3px; background: var(--paper); }
+.toggle button {
+  font: 500 0.75rem var(--font-mono); letter-spacing: .06em; text-transform: uppercase;
+  border: 0; background: transparent; color: var(--muted); padding: 6px 12px; border-radius: 999px; cursor: pointer;
+}
+.toggle button[aria-pressed="true"] { background: var(--ink); color: var(--paper); }
+.legend { display: flex; flex-wrap: wrap; gap: 6px 14px; padding: 0 16px 12px; font: 400 0.75rem var(--font-mono); color: var(--plan-label); }
+.legend span { display: inline-flex; align-items: center; gap: 6px; }
+.legend i { width: 12px; height: 12px; border-radius: 3px; display: inline-block; }
+
+.summary { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr); gap: 16px; }
+.quote, .itemlist { background: var(--paper); border: 1px solid var(--rule); border-radius: var(--radius); padding: 20px; min-width: 0; }
+.quote { display: grid; gap: 14px; align-content: start; }
+.quote .big { font: 800 2.6rem/1 var(--font-display); }
+.quote .row { display: flex; justify-content: space-between; gap: 12px; font-size: 0.92rem; color: var(--muted); border-top: 1px dashed var(--rule); padding-top: 10px; }
+.quote .row b { color: var(--ink); font-weight: 600; font-variant-numeric: tabular-nums; }
+.itemlist h4 { margin: 0 0 10px; font: 500 0.75rem var(--font-mono); text-transform: uppercase; letter-spacing: .1em; color: var(--muted); }
+.itemlist ul { list-style: none; margin: 0; padding: 0; columns: 2 200px; column-gap: 20px; }
+.itemlist li { break-inside: avoid; padding: 4px 0; font-size: 0.9rem; display: flex; gap: 8px; align-items: baseline; flex-wrap: wrap; }
+.itemlist li .tag { font: 400 0.66rem var(--font-mono); color: var(--muted); text-transform: uppercase; letter-spacing: .06em; }
+.itemlist li.new { font-weight: 600; }
+@media (max-width: 980px) { .planner { grid-template-columns: 1fr; } .controls { grid-template-columns: 1fr 1fr; } }
+@media (max-width: 680px) { .controls { grid-template-columns: 1fr; } .summary { grid-template-columns: 1fr; } }
+
+/* Compare */
+.table-wrap { overflow-x: auto; border: 1px solid var(--rule); border-radius: var(--radius); background: var(--surface); }
+table.compare { width: 100%; min-width: 720px; border-collapse: collapse; }
+.compare th, .compare td { text-align: left; vertical-align: top; padding: 14px 18px; border-bottom: 1px solid var(--rule); font-size: 0.95rem; }
+.compare thead th { font-family: var(--font-display); font-size: 1.2rem; font-weight: 700; border-bottom: 2px solid var(--ink); }
+.compare thead th small { display: block; font: 400 0.75rem var(--font-mono); color: var(--muted); letter-spacing: .04em; margin-top: 2px; }
+.compare tbody th { font: 500 0.75rem var(--font-mono); text-transform: uppercase; letter-spacing: .08em; color: var(--muted); width: 140px; }
+.compare tr:last-child th, .compare tr:last-child td { border-bottom: 0; }
+.compare td { color: var(--muted); }
+.compare .us { background: var(--accent-soft); color: var(--ink); font-weight: 500; }
+.compare thead .us { color: var(--accent); }
+
+/* Audience + values */
+.who { display: grid; grid-template-columns: repeat(4, 1fr); gap: 28px; }
+.who div { display: grid; gap: 8px; align-content: start; border-top: 1px solid var(--ink); padding-top: 14px; min-width: 0; }
+.who p { color: var(--muted); font-size: 0.95rem; }
+@media (max-width: 900px) { .who { grid-template-columns: 1fr 1fr; } }
+@media (max-width: 520px) { .who { grid-template-columns: 1fr; } }
+.manifesto { display: grid; grid-template-columns: 1fr 1fr; gap: 40px 64px; margin-top: 72px; align-items: start; }
+.manifesto p { color: var(--muted); font-size: 1.05rem; max-width: 56ch; }
+.manifesto p + p { margin-top: 14px; }
+.values { display: flex; flex-wrap: wrap; gap: 4px 18px; font: 700 clamp(1.6rem, 3.4vw, 2.4rem)/1.25 var(--font-display); }
+.values span:nth-child(odd) { color: var(--ink); }
+.values span:nth-child(even) { color: var(--accent); font-style: italic; }
+@media (max-width: 800px) { .manifesto { grid-template-columns: 1fr; } }
+
+/* Reserve form */
+.reserve { display: grid; grid-template-columns: 1fr 1.1fr; gap: 48px; align-items: start; }
+.form { background: var(--surface); border: 1px solid var(--rule); border-radius: var(--radius); padding: 24px; display: grid; gap: 14px; min-width: 0; }
+.form .two { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+.field { display: grid; gap: 6px; min-width: 0; }
+.field label { font-size: 0.85rem; font-weight: 600; }
+.field input, .field select, .field textarea {
+  font: 400 1rem var(--font-body); color: var(--ink); background: var(--paper);
+  border: 1px solid var(--rule); border-radius: 10px; padding: 10px 12px; width: 100%;
+}
+.field input:focus, .field select:focus, .field textarea:focus { outline: 2px solid var(--accent); outline-offset: 1px; border-color: transparent; }
+.field textarea { min-height: 84px; resize: vertical; }
+.form .fine { font-size: 0.8rem; color: var(--muted); }
+.confirm { border: 1px solid var(--ok); border-radius: 10px; padding: 14px 16px; display: grid; gap: 6px; font-size: 0.92rem; }
+.confirm b { color: var(--ok); }
+.field .err { color: var(--accent); font-size: 0.8rem; }
+@media (max-width: 860px) { .reserve { grid-template-columns: 1fr; } }
+@media (max-width: 480px) { .form .two { grid-template-columns: 1fr; } }
+
+/* Footer */
+footer { border-top: 1px solid var(--rule); padding-block: 40px 56px; }
+footer .wrap { display: grid; grid-template-columns: 1.2fr 1fr; gap: 28px; }
+footer p { color: var(--muted); font-size: 0.88rem; }
+footer .team { font: 400 0.8rem/1.7 var(--font-mono); color: var(--muted); }
+footer .team b { color: var(--ink); font-weight: 500; }
+@media (max-width: 760px) { footer .wrap { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <linearGradient id="brandFrame" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#4B3BFF"/>
+      <stop offset=".35" stop-color="#A93CFF"/>
+      <stop offset=".62" stop-color="#F03CF5"/>
+      <stop offset="1" stop-color="#FF3D8A"/>
+    </linearGradient>
+  </defs>
+  <symbol id="logo" viewBox="0 0 48 48">
+    <rect x="4" y="4" width="40" height="40" rx="1.5" fill="none" stroke="url(#brandFrame)" stroke-width="5"/>
+    <path d="M18 12.5 H28 C35 12.5 37.5 18 37.5 24.5 C37.5 31 34.5 35 29.5 36" fill="none" stroke="#FF6AA2" stroke-width="2.6" stroke-linecap="round"/>
+    <path d="M18 12.5 L26 14.6 C31.2 16 33.6 20 33.6 25.5 C33.6 32 31 36.6 26.5 36.4 L18 34.4 Z" fill="none" stroke="#FF3D8A" stroke-width="2.6" stroke-linejoin="round"/>
+    <circle cx="28.4" cy="25.6" r="1.7" fill="#FF6AA2"/>
+  </symbol>
+</svg>
+
+<header class="top">
+  <div class="wrap">
+    <a class="brand" href="#top" aria-label="DormDesigner home">
+      <svg class="mark" aria-hidden="true"><use href="#logo"/></svg>
+      <span class="wordmark">DormDesigner</span>
+    </a>
+    <nav class="nav" aria-label="Main">
+      <a href="#how">How it works</a>
+      <a href="#packages">Packages</a>
+      <a href="#planner">Room planner</a>
+      <a href="#compare">Why us</a>
+    </nav>
+    <a class="btn btn-primary btn-sm" href="#reserve">Reserve a room</a>
+  </div>
+</header>
+
+<main id="top">
+  <section class="hero">
+    <div class="wrap">
+      <div class="hero-copy">
+        <p class="eyebrow">Dorm setup &amp; decor rental · Now planning UMBC Fall 2027</p>
+        <h1>We set up the room <em>so you don't have to.</em></h1>
+        <p class="lede">DormDesigner rents furniture and decor as one bundle for the school year. Pick your hall and a package, choose your colors, and walk into a finished room on move-in day. If you love something, buy it at the end of the year.</p>
+        <div class="ctas">
+          <a class="btn btn-primary" href="#planner">Plan your room</a>
+          <a class="btn btn-ghost" href="#packages">See packages</a>
+        </div>
+        <div class="facts">
+          <span><b>$450–$1,500</b> per student, per year</span>
+          <span><b>7</b> UMBC floor plans ready</span>
+          <span><b>Set up</b> before you arrive</span>
+        </div>
+      </div>
+      <figure class="sheet" style="margin:0">
+        <div class="sheet-head"><strong>Susquehanna Hall · Double</strong><span>Deluxe · Berry palette</span></div>
+        <svg class="plan" id="heroPlan" role="img" aria-label="Floor plan of a Susquehanna Hall double room with Deluxe package decor: colored bedding, posters, neon lights, rugs, beanbags and mini-fridges"></svg>
+        <figcaption class="sheet-foot"><span>Plan redrawn from UMBC Residential Life</span><span>Ink = the room · Color = DormDesigner</span></figcaption>
+      </figure>
+    </div>
+  </section>
+
+  <section class="band" aria-label="The problem">
+    <div class="wrap">
+      <div>
+        <blockquote>Parents are spending thousands to decorate dorm rooms, on top of college costs that now reach six figures a year.</blockquote>
+        <p class="src">Summary of <a href="https://fortune.com/2026/08/24/college-dorm-decor-parents-spending-six-figure-tuition/" target="_blank" rel="noopener">Fortune, August 24, 2026</a></p>
+      </div>
+      <div class="pains">
+        <div><b>Pressure</b><span>Starting college is stressful enough without a week of shopping and assembly.</span></div>
+        <div><b>Cost</b><span>Students come from different financial backgrounds. Buying it all upfront adds up.</span></div>
+        <div><b>Waste</b><span>Furniture bought for one year often ends up on the curb in May.</span></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" id="how">
+    <div class="wrap">
+      <div class="section-head">
+        <p class="eyebrow">How it works</p>
+        <h2>From floor plan to finished room</h2>
+      </div>
+      <div class="steps">
+        <div class="step"><h3>Pick your hall</h3><p>Choose your UMBC building and room type. We already have the floor plan, so we know where the bed, desk and wardrobe go.</p></div>
+        <div class="step"><h3>Choose a package</h3><p>Essentials, Basic or Deluxe. Each one is priced per student for the full school year.</p></div>
+        <div class="step"><h3>Make it yours</h3><p>Pick your colors, posters and lighting, and add a setup for your major, like an easel for art students.</p></div>
+        <div class="step"><h3>Move in</h3><p>We deliver and assemble everything before move-in day. In May we pick it up, or you buy the pieces you want to keep.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" id="packages" style="padding-top:0">
+    <div class="wrap">
+      <div class="section-head">
+        <p class="eyebrow">Packages</p>
+        <h2>Three tiers, one price for the year</h2>
+        <p class="lede">Every package builds on the one before it. Items marked <span class="keep">Keep</span> are yours to take home.</p>
+      </div>
+      <div class="tiers">
+        <article class="tier">
+          <div class="tier-head">
+            <h3>Essentials</h3>
+            <div class="price num">$450</div>
+            <div class="per">per student / year · about $50 a month</div>
+          </div>
+          <div class="includes">Includes</div>
+          <ul>
+            <li>Cotton sheets <span class="keep">Keep</span></li>
+            <li>Cotton towels <span class="keep">Keep</span></li>
+            <li>Pillows</li>
+            <li>Laundry hamper</li>
+            <li>Hangers &amp; trash cans</li>
+            <li>Surge protector</li>
+            <li>Storage boxes</li>
+          </ul>
+          <div class="includes">Welcome kit</div>
+          <ul class="kit">
+            <li>Sweater</li><li>Pen &amp; mug</li><li>Bag</li><li>Snacks</li><li>Umbrella</li>
+          </ul>
+          <button class="btn btn-ghost" type="button" data-pick="essentials">Plan with Essentials</button>
+        </article>
+        <article class="tier">
+          <div class="tier-head">
+            <h3>Basic</h3>
+            <div class="price num">$850</div>
+            <div class="per">per student / year · about $94 a month</div>
+          </div>
+          <div class="includes">Everything in Essentials, plus</div>
+          <ul>
+            <li>Blackout blinds</li>
+            <li>Mattress topper</li>
+            <li>Desk lamp with wireless charging</li>
+            <li>Bed fan &amp; shoe rack</li>
+            <li>Mirror &amp; whiteboard</li>
+            <li>Calendar <span class="keep">Keep</span></li>
+            <li>3 wall posters <span class="keep">Keep</span></li>
+          </ul>
+          <div class="custom">
+            <p><b>Color palette.</b> Choose your room's accent colors.</p>
+            <p><b>Posters.</b> Pick 3 poster themes.</p>
+            <p><b>Desk and storage.</b> Set your lamp and charging layout, and choose a shoe rack and organizer finish.</p>
+          </div>
+          <button class="btn btn-ghost" type="button" data-pick="basic">Plan with Basic</button>
+        </article>
+        <article class="tier tier-deluxe">
+          <div class="tier-head">
+            <h3>Deluxe</h3>
+            <div class="price num">$1,500</div>
+            <div class="per">per student / year · about $167 a month</div>
+          </div>
+          <div class="includes">Everything in Basic, plus</div>
+          <ul>
+            <li>Neon lights</li>
+            <li>5 wall posters <span class="keep">Keep</span></li>
+            <li>Wallpaper</li>
+            <li>Mini-fridge</li>
+            <li>Chair upgrade</li>
+            <li>Beanbag</li>
+          </ul>
+          <div class="custom">
+            <p><b>Color and lighting.</b> A custom palette with synced neon lights.</p>
+            <p><b>Walls.</b> Pick 5 posters and a wallpaper.</p>
+            <p><b>Comfort.</b> Choose beanbag and chair styles, plus a rug, throw pillows and a nameplate.</p>
+            <p><b>Desk.</b> Oversized desk mat and layout options.</p>
+          </div>
+          <button class="btn btn-primary" type="button" data-pick="deluxe">Plan with Deluxe</button>
+        </article>
+      </div>
+      <p class="tiers-note">Monthly figures spread the yearly price over a 9-month school year. Add-ons for your major are extra.</p>
+    </div>
+  </section>
+
+  <section class="section planner-sec" id="planner">
+    <div class="wrap">
+      <div class="section-head">
+        <p class="eyebrow">Room planner</p>
+        <h2>See your room before you move in</h2>
+        <p class="lede">Choose a UMBC floor plan and a package. Every bed in the suite is shown dressed in your package so you can see the whole space.</p>
+      </div>
+      <div class="planner">
+        <form class="controls" id="plannerForm" onsubmit="return false">
+          <fieldset>
+            <legend>Hall &amp; room type</legend>
+            <div class="radio-list" id="hallList"></div>
+          </fieldset>
+          <div style="display:grid;gap:26px">
+            <fieldset>
+              <legend>Package</legend>
+              <div class="seg" id="pkgList"></div>
+            </fieldset>
+            <fieldset>
+              <legend>Color palette</legend>
+              <div class="swatches" id="palList"></div>
+            </fieldset>
+            <fieldset>
+              <legend>Setup for your major</legend>
+              <div class="majors" id="majorList"></div>
+            </fieldset>
+          </div>
+        </form>
+
+        <div class="stage">
+          <div class="sheet">
+            <div class="sheet-head">
+              <strong id="planTitle">Hall</strong>
+              <div class="toggle" role="group" aria-label="View">
+                <button type="button" id="viewEmpty" aria-pressed="false">Empty</button>
+                <button type="button" id="viewDesigned" aria-pressed="true">Designed</button>
+              </div>
+            </div>
+            <svg class="plan" id="plan" role="img" aria-label="Floor plan"></svg>
+            <div class="legend" id="legend"></div>
+            <div class="sheet-foot"><span id="planType">Type</span><span>Redrawn from UMBC Residential Life · not to scale</span></div>
+          </div>
+
+          <div class="summary">
+            <div class="quote" aria-live="polite">
+              <div class="eyebrow" id="qPkg">Package</div>
+              <div><span class="big num" id="qPrice">$0</span> <span class="per" style="color:var(--muted);font:400 .8rem var(--font-mono)">per student / year</span></div>
+              <div class="row"><span>Monthly, over 9 months</span><b id="qMonth">$0</b></div>
+              <div class="row"><span id="qSuiteLabel">Whole suite</span><b id="qSuite">$0</b></div>
+              <a class="btn btn-primary" href="#reserve" id="toReserve">Request this setup</a>
+            </div>
+            <div class="itemlist">
+              <h4 id="itemsHead">What's in the room</h4>
+              <ul id="items"></ul>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" id="compare">
+    <div class="wrap">
+      <div class="section-head">
+        <p class="eyebrow">Why DormDesigner</p>
+        <h2>Designing a room, not just furnishing it</h2>
+        <p class="lede">Anyone can drop off a couch and a poster. We plan the room around the student who lives in it.</p>
+      </div>
+      <div class="table-wrap">
+        <table class="compare">
+          <thead>
+            <tr>
+              <th scope="col"><span class="sr-only" style="position:absolute;left:-9999px">Topic</span></th>
+              <th scope="col">DIY retail<small>Target · IKEA · Walmart</small></th>
+              <th scope="col">Basic rental<small>Standard appliance services</small></th>
+              <th scope="col" class="us">DormDesigner<small>Curated setup service</small></th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><th scope="row">Effort</th><td>High stress and time. You transport and assemble everything.</td><td>Low, but only for one appliance.</td><td class="us">Zero. The room is set up before move-in.</td></tr>
+            <tr><th scope="row">Cost</th><td>Full purchase price upfront.</td><td>A rental fee for a MicroFridge.</td><td class="us">One yearly rental price, from $450.</td></tr>
+            <tr><th scope="row">Design</th><td>Pieces from different stores, no cohesive look.</td><td>Institutional feel, no decor or customization.</td><td class="us">A room curated around the student's identity.</td></tr>
+            <tr><th scope="row">Study setup</th><td>Whatever fits in the cart.</td><td>No improvement.</td><td class="us">Major-specific setups, like an easel for art students.</td></tr>
+            <tr><th scope="row">End of year</th><td>Waste. Much of it is thrown out.</td><td>Returned.</td><td class="us">Returned and reused, or bought to keep.</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" style="padding-top:0">
+    <div class="wrap">
+      <div class="section-head">
+        <p class="eyebrow">Who it's for</p>
+        <h2>Built for everyone on move-in day</h2>
+      </div>
+      <div class="who">
+        <div><h3>Students</h3><p>Want a room that looks good and feels like theirs, with a better place to sleep, study and hang out.</p></div>
+        <div><h3>Parents</h3><p>Want the best for their student without a weekend of shopping, hauling and assembly.</p></div>
+        <div><h3>Universities</h3><p>Want to offer more to students and bring apartment-quality living to traditional dorms.</p></div>
+        <div><h3>Brand partners</h3><p>Want to reach new students early. We feature products from select companies in our rooms.</p></div>
+      </div>
+      <div class="manifesto">
+        <div>
+          <p class="eyebrow" style="margin-bottom:14px">What we value</p>
+          <div class="values"><span>Comfort</span><span>Quality</span><span>Affordability</span><span>Speed</span><span>Style</span></div>
+        </div>
+        <div>
+          <p>College should feel a little easier every day. A comfortable room helps students sleep better, study better and meet people.</p>
+          <p>We put each student's identity and well-being first. The room should reflect who they are, not look like every other room on the floor.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section planner-sec" id="reserve">
+    <div class="wrap reserve">
+      <div class="section-head" style="margin:0">
+        <p class="eyebrow">Reserve</p>
+        <h2>Hold your setup for Fall 2027</h2>
+        <p class="lede">Tell us your hall and package. We'll confirm your design before move-in, and you can change colors and posters until then.</p>
+      </div>
+      <form class="form" id="reserveForm" novalidate>
+        <div class="two">
+          <div class="field"><label for="rName">Student name</label><input id="rName" name="name" autocomplete="name" placeholder="Jordan Lee" required></div>
+          <div class="field"><label for="rEmail">Email</label><input id="rEmail" name="email" type="email" autocomplete="email" placeholder="jlee1@umbc.edu" required></div>
+        </div>
+        <div class="two">
+          <div class="field"><label for="rHall">Hall &amp; room type</label><select id="rHall" name="hall"></select></div>
+          <div class="field"><label for="rPkg">Package</label><select id="rPkg" name="pkg"></select></div>
+        </div>
+        <div class="two">
+          <div class="field"><label for="rPal">Color palette</label><select id="rPal" name="palette"></select></div>
+          <div class="field"><label for="rMajor">Major setup</label><select id="rMajor" name="major"></select></div>
+        </div>
+        <div class="field"><label for="rNotes">Anything we should know?</label><textarea id="rNotes" name="notes" placeholder="Favorite colors, poster themes, roommate's name…"></textarea></div>
+        <button class="btn btn-primary" type="submit">Send request</button>
+        <p class="fine">This is an example site. Requests stay on this page and aren't sent anywhere.</p>
+        <div class="confirm" id="confirm" hidden></div>
+      </form>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="wrap">
+    <div style="display:grid;gap:12px">
+      <a class="brand" href="#top" aria-label="DormDesigner home"><svg class="mark" aria-hidden="true"><use href="#logo"/></svg><span class="wordmark">DormDesigner</span></a>
+      <p>Example concept site for a student business. Floor plans are redrawn from UMBC Residential Life's published hall and apartment plans. DormDesigner is not affiliated with or endorsed by UMBC.</p>
+    </div>
+    <div class="team">
+      <b>ENTR 200 · Group A</b><br>
+      Patrick Gray · Ayooluwatomi Akeju · Yitzchuk Rosenblat · Yuvan Vijayabaskar · De'Angelo Pierce
+    </div>
+  </div>
+</footer>
+
+<script>
+(function () {
+  "use strict";
+  const NS = "http://www.w3.org/2000/svg";
+
+  const PALETTES = {
+    berry:    { name: "Berry",     bed: "#F6A9C9", accent: "#E0307A", deep: "#7B2FD0", light: "#FDE4EF" },
+    sea:      { name: "Sea glass", bed: "#9FDCD1", accent: "#159A88", deep: "#1F5670", light: "#E2F6F2" },
+    citrus:   { name: "Citrus",    bed: "#FFD27D", accent: "#F0801C", deep: "#B83A12", light: "#FFF1D6" },
+    midnight: { name: "Midnight",  bed: "#AFB8F6", accent: "#4B3BFF", deep: "#1E2A78", light: "#E7EAFE" },
+    sage:     { name: "Sage",      bed: "#C7DAB6", accent: "#5F9150", deep: "#34522D", light: "#EEF5E8" }
+  };
+  const PACKAGES = {
+    essentials: { name: "Essentials", price: 450,  level: 1 },
+    basic:      { name: "Basic",      price: 850,  level: 2 },
+    deluxe:     { name: "Deluxe",     price: 1500, level: 3 }
+  };
+  const MAJORS = {
+    none:  { name: "No add-on",   item: "",                               price: 0 },
+    art:   { name: "Art",         item: "Easel & supply cart",            price: 75 },
+    eng:   { name: "Engineering", item: "Dual-monitor arm & desk mat",    price: 75 },
+    music: { name: "Music",       item: "Keyboard stand & headphone hook", price: 75 }
+  };
+  const ITEMS = [
+    { lvl: 1, name: "Cotton sheets", keep: true, plan: true },
+    { lvl: 1, name: "Cotton towels", keep: true },
+    { lvl: 1, name: "Pillows", plan: true },
+    { lvl: 1, name: "Laundry hamper" },
+    { lvl: 1, name: "Hangers & trash cans" },
+    { lvl: 1, name: "Surge protector" },
+    { lvl: 1, name: "Under-bed storage boxes", plan: true },
+    { lvl: 1, name: "Welcome kit" },
+    { lvl: 2, name: "Blackout blinds", plan: true },
+    { lvl: 2, name: "Mattress topper", plan: true },
+    { lvl: 2, name: "Desk lamp with wireless charging", plan: true },
+    { lvl: 2, name: "Bed fan & shoe rack" },
+    { lvl: 2, name: "Mirror & whiteboard" },
+    { lvl: 2, name: "Calendar", keep: true },
+    { lvl: 2, name: "3 wall posters", keep: true, plan: true, max: 2 },
+    { lvl: 3, name: "5 wall posters", keep: true, plan: true },
+    { lvl: 3, name: "Neon lights", plan: true },
+    { lvl: 3, name: "Wallpaper accent wall", plan: true },
+    { lvl: 3, name: "Mini-fridge", plan: true },
+    { lvl: 3, name: "Chair upgrade", plan: true },
+    { lvl: 3, name: "Beanbag", plan: true },
+    { lvl: 3, name: "Rug & throw pillows", plan: true }
+  ];
+
+  /* Floor plans, traced from UMBC Residential Life's published drawings.
+     Units are drawing units, not feet. Beds: head = pillow end, art = wall run
+     [x1,y1,x2,y2,nx,ny] where (nx,ny) points into the room. */
+  const LAYOUTS = {
+    susq: {
+      name: "Susquehanna · Patapsco · Chesapeake", short: "Susquehanna / Patapsco / Chesapeake", group: "Residence halls",
+      type: "Double rooms · shared bath", desc: "Two double rooms sharing a bathroom", residents: 4, w: 509, h: 359,
+      outline: [[0,0],[509,0],[509,359],[0,359]],
+      walls: [[203,0,203,30],[203,70,203,144],[305,0,305,30],[305,70,305,144],[203,144,225,144],[283,144,305,144],[254,187,254,202]],
+      windows: [[82,0,166,0],[341,0,425,0]],
+      doors: [{x:95,y:359,len:53,dir:"h",open:-1,hinge:"b"},{x:360,y:359,len:47,dir:"h",open:-1,hinge:"a"},
+              {x:203,y:30,len:40,dir:"v",open:-1,hinge:"a"},{x:305,y:30,len:40,dir:"v",open:1,hinge:"a"}],
+      furn: [["shower",232,6,48,44],["toilet",254,110],["sink",225,144,29,43],["sink",254,144,29,43],
+             ["wardrobe",212,202,42,78],["wardrobe",254,202,42,78],["wardrobe",212,280,42,79],["wardrobe",254,280,42,79]],
+      beds: [{x:0,y:24,w:142,h:61,head:"l",art:[4,0,78,0,0,1]},{x:0,y:222,w:65,h:137,head:"b",art:[0,228,0,352,1,0]},
+             {x:367,y:24,w:142,h:61,head:"r",art:[430,0,505,0,0,1]},{x:444,y:222,w:65,h:137,head:"b",art:[509,228,509,352,-1,0]}],
+      desks: [{x:0,y:85,w:34,h:69,wall:"l"},{x:0,y:154,w:34,h:68,wall:"l"},{x:475,y:85,w:34,h:69,wall:"r"},{x:475,y:154,w:34,h:68,wall:"r"}],
+      rooms: [{rug:[62,125,118,110],fridge:[190,170],bean:[165,300],extra:[172,42]},
+              {rug:[329,125,118,110],fridge:[318,170],bean:[340,300],extra:[337,42]}],
+      labels: [[120,108,"Room A"],[390,108,"Room B"],[254,72,"Bath"]]
+    },
+    potomac: {
+      name: "Potomac Hall", short: "Potomac Hall", group: "Residence halls",
+      type: "Double rooms · shared bath", desc: "Two double rooms sharing a bathroom", residents: 4, w: 553, h: 372,
+      outline: [[0,0],[553,0],[553,372],[0,372]],
+      walls: [[276,0,276,235],[221,235,331,235],[221,235,221,290],[221,330,221,372],[331,235,331,290],[331,330,331,372]],
+      windows: [[90,0,181,0],[371,0,462,0]],
+      doors: [{x:91,y:372,len:60,dir:"h",open:-1,hinge:"a"},{x:402,y:372,len:60,dir:"h",open:-1,hinge:"b"},
+              {x:221,y:290,len:40,dir:"v",open:-1,hinge:"b"},{x:331,y:290,len:40,dir:"v",open:1,hinge:"b"}],
+      furn: [["sink",193,226,26,44],["sink",333,226,26,44],["toilet",276,258],["shower",248,322,56,47],
+             ["wardrobe",0,212,44,80],["wardrobe",0,292,44,80],["wardrobe",509,212,44,80],["wardrobe",509,292,44,80]],
+      beds: [{x:0,y:0,w:71,h:140,head:"t",art:[0,10,0,132,1,0]},{x:206,y:0,w:70,h:140,head:"t",art:[210,0,272,0,0,1]},
+             {x:276,y:0,w:72,h:140,head:"t",art:[280,0,345,0,0,1]},{x:482,y:0,w:71,h:140,head:"t",art:[553,10,553,132,-1,0]}],
+      desks: [{x:0,y:140,w:36,h:72,wall:"l"},{x:238,y:140,w:38,h:72,wall:"r"},{x:276,y:140,w:38,h:72,wall:"l"},{x:517,y:140,w:36,h:72,wall:"r"}],
+      rooms: [{rug:[66,182,120,108],fridge:[192,160],bean:[175,338],extra:[135,62]},
+              {rug:[367,182,120,108],fridge:[372,160],bean:[378,338],extra:[418,62]}],
+      labels: [[125,165,"Room A"],[430,165,"Room B"],[276,302,"Bath"]]
+    },
+    erickson: {
+      name: "Erickson & Harbor Halls", short: "Erickson / Harbor double suite", group: "Residence halls",
+      type: "Double suite · common room", desc: "Two double rooms, a common room and a bathroom", residents: 4, w: 512, h: 352,
+      outline: [[0,0],[512,0],[512,352],[0,352]],
+      walls: [[170,0,170,210],[342,0,342,210],[108,265,200,265],[245,265,245,352],[108,265,108,319],[380,255,380,352]],
+      windows: [[42,0,127,0],[178,0,333,0],[385,0,470,0]],
+      doors: [{x:170,y:210,len:45,dir:"v",open:-1,hinge:"b"},{x:342,y:210,len:45,dir:"v",open:1,hinge:"b"},
+              {x:200,y:265,len:45,dir:"h",open:-1,hinge:"b"},{x:262,y:352,len:45,dir:"h",open:-1,hinge:"b"}],
+      furn: [["couch",175,6,113,41],["end",291,11,41,35],["coffee",193,63,70,26],["chair",299,74,36,45],
+             ["closet",0,265,30,87],["closet",30,319,78,33],["closet",483,265,29,87],["closet",380,319,103,33],
+             ["sink",110,268,22,40],["shower",134,268,44,46],["toilet",222,312],["sink",382,267,24,40]],
+      beds: [{x:0,y:6,w:118,h:59,head:"l",art:[0,6,0,62,1,0]},{x:0,y:134,w:53,h:131,head:"b",art:[0,140,0,258,1,0]},
+             {x:395,y:6,w:117,h:59,head:"r",art:[512,6,512,62,-1,0]},{x:457,y:134,w:55,h:112,head:"b",art:[512,140,512,240,-1,0]}],
+      desks: [{x:0,y:65,w:30,h:69,wall:"l"},{x:142,y:109,w:28,h:69,wall:"r"},{x:482,y:65,w:30,h:68,wall:"r"},{x:342,y:109,w:28,h:69,wall:"l"}],
+      rooms: [{rug:[58,80,76,104],fridge:[72,244],bean:[100,232],extra:[146,42]},
+              {rug:[376,80,76,104],fridge:[432,282],bean:[420,214],extra:[366,42]},
+              {rug:[186,100,140,92]}],
+      labels: [[92,205,"Room A"],[412,262,"Room B"],[256,215,"Common"],[178,335,"Bath"]]
+    },
+    harbor: {
+      name: "Harbor Hall", short: "Harbor Hall single suite", group: "Residence halls",
+      type: "Single suite · 4 bedrooms", desc: "Four single bedrooms around a shared bath and lounge", residents: 4, w: 558, h: 351,
+      outline: [[0,0],[558,0],[558,351],[0,351]],
+      walls: [[138,0,138,224],[278,0,278,224],[418,0,418,224],[0,224,86,224],[190,224,366,224],[470,224,558,224],
+              [213,255,213,351],[345,255,345,351],[213,255,235,255],[325,255,345,255]],
+      windows: [[18,0,70,0],[150,0,212,0],[290,0,345,0],[492,0,545,0]],
+      doors: [{x:86,y:224,len:52,dir:"h",open:-1,hinge:"b"},{x:138,y:224,len:52,dir:"h",open:-1,hinge:"a"},
+              {x:366,y:224,len:52,dir:"h",open:-1,hinge:"b"},{x:418,y:224,len:52,dir:"h",open:-1,hinge:"a"},
+              {x:113,y:351,len:45,dir:"h",open:-1,hinge:"b"}],
+      furn: [["closet",0,198,65,26],["closet",204,198,74,26],["closet",278,198,68,26],["closet",483,198,75,26],
+             ["loveseat",5,232,36,80],["end",8,312,30,34],["chair",505,236,46,36],["round",529,288,11],["chair",505,306,46,36],
+             ["tub",216,283,72,43],["toilet",318,300],["sink",168,324,43,24],["sink",347,324,43,24]],
+      beds: [{x:0,y:6,w:58,h:127,head:"t",art:[0,12,0,126,1,0]},{x:219,y:6,w:59,h:127,head:"t",art:[278,12,278,126,-1,0]},
+             {x:278,y:6,w:60,h:127,head:"t",art:[278,12,278,126,1,0]},{x:499,y:6,w:59,h:127,head:"t",art:[558,12,558,126,-1,0]}],
+      desks: [{x:73,y:0,w:65,h:33,wall:"t"},{x:138,y:0,w:66,h:33,wall:"t"},{x:353,y:0,w:65,h:33,wall:"t"},{x:418,y:0,w:67,h:33,wall:"t"}],
+      rooms: [{rug:[64,62,66,92],fridge:[124,46],bean:[96,160],extra:[72,180]},
+              {rug:[148,62,66,92],fridge:[152,46],bean:[196,158],extra:[178,140]},
+              {rug:[344,62,66,92],fridge:[346,46],bean:[392,150],extra:[358,178]},
+              {rug:[428,62,66,92],fridge:[472,46],bean:[446,150],extra:[486,178]},
+              {rug:[50,250,108,86]}],
+      labels: [[98,112,"A"],[178,112,"B"],[378,112,"C"],[458,112,"D"],[280,342,"Bath"],[104,244,"Lounge"]]
+    },
+    terrace: {
+      name: "Terrace & Hillside Apartments", short: "Terrace / Hillside apartment", group: "Apartments",
+      type: "Apartment · 4 single bedrooms", desc: "Four single bedrooms, a kitchen and a shared bath", residents: 4, w: 487, h: 404,
+      outline: [[0,0],[487,0],[487,256],[362,256],[362,404],[89,404],[89,257],[0,257]],
+      walls: [[0,127,157,127],[157,0,157,84],[157,119,157,214],[157,251,157,257],[157,257,180,257],[270,257,362,257],[225,257,225,404],
+              [294,0,294,131],[157,131,200,131],[240,131,294,131]],
+      windows: [[0,64,0,122],[0,194,0,251]],
+      doors: [{x:157,y:84,len:35,dir:"v",open:-1,hinge:"b"},{x:157,y:214,len:37,dir:"v",open:-1,hinge:"b"},
+              {x:180,y:257,len:45,dir:"h",open:1,hinge:"b"},{x:225,y:257,len:45,dir:"h",open:1,hinge:"a"},
+              {x:200,y:131,len:40,dir:"h",open:-1,hinge:"a"}],
+      furn: [["closet",130,0,27,62],["closet",130,129,27,62],["closet",89,257,68,24],["closet",294,257,68,24],
+             ["tub",162,5,110,34],["sink",272,49,20,38],["sink",272,89,20,38],["toilet",240,108],
+             ["counter",296,0,26,130],["appl",417,5,22,14],["appl",452,5,22,14],["table",412,26,70,30],
+             ["chair",412,94,32,32],["chair",450,94,32,32],["loveseat",447,139,38,72],["chair",414,216,34,32]],
+      beds: [{x:0,y:0,w:60,h:122,head:"t",art:[0,6,0,60,1,0]},{x:0,y:129,w:60,h:122,head:"t",art:[0,135,0,190,1,0]},
+             {x:89,y:349,w:131,h:55,head:"l",art:[95,404,215,404,0,-1]},{x:230,y:349,w:132,h:55,head:"r",art:[235,404,357,404,0,-1]}],
+      desks: [{x:62,y:0,w:65,h:29,wall:"t"},{x:62,y:129,w:65,h:30,wall:"t"},{x:92,y:284,w:28,h:65,wall:"l"},{x:334,y:284,w:28,h:65,wall:"r"}],
+      rooms: [{rug:[68,38,56,58],fridge:[74,110],bean:[106,108],extra:[118,74]},
+              {rug:[68,167,56,58],fridge:[74,239],bean:[106,237],extra:[118,203]},
+              {rug:[124,286,94,56],fridge:[134,300],bean:[172,322],extra:[208,334]},
+              {rug:[232,286,94,56],fridge:[318,300],bean:[282,322],extra:[246,334]},
+              {rug:[318,150,112,92]}],
+      labels: [[30,104,"1"],[30,233,"2"],[150,392,"3"],[296,392,"4"],[369,72,"Kitchen"],[220,80,"Bath"]]
+    },
+    westhill: {
+      name: "West Hill Apartments", short: "West Hill apartment", group: "Apartments",
+      type: "Apartment · 4 single bedrooms", desc: "Four single bedrooms, a kitchen and living room", residents: 4, w: 544, h: 350,
+      outline: [[0,0],[514,0],[514,137],[544,137],[544,350],[0,350]],
+      walls: [[0,137,126,137],[179,137,204,137],[256,137,381,137],[204,0,204,137],[381,0,381,137],
+              [64,192,84,192],[126,192,211,192],[256,192,331,192],[361,192,381,192],[129,192,129,350],[256,192,256,350],[381,192,381,350]],
+      windows: [[30,350,110,350],[150,350,240,350]],
+      doors: [{x:126,y:137,len:53,dir:"h",open:-1,hinge:"b"},{x:204,y:137,len:52,dir:"h",open:-1,hinge:"a"},
+              {x:84,y:192,len:42,dir:"h",open:1,hinge:"b"},{x:211,y:192,len:45,dir:"h",open:1,hinge:"b"},
+              {x:331,y:192,len:30,dir:"h",open:1,hinge:"a"}],
+      furn: [["closet",179,0,25,67],["closet",179,67,25,70],["closet",0,140,64,26],["closet",0,166,64,26],
+             ["counter",486,0,28,137],["sink",260,207,22,38],["sink",260,247,22,38],["tub",276,302,77,45],["toilet",358,262],
+             ["table",391,287,25,38],["coffee",463,252,23,75],["couch",501,214,40,126],["chair",392,212,44,44]],
+      beds: [{x:0,y:0,w:56,h:137,head:"t",art:[0,8,0,130,1,0]},{x:324,y:0,w:57,h:137,head:"t",art:[381,8,381,130,-1,0]},
+             {x:3,y:287,w:123,h:63,head:"l",art:[8,350,26,350,0,-1]},{x:131,y:287,w:125,h:63,head:"r",art:[256,292,256,346,-1,0]}],
+      desks: [{x:96,y:0,w:65,h:32,wall:"t"},{x:226,y:0,w:63,h:32,wall:"t"},{x:3,y:204,w:33,h:80,wall:"l"},{x:133,y:204,w:28,h:80,wall:"l"}],
+      rooms: [{rug:[66,44,98,62],fridge:[70,120],bean:[100,116],extra:[168,52]},
+              {rug:[214,44,100,62],fridge:[310,120],bean:[276,116],extra:[214,52]},
+              {rug:[44,212,78,62],fridge:[50,274],bean:[100,262],extra:[62,214]},
+              {rug:[168,212,80,62],fridge:[176,274],bean:[232,262],extra:[178,214]},
+              {rug:[424,224,72,112]}],
+      labels: [[60,120,"1"],[300,120,"2"],[80,300,"3"],[200,300,"4"],[447,52,"Kitchen"],[320,226,"Bath"],[452,176,"Living"]]
+    },
+    walker: {
+      name: "Walker Avenue Apartments", short: "Walker Avenue apartment", group: "Apartments",
+      type: "Apartment · 4 bedrooms · 2 baths", desc: "Four bedrooms, two baths, kitchen, laundry and living area", residents: 4, w: 828, h: 365,
+      outline: [[0,0],[673,0],[673,145],[828,145],[828,365],[0,365]],
+      walls: [[183,0,183,210],[340,0,340,210],[495,0,495,210],[650,0,650,145],
+              [183,210,285,210],[340,210,440,210],[495,210,595,210],[643,210,653,210],
+              [653,145,653,160],[653,205,653,365],
+              [228,258,228,365],[343,258,343,365],[493,258,493,365],[640,258,640,365],
+              [228,258,265,258],[300,258,410,258],[450,258,560,258],[600,258,640,258]],
+      windows: [[24,0,160,0],[200,0,320,0],[355,0,475,0],[510,0,630,0],[690,365,800,365]],
+      doors: [{x:285,y:210,len:48,dir:"h",open:-1,hinge:"b"},{x:440,y:210,len:48,dir:"h",open:-1,hinge:"b"},
+              {x:595,y:210,len:48,dir:"h",open:-1,hinge:"b"},{x:653,y:160,len:45,dir:"v",open:1,hinge:"a"},
+              {x:265,y:258,len:35,dir:"h",open:1,hinge:"a"},{x:410,y:258,len:40,dir:"h",open:1,hinge:"a"},
+              {x:560,y:258,len:40,dir:"h",open:1,hinge:"b"},{x:0,y:205,len:50,dir:"v",open:1,hinge:"a"}],
+      furn: [["sofa",20,64,36,104],["chair",86,26,34,32],["coffee",86,96,36,36],["tv",152,84,24,64],
+             ["table",80,200,54,46],["chair",64,210,14,26],["chair",136,210,14,26],
+             ["counter",8,322,214,36],["washer",256,322,30,30],["dryer",290,322,30,30],
+             ["tub",458,265,32,80],["tub",497,265,32,80],["toilet",420,330],["toilet",565,330],["sink",355,330,32,24],["sink",600,330,32,24],
+             ["closet",188,170,80,36],["closet",413,170,78,36],["closet",498,170,90,36],["closet",658,210,30,100]],
+      beds: [{x:188,y:8,w:65,h:100,head:"t",art:[183,14,183,104,1,0]},{x:426,y:8,w:65,h:100,head:"t",art:[495,14,495,104,-1,0]},
+             {x:500,y:8,w:65,h:100,head:"t",art:[495,14,495,104,1,0]},{x:760,y:258,w:66,h:105,head:"b",art:[828,262,828,358,-1,0]}],
+      desks: [{x:300,y:24,w:38,h:80,wall:"r"},{x:344,y:24,w:38,h:80,wall:"l"},{x:609,y:24,w:38,h:80,wall:"r"},{x:748,y:149,w:50,h:30,wall:"t"}],
+      rooms: [{rug:[192,116,92,48],fridge:[275,20],bean:[312,140],extra:[275,80]},
+              {rug:[350,116,92,48],fridge:[404,20],bean:[364,140],extra:[404,80]},
+              {rug:[504,116,92,48],fridge:[586,20],bean:[524,140],extra:[586,80]},
+              {rug:[696,212,58,110],fridge:[812,168],bean:[720,340],extra:[726,240]},
+              {rug:[62,58,92,96]}],
+      labels: [[262,186,"Bedroom A","10'1\" × 12'0\""],[388,186,"Bedroom B","10'1\" × 12'0\""],[548,186,"Bedroom C","10'2\" × 12'0\""],
+               [740,330,"Bedroom D","10'3\" × 12'3\""],[104,176,"Living","11'1\" × 15'5\""],[115,292,"Kitchen","14'2\" × 8'2\""],
+               [286,288,"Laundry"],[395,290,"Bath"],[590,290,"Bath"]]
+    }
+  };
+
+  const FURN_LABEL = { wardrobe: "Wardrobe", closet: "Closet", couch: "Couch", sofa: "Sofa", end: "End table", coffee: "Coffee table",
+    chair: "", loveseat: "Love seat", table: "Table", tv: "TV", counter: "", washer: "W", dryer: "D", appl: "" };
+
+  /* ---------- SVG helpers ---------- */
+  function el(tag, attrs, parent) {
+    const e = document.createElementNS(NS, tag);
+    for (const k in attrs) e.setAttribute(k, attrs[k]);
+    if (parent) parent.appendChild(e);
+    return e;
+  }
+  function text(parent, x, y, str, cls, rotate) {
+    const t = el("text", { x, y, class: cls, "text-anchor": "middle", "dominant-baseline": "central" }, parent);
+    if (rotate) t.setAttribute("transform", "rotate(-90 " + x + " " + y + ")");
+    t.textContent = str;
+    return t;
+  }
+  function rectLabel(g, x, y, w, h, label) {
+    if (!label) return;
+    const vertical = h > w * 1.3 && w < 46;
+    const room = vertical ? h : w;
+    if (room < label.length * 4.4 + 4) return;
+    text(g, x + w / 2, y + h / 2, label, "p-flabel", vertical);
+  }
+  function band(b, side, depth) {
+    if (side === "t") return { x: b.x, y: b.y, w: b.w, h: depth };
+    if (side === "b") return { x: b.x, y: b.y + b.h - depth, w: b.w, h: depth };
+    if (side === "l") return { x: b.x, y: b.y, w: depth, h: b.h };
+    return { x: b.x + b.w - depth, y: b.y, w: depth, h: b.h };
+  }
+  const OPP = { t: "b", b: "t", l: "r", r: "l" };
+  function inset(r, d) { return { x: r.x + d, y: r.y + d, w: Math.max(0, r.w - 2 * d), h: Math.max(0, r.h - 2 * d) }; }
+  function rect(g, r, attrs) { return el("rect", Object.assign({ x: r.x, y: r.y, width: r.w, height: r.h }, attrs), g); }
+
+  /* ---------- Plan renderer ---------- */
+  function renderPlan(svg, key, opt) {
+    const L = LAYOUTS[key];
+    const pal = PALETTES[opt.palette];
+    const lvl = opt.designed ? PACKAGES[opt.pkg].level : 0;
+    const id = svg.id;
+    const pad = 10;
+    svg.innerHTML = "";
+    svg.setAttribute("viewBox", (-pad) + " " + (-pad) + " " + (L.w + pad * 2) + " " + (L.h + pad * 2));
+
+    const defs = el("defs", {}, svg);
+    const grid = el("pattern", { id: id + "-grid", width: 16, height: 16, patternUnits: "userSpaceOnUse" }, defs);
+    el("path", { d: "M16 0 H0 V16", class: "p-gridline" }, grid);
+    const wp = el("pattern", { id: id + "-wp", width: 8, height: 8, patternUnits: "userSpaceOnUse", patternTransform: "rotate(45)" }, defs);
+    el("rect", { width: 8, height: 8, fill: pal.light }, wp);
+    el("rect", { width: 3, height: 8, fill: pal.bed }, wp);
+    const glow = el("filter", { id: id + "-glow", x: "-50%", y: "-50%", width: "200%", height: "200%" }, defs);
+    el("feGaussianBlur", { stdDeviation: 2.4, result: "b" }, glow);
+    const merge = el("feMerge", {}, glow);
+    el("feMergeNode", { in: "b" }, merge);
+    el("feMergeNode", { in: "SourceGraphic" }, merge);
+    const lampG = el("radialGradient", { id: id + "-lamp" }, defs);
+    el("stop", { offset: "0", "stop-color": "#FFD45E", "stop-opacity": ".75" }, lampG);
+    el("stop", { offset: "1", "stop-color": "#FFD45E", "stop-opacity": "0" }, lampG);
+
+    const pts = L.outline.map(p => p.join(",")).join(" ");
+    el("polygon", { points: pts, class: "p-floor" }, svg);
+    el("polygon", { points: pts, fill: "url(#" + id + "-grid)" }, svg);
+
+    const under = el("g", { class: "decor" }, svg);
+    const furnG = el("g", {}, svg);
+    const wallsG = el("g", {}, svg);
+    const over = el("g", { class: "decor" }, svg);
+    const labelsG = el("g", {}, svg);
+
+    // Rugs and wallpaper sit under the furniture.
+    if (lvl >= 3) {
+      L.rooms.forEach(r => {
+        if (!r.rug) return;
+        const [x, y, w, h] = r.rug;
+        const g = el("g", {}, under);
+        rect(g, { x, y, w, h }, { rx: 6, fill: pal.light, stroke: pal.accent, "stroke-width": 1.2 });
+        rect(g, inset({ x, y, w, h }, 5), { rx: 3, fill: "none", stroke: pal.accent, "stroke-width": .7, "stroke-dasharray": "3 2.5" });
+      });
+      L.beds.forEach(b => {
+        const [x1, y1, x2, y2, nx, ny] = b.art;
+        const g = el("g", {}, under);
+        if (y1 === y2) rect(g, { x: Math.min(x1, x2), y: ny > 0 ? y1 + 1.5 : y1 - 15.5, w: Math.abs(x2 - x1), h: 14 }, { fill: "url(#" + id + "-wp)", opacity: .9 });
+        else rect(g, { x: nx > 0 ? x1 + 1.5 : x1 - 15.5, y: Math.min(y1, y2), w: 14, h: Math.abs(y2 - y1) }, { fill: "url(#" + id + "-wp)", opacity: .9 });
+      });
+    }
+
+    // Furniture and fixtures from the drawing.
+    L.furn.forEach(f => {
+      const t = f[0];
+      if (t === "toilet") {
+        const [, x, y] = f;
+        el("rect", { x: x - 8, y: y - 13, width: 16, height: 6, rx: 1, class: "p-fix" }, furnG);
+        el("ellipse", { cx: x, cy: y + 2, rx: 7, ry: 9, class: "p-fix" }, furnG);
+        return;
+      }
+      if (t === "round") { el("circle", { cx: f[1], cy: f[2], r: f[3], class: "p-furn" }, furnG); return; }
+      const [, x, y, w, h] = f;
+      if (t === "shower") {
+        rect(furnG, { x, y, w, h }, { class: "p-fix" });
+        el("path", { d: "M" + x + " " + y + " L" + (x + w) + " " + (y + h) + " M" + (x + w) + " " + y + " L" + x + " " + (y + h), class: "p-fixline" }, furnG);
+      } else if (t === "tub") {
+        rect(furnG, { x, y, w, h }, { class: "p-fix" });
+        rect(furnG, inset({ x, y, w, h }, 4), { rx: 7, class: "p-fixline" });
+      } else if (t === "sink") {
+        rect(furnG, { x, y, w, h }, { class: "p-fix" });
+        el("ellipse", { cx: x + w / 2, cy: y + h / 2, rx: Math.min(w, h) * .32, ry: Math.min(w, h) * .38, class: "p-fixline" }, furnG);
+      } else {
+        rect(furnG, { x, y, w, h }, { class: "p-furn", rx: t === "chair" || t === "couch" || t === "sofa" || t === "loveseat" ? 3 : 0 });
+        rectLabel(furnG, x, y, w, h, FURN_LABEL[t]);
+      }
+    });
+    L.desks.forEach(d => { rect(furnG, d, { class: "p-furn" }); if (!lvl) rectLabel(furnG, d.x, d.y, d.w, d.h, "Desk"); });
+    L.beds.forEach(b => { rect(furnG, b, { class: "p-furn" }); if (!lvl) rectLabel(furnG, b.x, b.y, b.w, b.h, "Bed"); });
+
+    // Walls, windows, doors.
+    el("polygon", { points: pts, class: "p-wall" }, wallsG);
+    L.walls.forEach(w => el("line", { x1: w[0], y1: w[1], x2: w[2], y2: w[3], class: "p-iwall" }, wallsG));
+    L.windows.forEach(w => {
+      const [x1, y1, x2, y2] = w;
+      el("line", { x1, y1, x2, y2, class: "p-wingap" }, wallsG);
+      const horiz = y1 === y2;
+      [-1.6, 1.6].forEach(o => el("line", horiz ? { x1, y1: y1 + o, x2, y2: y2 + o, class: "p-win" } : { x1: x1 + o, y1, x2: x2 + o, y2, class: "p-win" }, wallsG));
+      if (lvl >= 2) el("line", { x1, y1, x2, y2, stroke: pal.deep, "stroke-width": 2.6, "stroke-linecap": "round", class: "blinds" }, over);
+    });
+    L.doors.forEach(d => {
+      const { x, y, len, dir, open, hinge } = d;
+      if (dir === "h") {
+        el("line", { x1: x + 1, y1: y, x2: x + len - 1, y2: y, class: "p-gap" }, wallsG);
+        const hx = hinge === "a" ? x : x + len, fx = hinge === "a" ? x + len : x, ly = y + open * len;
+        el("line", { x1: hx, y1: y, x2: hx, y2: ly, class: "p-leaf" }, wallsG);
+        const sweep = (fx - hx) * open < 0 ? 1 : 0;
+        el("path", { d: "M" + hx + " " + ly + " A" + len + " " + len + " 0 0 " + sweep + " " + fx + " " + y, class: "p-arc" }, wallsG);
+      } else {
+        el("line", { x1: x, y1: y + 1, x2: x, y2: y + len - 1, class: "p-gap" }, wallsG);
+        const hy = hinge === "a" ? y : y + len, fy = hinge === "a" ? y + len : y, lx = x + open * len;
+        el("line", { x1: x, y1: hy, x2: lx, y2: hy, class: "p-leaf" }, wallsG);
+        const sweep = (fy - hy) * open > 0 ? 1 : 0;
+        el("path", { d: "M" + lx + " " + hy + " A" + len + " " + len + " 0 0 " + sweep + " " + x + " " + fy, class: "p-arc" }, wallsG);
+      }
+    });
+
+    // Decor on top.
+    if (lvl >= 1) {
+      L.beds.forEach(b => {
+        const g = el("g", {}, over);
+        const horiz = b.head === "l" || b.head === "r";
+        const length = horiz ? b.w : b.h;
+        rect(g, inset(b, 1.2), { rx: 3, fill: pal.bed, stroke: pal.accent, "stroke-width": .8 });
+        // under-bed storage, drawn dashed (hidden-line convention)
+        const c = { x: b.x + b.w / 2, y: b.y + b.h / 2 };
+        const bw = horiz ? 20 : b.w * .55, bh = horiz ? b.h * .55 : 20;
+        [-1, 1].forEach(s => {
+          const off = s * (horiz ? 13 : 13);
+          rect(g, { x: c.x - bw / 2 + (horiz ? off : 0), y: c.y - bh / 2 + (horiz ? 0 : off), w: bw, h: bh }, { fill: "none", stroke: pal.deep, "stroke-width": .7, "stroke-dasharray": "2 2", opacity: .7 });
+        });
+        if (lvl >= 2) rect(g, inset(b, 4), { rx: 3, fill: "none", stroke: pal.accent, "stroke-width": .9, "stroke-dasharray": "4 2" });
+        if (lvl >= 3) {
+          const foot = band(inset(b, 1.2), OPP[b.head], length * .26);
+          rect(g, foot, { rx: 2, fill: pal.accent, opacity: .9 });
+        }
+        const pil = inset(band(b, b.head, Math.min(18, length * .17) + 4), 4);
+        rect(g, pil, { rx: 4, fill: pal.light, stroke: pal.deep, "stroke-width": .8 });
+        if (lvl >= 3) {
+          const cx = pil.x + pil.w / 2, cy = pil.y + pil.h / 2;
+          const dx = horiz ? 0 : pil.w * .22, dy = horiz ? pil.h * .22 : 0;
+          el("circle", { cx: cx - dx, cy: cy - dy, r: 3.6, fill: pal.deep }, g);
+          el("circle", { cx: cx + dx, cy: cy + dy, r: 3.6, fill: pal.accent }, g);
+        }
+        // posters & neon along the wall run
+        if (lvl >= 2) {
+          const [x1, y1, x2, y2, nx, ny] = b.art;
+          const horizWall = y1 === y2;
+          const runLen = Math.abs(horizWall ? x2 - x1 : y2 - y1);
+          const n = lvl >= 3 ? 5 : 3;
+          const slot = runLen / n;
+          const pl = Math.min(slot * .72, 20);
+          const colors = [pal.accent, pal.deep, pal.bed, pal.accent, pal.deep];
+          for (let i = 0; i < n; i++) {
+            const along = Math.min(x1, x2) * horizWall + Math.min(y1, y2) * !horizWall + (i + .5) * slot;
+            const r = horizWall
+              ? { x: along - pl / 2, y: ny > 0 ? y1 + 2.4 : y1 - 7.4, w: pl, h: 5 }
+              : { x: nx > 0 ? x1 + 2.4 : x1 - 7.4, y: along - pl / 2, w: 5, h: pl };
+            rect(g, r, { fill: colors[i], stroke: "#FFFFFF", "stroke-width": .6 });
+          }
+          if (lvl >= 3) {
+            const o = 10;
+            const lp = horizWall
+              ? { x1: Math.min(x1, x2) + 3, y1: y1 + ny * o, x2: Math.max(x1, x2) - 3, y2: y1 + ny * o }
+              : { x1: x1 + nx * o, y1: Math.min(y1, y2) + 3, x2: x1 + nx * o, y2: Math.max(y1, y2) - 3 };
+            el("line", Object.assign(lp, { stroke: pal.accent, "stroke-width": 2, "stroke-linecap": "round", filter: "url(#" + id + "-glow)" }), g);
+          }
+        }
+      });
+
+      L.desks.forEach(d => {
+        const g = el("g", {}, over);
+        const wallSide = d.wall;
+        if (lvl >= 2) {
+          // lamp in the desk corner nearest the wall
+          const lx = wallSide === "r" ? d.x + d.w - 7 : d.x + 7;
+          const ly = wallSide === "b" ? d.y + d.h - 7 : d.y + 7;
+          el("circle", { cx: lx, cy: ly, r: 13, fill: "url(#" + id + "-lamp)" }, g);
+          el("circle", { cx: lx, cy: ly, r: 3.4, fill: "#FFC83A", stroke: pal.deep, "stroke-width": .8 }, g);
+        }
+        if (opt.major === "eng" && opt.designed) {
+          const mon = band(inset(d, 3), wallSide, 3.2);
+          const vertical = wallSide === "l" || wallSide === "r";
+          const half = vertical ? { a: mon.h } : { a: mon.w };
+          const seg = half.a * .44;
+          [0, 1].forEach(i => {
+            const r = vertical ? { x: mon.x, y: mon.y + i * (half.a - seg), w: mon.w, h: seg } : { x: mon.x + i * (half.a - seg), y: mon.y, w: seg, h: mon.h };
+            rect(g, r, { fill: pal.deep, rx: 1 });
+          });
+          rect(g, inset(d, 6), { fill: "none", stroke: pal.accent, "stroke-width": .9, rx: 2 });
+        }
+        if (lvl >= 3) {
+          // upgraded chair, pulled out from the desk
+          const s = 13;
+          let cx = d.x + d.w / 2, cy = d.y + d.h / 2;
+          if (wallSide === "t") cy = d.y + d.h + s / 2 + 2;
+          if (wallSide === "b") cy = d.y - s / 2 - 2;
+          if (wallSide === "l") cx = d.x + d.w + s / 2 + 2;
+          if (wallSide === "r") cx = d.x - s / 2 - 2;
+          rect(g, { x: cx - s / 2, y: cy - s / 2, w: s, h: s }, { rx: 4, fill: pal.deep, stroke: pal.light, "stroke-width": 1 });
+        }
+      });
+
+      L.rooms.forEach(r => {
+        if (lvl >= 3 && r.fridge) {
+          const g = el("g", {}, over);
+          const [x, y] = r.fridge;
+          rect(g, { x: x - 10, y: y - 10, w: 20, h: 20 }, { rx: 2, class: "p-appl", stroke: pal.deep });
+          text(g, x, y, "FRIDGE", "p-appl-label");
+        }
+        if (lvl >= 3 && r.bean) {
+          const g = el("g", {}, over);
+          const [x, y] = r.bean;
+          el("circle", { cx: x, cy: y, r: 13, fill: pal.accent }, g);
+          el("circle", { cx: x - 3, cy: y - 3, r: 6, fill: "#FFFFFF", opacity: .28 }, g);
+        }
+        if (r.extra && opt.designed && (opt.major === "art" || opt.major === "music")) {
+          const g = el("g", {}, over);
+          const [x, y] = r.extra;
+          if (opt.major === "art") {
+            el("path", { d: "M" + (x - 9) + " " + (y + 9) + " L" + x + " " + (y - 10) + " L" + (x + 9) + " " + (y + 9) + " M" + x + " " + (y - 10) + " L" + x + " " + (y + 9), stroke: pal.deep, "stroke-width": 1.6, fill: "none", "stroke-linecap": "round" }, g);
+            rect(g, { x: x - 7, y: y - 6, w: 14, h: 9 }, { fill: "#FFFFFF", stroke: pal.accent, "stroke-width": 1.2 });
+          } else {
+            rect(g, { x: x - 15, y: y - 5, w: 30, h: 10 }, { fill: "#FFFFFF", stroke: pal.deep, "stroke-width": 1.1, rx: 1 });
+            for (let i = 1; i < 7; i++) if (i !== 3) el("line", { x1: x - 15 + i * 30 / 7, y1: y - 5, x2: x - 15 + i * 30 / 7, y2: y, stroke: pal.deep, "stroke-width": 1.4 }, g);
+          }
+        }
+      });
+    }
+
+    L.labels.forEach(l => {
+      if (!l[2]) return;
+      text(labelsG, l[0], l[1], l[2], "p-room");
+      if (l[3]) text(labelsG, l[0], l[1] + 11, l[3], "p-dim");
+    });
+  }
+
+  /* ---------- Planner state ---------- */
+  const STORE_KEY = "dormdesigner.planner";
+  const state = { hall: "susq", pkg: "basic", palette: "berry", major: "none", designed: true };
+  try {
+    const saved = JSON.parse(localStorage.getItem(STORE_KEY) || "null");
+    if (saved) {
+      if (LAYOUTS[saved.hall]) state.hall = saved.hall;
+      if (PACKAGES[saved.pkg]) state.pkg = saved.pkg;
+      if (PALETTES[saved.palette]) state.palette = saved.palette;
+      if (MAJORS[saved.major]) state.major = saved.major;
+    }
+  } catch (e) { /* storage unavailable; use defaults */ }
+  function save() { try { localStorage.setItem(STORE_KEY, JSON.stringify(state)); } catch (e) { /* ignore */ } }
+
+  const $ = s => document.querySelector(s);
+  const money = n => "$" + n.toLocaleString("en-US");
+
+  function buildControls() {
+    const hallList = $("#hallList");
+    let group = "";
+    Object.keys(LAYOUTS).forEach(k => {
+      const L = LAYOUTS[k];
+      if (L.group !== group) {
+        group = L.group;
+        const g = document.createElement("div");
+        g.className = "opt-group";
+        g.textContent = group;
+        hallList.appendChild(g);
+      }
+      hallList.insertAdjacentHTML("beforeend",
+        '<label class="opt"><input type="radio" name="hall" id="hall-' + k + '" value="' + k + '"><span class="box"><span>' + L.short + '</span></span></label>');
+    });
+    Object.keys(PACKAGES).forEach(k => {
+      const P = PACKAGES[k];
+      $("#pkgList").insertAdjacentHTML("beforeend",
+        '<label class="opt"><input type="radio" name="pkg" id="pkg-' + k + '" value="' + k + '"><span class="box"><b>' + P.name + '</b><small>' + money(P.price) + '</small></span></label>');
+    });
+    Object.keys(PALETTES).forEach(k => {
+      const P = PALETTES[k];
+      $("#palList").insertAdjacentHTML("beforeend",
+        '<label class="opt swatch"><input type="radio" name="palette" id="pal-' + k + '" value="' + k + '" aria-label="' + P.name + '"><span class="box"><span class="chips"><i style="background:' + P.bed + '"></i><i style="background:' + P.accent + '"></i><i style="background:' + P.deep + '"></i></span><span>' + P.name + '</span></span></label>');
+    });
+    Object.keys(MAJORS).forEach(k => {
+      const M = MAJORS[k];
+      $("#majorList").insertAdjacentHTML("beforeend",
+        '<label class="opt"><input type="radio" name="major" id="major-' + k + '" value="' + k + '"><span class="box"><span>' + M.name + '</span><small>' + (M.price ? "+" + money(M.price) : "") + '</small></span></label>');
+    });
+
+    // Reservation selects mirror the planner.
+    const fill = (sel, obj, label) => Object.keys(obj).forEach(k => sel.insertAdjacentHTML("beforeend", '<option value="' + k + '">' + label(obj[k]) + '</option>'));
+    fill($("#rHall"), LAYOUTS, L => L.short);
+    fill($("#rPkg"), PACKAGES, P => P.name + " · " + money(P.price));
+    fill($("#rPal"), PALETTES, P => P.name);
+    fill($("#rMajor"), MAJORS, M => M.name + (M.price ? " · +" + money(M.price) : ""));
+
+    $("#plannerForm").addEventListener("change", e => {
+      if (e.target.name && e.target.name in state) { state[e.target.name] = e.target.value; update(); }
+    });
+    $("#viewEmpty").addEventListener("click", () => { state.designed = false; update(); });
+    $("#viewDesigned").addEventListener("click", () => { state.designed = true; update(); });
+    document.querySelectorAll("[data-pick]").forEach(b => b.addEventListener("click", () => {
+      state.pkg = b.dataset.pick; state.designed = true; update();
+      $("#planner").scrollIntoView({ behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" });
+    }));
+    $("#toReserve").addEventListener("click", syncReserve);
+  }
+
+  function syncReserve() {
+    $("#rHall").value = state.hall; $("#rPkg").value = state.pkg; $("#rPal").value = state.palette; $("#rMajor").value = state.major;
+  }
+
+  function update() {
+    const L = LAYOUTS[state.hall], P = PACKAGES[state.pkg], pal = PALETTES[state.palette], M = MAJORS[state.major];
+    ["hall", "pkg", "palette", "major"].forEach(n => {
+      const input = document.querySelector('input[name="' + n + '"][value="' + state[n] + '"]');
+      if (input) input.checked = true;
+    });
+    $("#viewEmpty").setAttribute("aria-pressed", String(!state.designed));
+    $("#viewDesigned").setAttribute("aria-pressed", String(state.designed));
+    $("#planTitle").textContent = L.name;
+    $("#planType").textContent = L.type;
+    const svg = $("#plan");
+    renderPlan(svg, state.hall, state);
+    svg.setAttribute("aria-label", "Floor plan of " + L.name + ", " + L.desc.toLowerCase() + (state.designed ? ", decorated with the " + P.name + " package in the " + pal.name + " palette" : ", shown empty"));
+
+    // Legend: only what is drawn.
+    const leg = [];
+    if (state.designed) {
+      leg.push([pal.bed, "Bedding"]);
+      if (P.level >= 2) leg.push([pal.deep, "Posters & blinds"], ["#FFC83A", "Desk lamp"]);
+      if (P.level >= 3) leg.push([pal.accent, "Neon, beanbag & throw"], [pal.light, "Rug & wallpaper"]);
+      if (state.major !== "none") leg.push([pal.deep, M.item]);
+    } else {
+      leg.push(["transparent", "Furniture provided by UMBC"]);
+    }
+    $("#legend").innerHTML = leg.map(l => '<span><i style="background:' + l[0] + ';border:1px solid var(--rule)"></i>' + l[1] + '</span>').join("");
+
+    // Price summary
+    const per = P.price + M.price;
+    $("#qPkg").textContent = P.name + (M.price ? " + " + M.name + " setup" : "") + " · " + pal.name;
+    $("#qPrice").textContent = money(per);
+    $("#qMonth").textContent = money(Math.round(per / 9));
+    $("#qSuiteLabel").textContent = "Whole " + (L.group === "Apartments" ? "apartment" : "suite") + " (" + L.residents + " students)";
+    $("#qSuite").textContent = money(per * L.residents);
+
+    // Item list
+    const list = ITEMS.filter(it => it.lvl <= P.level && !(it.max && P.level > it.max));
+    let html = list.map(it =>
+      '<li class="' + (it.lvl === P.level && P.level > 1 ? "new" : "") + '">' + it.name.replace(/&/g, "&amp;") +
+      (it.keep ? ' <span class="keep">Keep</span>' : "") + (it.plan && state.designed ? ' <span class="tag">on plan</span>' : "") + '</li>').join("");
+    if (M.item) html += '<li class="new">' + M.item.replace(/&/g, "&amp;") + ' <span class="tag">' + M.name + ' add-on</span></li>';
+    $("#items").innerHTML = html;
+    $("#itemsHead").textContent = "Per student · " + (list.length + (M.item ? 1 : 0)) + " items";
+
+    syncReserve();
+    save();
+  }
+
+  /* ---------- Reservation (demo only) ---------- */
+  function initReserve() {
+    const form = $("#reserveForm");
+    form.addEventListener("submit", e => {
+      e.preventDefault();
+      form.querySelectorAll(".err").forEach(n => n.remove());
+      const name = $("#rName"), email = $("#rEmail");
+      let ok = true;
+      if (!name.value.trim()) { name.insertAdjacentHTML("afterend", '<span class="err">Enter the student\'s name.</span>'); ok = false; }
+      if (!/^\S+@\S+\.\S+$/.test(email.value.trim())) { email.insertAdjacentHTML("afterend", '<span class="err">Enter an email like name@umbc.edu.</span>'); ok = false; }
+      if (!ok) return;
+      const L = LAYOUTS[$("#rHall").value], P = PACKAGES[$("#rPkg").value], M = MAJORS[$("#rMajor").value], pal = PALETTES[$("#rPal").value];
+      const c = $("#confirm");
+      const safe = s => s.replace(/[&<>"]/g, ch => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[ch]));
+      c.innerHTML = "<b>Request saved on this page</b><span>" + safe(name.value.trim()) + " · " + L.short + " · " + P.name + " in " + pal.name +
+        (M.price ? " with the " + M.name + " setup" : "") + " · " + money(P.price + M.price) + " for the year.</span><span style=\"color:var(--muted)\">This example site doesn't send requests, so nothing was emailed.</span>";
+      c.hidden = false;
+    });
+    ["rHall", "rPkg", "rPal", "rMajor"].forEach((idName, i) => {
+      $("#" + idName).addEventListener("change", e => {
+        state[["hall", "pkg", "palette", "major"][i]] = e.target.value;
+        update();
+      });
+    });
+  }
+
+  buildControls();
+  initReserve();
+  renderPlan($("#heroPlan"), "susq", { pkg: "deluxe", palette: "berry", major: "none", designed: true });
+  update();
+})();
+</script>
+</body>
+</html>
