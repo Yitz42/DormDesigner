@@ -272,6 +272,29 @@ legend { padding: 0; margin-bottom: 10px; font: 500 0.75rem var(--font-mono); te
 .legend { display: flex; flex-wrap: wrap; gap: 6px 14px; padding: 0 16px 12px; font: 400 0.75rem var(--font-mono); color: var(--plan-label); }
 .legend span { display: inline-flex; align-items: center; gap: 6px; }
 .legend i { width: 12px; height: 12px; border-radius: 3px; display: inline-block; }
+.head-tools { display: flex; flex-wrap: wrap; gap: 8px; }
+.seg2 { grid-template-columns: 1fr 1fr; }
+.seg4 { grid-template-columns: repeat(4, 1fr); }
+.seg4 .box { align-items: center; padding: 8px 6px; }
+.bedpick { display: grid; gap: 8px; margin-top: 4px; }
+.p-you { fill: none; stroke: var(--accent); stroke-width: 1.6; stroke-dasharray: 5 3; }
+.p-youlabel { fill: var(--accent); font: 600 9px var(--font-mono); letter-spacing: .14em; paint-order: stroke; stroke: var(--plan-bg); stroke-width: 3px; stroke-linejoin: round; }
+.p-hit { fill: transparent; cursor: pointer; }
+.p-hit:hover { fill: var(--accent); fill-opacity: .1; }
+
+/* 3D view */
+.view3d { position: relative; margin: 14px; border-radius: 10px; overflow: hidden; background: var(--plan-bg); min-height: 280px; }
+.view3d canvas { display: block; width: 100%; touch-action: pan-y; cursor: grab; }
+.view3d canvas.grabbing { cursor: grabbing; }
+.view3d canvas:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
+.v3-ui { position: absolute; top: 10px; right: 10px; display: flex; gap: 6px; }
+.v3-ui button {
+  font: 500 0.78rem/1 var(--font-mono); color: var(--ink); background: var(--surface);
+  border: 1px solid var(--rule); border-radius: 999px; min-width: 32px; height: 32px; padding: 0 10px; cursor: pointer;
+}
+.v3-ui button:hover { border-color: var(--ink); }
+.v3-hint { position: absolute; left: 12px; bottom: 10px; font: 400 0.72rem var(--font-mono); color: var(--plan-label); pointer-events: none; }
+.v3-msg { position: absolute; inset: 0; display: grid; place-items: center; text-align: center; padding: 24px; font: 400 0.85rem var(--font-mono); color: var(--plan-label); }
 
 .summary { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr); gap: 16px; }
 .quote, .itemlist { background: var(--paper); border: 1px solid var(--rule); border-radius: var(--radius); padding: 20px; min-width: 0; }
@@ -394,8 +417,8 @@ footer .team b { color: var(--ink); font-weight: 500; }
         </div>
       </div>
       <figure class="sheet" style="margin:0">
-        <div class="sheet-head"><strong>Susquehanna Hall · Double</strong><span>Deluxe · Berry palette</span></div>
-        <svg class="plan" id="heroPlan" role="img" aria-label="Floor plan of a Susquehanna Hall double room with Deluxe package decor: colored bedding, posters, neon lights, rugs, beanbags and mini-fridges"></svg>
+        <div class="sheet-head"><strong>Susquehanna Hall · Double</strong><span>Room A on Deluxe · Room B as provided</span></div>
+        <svg class="plan" id="heroPlan" role="img" aria-label="Floor plan of a Susquehanna Hall suite. Room A has both roommates on the Deluxe package with colored bedding, posters, neon lights, a rug, beanbag and mini-fridge. Room B is shown with only the furniture the university provides."></svg>
         <figcaption class="sheet-foot"><span>Plan redrawn from UMBC Residential Life</span><span>Ink = the room · Color = DormDesigner</span></figcaption>
       </figure>
     </div>
@@ -526,6 +549,17 @@ footer .team b { color: var(--ink); font-weight: 500; }
           </fieldset>
           <div style="display:grid;gap:26px">
             <fieldset>
+              <legend>Whose space</legend>
+              <div class="seg seg2">
+                <label class="opt"><input type="radio" name="scope" id="scope-me" value="me"><span class="box"><b>Just my bed</b><small>your order</small></span></label>
+                <label class="opt"><input type="radio" name="scope" id="scope-suite" value="suite"><span class="box"><b>Whole suite</b><small>every roommate</small></span></label>
+              </div>
+              <div class="bedpick" id="bedPick">
+                <span class="opt-group">Your bed · or tap one on the plan</span>
+                <div class="seg seg4" id="bedList"></div>
+              </div>
+            </fieldset>
+            <fieldset>
               <legend>Package</legend>
               <div class="seg" id="pkgList"></div>
             </fieldset>
@@ -544,12 +578,28 @@ footer .team b { color: var(--ink); font-weight: 500; }
           <div class="sheet">
             <div class="sheet-head">
               <strong id="planTitle">Hall</strong>
-              <div class="toggle" role="group" aria-label="View">
-                <button type="button" id="viewEmpty" aria-pressed="false">Empty</button>
-                <button type="button" id="viewDesigned" aria-pressed="true">Designed</button>
+              <div class="head-tools">
+                <div class="toggle" role="group" aria-label="Decor">
+                  <button type="button" id="viewEmpty" aria-pressed="false">Empty</button>
+                  <button type="button" id="viewDesigned" aria-pressed="true">Designed</button>
+                </div>
+                <div class="toggle" role="group" aria-label="View">
+                  <button type="button" id="view2d" aria-pressed="true">2D</button>
+                  <button type="button" id="view3d" aria-pressed="false">3D</button>
+                </div>
               </div>
             </div>
-            <svg class="plan" id="plan" role="img" aria-label="Floor plan"></svg>
+            <svg class="plan" id="plan" aria-label="Floor plan"></svg>
+            <div class="view3d" id="stage3d" hidden>
+              <canvas id="c3d" tabindex="0" aria-label="3D model of the room. Drag or use arrow keys to rotate, plus and minus to zoom."></canvas>
+              <div class="v3-ui">
+                <button type="button" id="zIn" aria-label="Zoom in">+</button>
+                <button type="button" id="zOut" aria-label="Zoom out">−</button>
+                <button type="button" id="zReset">Reset</button>
+              </div>
+              <p class="v3-hint">Drag to rotate · pinch or +/− to zoom</p>
+              <p class="v3-msg" id="v3msg" hidden></p>
+            </div>
             <div class="legend" id="legend"></div>
             <div class="sheet-foot"><span id="planType">Type</span><span>Redrawn from UMBC Residential Life · not to scale</span></div>
           </div>
@@ -721,6 +771,7 @@ footer .team b { color: var(--ink); font-weight: 500; }
      [x1,y1,x2,y2,nx,ny] where (nx,ny) points into the room. */
   const LAYOUTS = {
     susq: {
+      bedRoom: [0,0,1,1], bedNames: ["A1","A2","B1","B2"],
       name: "Susquehanna · Patapsco · Chesapeake", short: "Susquehanna / Patapsco / Chesapeake", group: "Residence halls",
       type: "Double rooms · shared bath", desc: "Two double rooms sharing a bathroom", residents: 4, w: 509, h: 359,
       outline: [[0,0],[509,0],[509,359],[0,359]],
@@ -738,6 +789,7 @@ footer .team b { color: var(--ink); font-weight: 500; }
       labels: [[120,108,"Room A"],[390,108,"Room B"],[254,72,"Bath"]]
     },
     potomac: {
+      bedRoom: [0,0,1,1], bedNames: ["A1","A2","B1","B2"],
       name: "Potomac Hall", short: "Potomac Hall", group: "Residence halls",
       type: "Double rooms · shared bath", desc: "Two double rooms sharing a bathroom", residents: 4, w: 553, h: 372,
       outline: [[0,0],[553,0],[553,372],[0,372]],
@@ -755,6 +807,7 @@ footer .team b { color: var(--ink); font-weight: 500; }
       labels: [[125,165,"Room A"],[430,165,"Room B"],[276,302,"Bath"]]
     },
     erickson: {
+      bedRoom: [0,0,1,1], bedNames: ["A1","A2","B1","B2"],
       name: "Erickson & Harbor Halls", short: "Erickson / Harbor double suite", group: "Residence halls",
       type: "Double suite · common room", desc: "Two double rooms, a common room and a bathroom", residents: 4, w: 512, h: 352,
       outline: [[0,0],[512,0],[512,352],[0,352]],
@@ -774,6 +827,7 @@ footer .team b { color: var(--ink); font-weight: 500; }
       labels: [[92,205,"Room A"],[412,262,"Room B"],[256,215,"Common"],[178,335,"Bath"]]
     },
     harbor: {
+      bedRoom: [0,1,2,3], bedNames: ["A","B","C","D"],
       name: "Harbor Hall", short: "Harbor Hall single suite", group: "Residence halls",
       type: "Single suite · 4 bedrooms", desc: "Four single bedrooms around a shared bath and lounge", residents: 4, w: 558, h: 351,
       outline: [[0,0],[558,0],[558,351],[0,351]],
@@ -797,6 +851,7 @@ footer .team b { color: var(--ink); font-weight: 500; }
       labels: [[98,112,"A"],[178,112,"B"],[378,112,"C"],[458,112,"D"],[280,342,"Bath"],[104,244,"Lounge"]]
     },
     terrace: {
+      bedRoom: [0,1,2,3], bedNames: ["1","2","3","4"],
       name: "Terrace & Hillside Apartments", short: "Terrace / Hillside apartment", group: "Apartments",
       type: "Apartment · 4 single bedrooms", desc: "Four single bedrooms, a kitchen and a shared bath", residents: 4, w: 487, h: 404,
       outline: [[0,0],[487,0],[487,256],[362,256],[362,404],[89,404],[89,257],[0,257]],
@@ -821,6 +876,7 @@ footer .team b { color: var(--ink); font-weight: 500; }
       labels: [[30,104,"1"],[30,233,"2"],[150,392,"3"],[296,392,"4"],[369,72,"Kitchen"],[220,80,"Bath"]]
     },
     westhill: {
+      bedRoom: [0,1,2,3], bedNames: ["1","2","3","4"],
       name: "West Hill Apartments", short: "West Hill apartment", group: "Apartments",
       type: "Apartment · 4 single bedrooms", desc: "Four single bedrooms, a kitchen and living room", residents: 4, w: 544, h: 350,
       outline: [[0,0],[514,0],[514,137],[544,137],[544,350],[0,350]],
@@ -844,6 +900,7 @@ footer .team b { color: var(--ink); font-weight: 500; }
       labels: [[60,120,"1"],[300,120,"2"],[80,300,"3"],[200,300,"4"],[447,52,"Kitchen"],[320,226,"Bath"],[452,176,"Living"]]
     },
     walker: {
+      bedRoom: [0,1,2,3], bedNames: ["A","B","C","D"],
       name: "Walker Avenue Apartments", short: "Walker Avenue apartment", group: "Apartments",
       type: "Apartment · 4 bedrooms · 2 baths", desc: "Four bedrooms, two baths, kitchen, laundry and living area", residents: 4, w: 828, h: 365,
       outline: [[0,0],[673,0],[673,145],[828,145],[828,365],[0,365]],
@@ -914,6 +971,7 @@ footer .team b { color: var(--ink); font-weight: 500; }
     const L = LAYOUTS[key];
     const pal = PALETTES[opt.palette];
     const lvl = opt.designed ? PACKAGES[opt.pkg].level : 0;
+    const { bedOn, roomOn, winOn } = ownership(L, opt, lvl);
     const id = svg.id;
     const pad = 10;
     svg.innerHTML = "";
@@ -946,14 +1004,15 @@ footer .team b { color: var(--ink); font-weight: 500; }
 
     // Rugs and wallpaper sit under the furniture.
     if (lvl >= 3) {
-      L.rooms.forEach(r => {
-        if (!r.rug) return;
+      L.rooms.forEach((r, ri) => {
+        if (!r.rug || !roomOn[ri]) return;
         const [x, y, w, h] = r.rug;
         const g = el("g", {}, under);
         rect(g, { x, y, w, h }, { rx: 6, fill: pal.light, stroke: pal.accent, "stroke-width": 1.2 });
         rect(g, inset({ x, y, w, h }, 5), { rx: 3, fill: "none", stroke: pal.accent, "stroke-width": .7, "stroke-dasharray": "3 2.5" });
       });
-      L.beds.forEach(b => {
+      L.beds.forEach((b, i) => {
+        if (!bedOn[i]) return;
         const [x1, y1, x2, y2, nx, ny] = b.art;
         const g = el("g", {}, under);
         if (y1 === y2) rect(g, { x: Math.min(x1, x2), y: ny > 0 ? y1 + 1.5 : y1 - 15.5, w: Math.abs(x2 - x1), h: 14 }, { fill: "url(#" + id + "-wp)", opacity: .9 });
@@ -986,18 +1045,18 @@ footer .team b { color: var(--ink); font-weight: 500; }
         rectLabel(furnG, x, y, w, h, FURN_LABEL[t]);
       }
     });
-    L.desks.forEach(d => { rect(furnG, d, { class: "p-furn" }); if (!lvl) rectLabel(furnG, d.x, d.y, d.w, d.h, "Desk"); });
-    L.beds.forEach(b => { rect(furnG, b, { class: "p-furn" }); if (!lvl) rectLabel(furnG, b.x, b.y, b.w, b.h, "Bed"); });
+    L.desks.forEach((d, i) => { rect(furnG, d, { class: "p-furn" }); if (!bedOn[i]) rectLabel(furnG, d.x, d.y, d.w, d.h, "Desk"); });
+    L.beds.forEach((b, i) => { rect(furnG, b, { class: "p-furn" }); if (!bedOn[i]) rectLabel(furnG, b.x, b.y, b.w, b.h, "Bed"); });
 
     // Walls, windows, doors.
     el("polygon", { points: pts, class: "p-wall" }, wallsG);
     L.walls.forEach(w => el("line", { x1: w[0], y1: w[1], x2: w[2], y2: w[3], class: "p-iwall" }, wallsG));
-    L.windows.forEach(w => {
+    L.windows.forEach((w, wi) => {
       const [x1, y1, x2, y2] = w;
       el("line", { x1, y1, x2, y2, class: "p-wingap" }, wallsG);
       const horiz = y1 === y2;
       [-1.6, 1.6].forEach(o => el("line", horiz ? { x1, y1: y1 + o, x2, y2: y2 + o, class: "p-win" } : { x1: x1 + o, y1, x2: x2 + o, y2, class: "p-win" }, wallsG));
-      if (lvl >= 2) el("line", { x1, y1, x2, y2, stroke: pal.deep, "stroke-width": 2.6, "stroke-linecap": "round", class: "blinds" }, over);
+      if (lvl >= 2 && winOn[wi]) el("line", { x1, y1, x2, y2, stroke: pal.deep, "stroke-width": 2.6, "stroke-linecap": "round", class: "blinds" }, over);
     });
     L.doors.forEach(d => {
       const { x, y, len, dir, open, hinge } = d;
@@ -1018,7 +1077,8 @@ footer .team b { color: var(--ink); font-weight: 500; }
 
     // Decor on top.
     if (lvl >= 1) {
-      L.beds.forEach(b => {
+      L.beds.forEach((b, i) => {
+        if (!bedOn[i]) return;
         const g = el("g", {}, over);
         const horiz = b.head === "l" || b.head === "r";
         const length = horiz ? b.w : b.h;
@@ -1069,7 +1129,8 @@ footer .team b { color: var(--ink); font-weight: 500; }
         }
       });
 
-      L.desks.forEach(d => {
+      L.desks.forEach((d, i) => {
+        if (!bedOn[i]) return;
         const g = el("g", {}, over);
         const wallSide = d.wall;
         if (lvl >= 2) {
@@ -1102,7 +1163,8 @@ footer .team b { color: var(--ink); font-weight: 500; }
         }
       });
 
-      L.rooms.forEach(r => {
+      L.rooms.forEach((r, ri) => {
+        if (!roomOn[ri]) return;
         if (lvl >= 3 && r.fridge) {
           const g = el("g", {}, over);
           const [x, y] = r.fridge;
@@ -1134,11 +1196,443 @@ footer .team b { color: var(--ink); font-weight: 500; }
       text(labelsG, l[0], l[1], l[2], "p-room");
       if (l[3]) text(labelsG, l[0], l[1] + 11, l[3], "p-dim");
     });
+
+    if (opt.you != null && L.beds[opt.you]) {
+      const b = L.beds[opt.you];
+      rect(labelsG, inset(b, -3), { rx: 5, class: "p-you" });
+      text(labelsG, b.x + b.w / 2, b.y + b.h / 2, "YOU", "p-youlabel");
+    }
+    if (opt.onBed) L.beds.forEach((b, i) => {
+      const hit = rect(labelsG, b, { class: "p-hit", "aria-hidden": "true" });
+      const t = el("title", {}, hit);
+      t.textContent = "Make bed " + L.bedNames[i] + " yours";
+      hit.addEventListener("click", () => opt.onBed(i));
+    });
+  }
+
+  /* Which beds, rooms and windows get decor. A shared room (lounge, kitchen)
+     is decorated only when every bed in the suite is on the order. */
+  function nearestBed(L, x, y) {
+    let best = 0, bd = Infinity;
+    L.beds.forEach((b, i) => { const d = Math.hypot(b.x + b.w / 2 - x, b.y + b.h / 2 - y); if (d < bd) { bd = d; best = i; } });
+    return best;
+  }
+  function ownership(L, opt, lvl) {
+    const owned = i => !opt.owned || opt.owned.indexOf(i) >= 0;
+    const bedOn = L.beds.map((b, i) => lvl > 0 && owned(i));
+    const roomOn = L.rooms.map((r, ri) => {
+      const beds = L.bedRoom.map((r2, i) => (r2 === ri ? i : -1)).filter(i => i >= 0);
+      return lvl > 0 && (beds.length ? beds.some(i => bedOn[i]) : bedOn.every(Boolean));
+    });
+    const winOn = L.windows.map(w => bedOn[nearestBed(L, (w[0] + w[2]) / 2, (w[1] + w[3]) / 2)]);
+    return { bedOn, roomOn, winOn };
+  }
+
+  /* ---------- 3D view (three.js, loaded the first time someone opens it) ---------- */
+  const THREE_URL = "https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js";
+  const WALL_H = 72;
+  const C3 = { wall: "#F3F0F7", ink: "#2B2442", floor: "#D9D3E0", wood: "#C8B08A", woodDark: "#A88E68",
+    furn: "#9C95B2", fix: "#FAFAFC", glass: "#BFD9EE", mattress: "#F4F2F7", screen: "#1D1730", metal: "#3A3448", water: "#D7E6F0" };
+  const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+  let three = null, threeLoading = null;
+
+  function loadThree() {
+    if (window.THREE) return Promise.resolve();
+    if (!threeLoading) {
+      threeLoading = new Promise((resolve, reject) => {
+        const s = document.createElement("script");
+        s.src = THREE_URL;
+        s.onload = resolve;
+        s.onerror = () => { threeLoading = null; reject(new Error("three.js failed to load")); };
+        document.head.appendChild(s);
+      });
+    }
+    return threeLoading;
+  }
+
+  function open3D() {
+    state.view = "3d";
+    update();
+    if (three) return;
+    const msg = document.getElementById("v3msg");
+    msg.hidden = false;
+    msg.textContent = "Building the 3D room…";
+    loadThree().then(() => {
+      if (!init3D()) throw new Error("WebGL unavailable");
+      msg.hidden = true;
+      update();
+    }).catch(() => {
+      msg.textContent = "The 3D view couldn't start in this browser. The 2D plan still works.";
+    });
+  }
+
+  function init3D() {
+    const host = document.getElementById("stage3d"), canvas = document.getElementById("c3d");
+    let renderer;
+    try { renderer = new THREE.WebGLRenderer({ canvas, antialias: true }); } catch (e) { return false; }
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+    renderer.shadowMap.enabled = true;
+    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+    const scene = new THREE.Scene();
+    const camera = new THREE.PerspectiveCamera(38, 1, 1, 8000);
+    scene.add(new THREE.HemisphereLight(0xffffff, 0xcfc6de, 0.62));
+    const sun = new THREE.DirectionalLight(0xffffff, 0.5);
+    sun.castShadow = true;
+    sun.shadow.mapSize.set(2048, 2048);
+    sun.shadow.bias = -0.0008;
+    scene.add(sun, sun.target);
+    three = { renderer, scene, camera, sun, group: null, geos: [], mats: [], orbit: { theta: 0.45, phi: 0.92, r: 700 }, R: 700, aspect: 0.7, queued: false };
+
+    const pts = new Map();
+    let pinch = null;
+    const spread = () => { const a = Array.from(pts.values()); return Math.hypot(a[0].x - a[1].x, a[0].y - a[1].y) || 1; };
+    canvas.addEventListener("pointerdown", e => {
+      canvas.setPointerCapture(e.pointerId);
+      pts.set(e.pointerId, { x: e.clientX, y: e.clientY });
+      if (pts.size === 2) pinch = { d: spread(), r: three.orbit.r };
+      canvas.classList.add("grabbing");
+    });
+    canvas.addEventListener("pointermove", e => {
+      const p = pts.get(e.pointerId);
+      if (!p) return;
+      const dx = e.clientX - p.x, dy = e.clientY - p.y;
+      p.x = e.clientX; p.y = e.clientY;
+      const o = three.orbit;
+      if (pts.size === 1) { o.theta -= dx * 0.008; o.phi = clamp(o.phi - dy * 0.006, 0.18, 1.42); }
+      else if (pinch) o.r = clamp(pinch.r * pinch.d / spread(), three.R * 0.3, three.R * 2.2);
+      render3D();
+    });
+    const release = e => { pts.delete(e.pointerId); if (pts.size < 2) pinch = null; if (!pts.size) canvas.classList.remove("grabbing"); };
+    canvas.addEventListener("pointerup", release);
+    canvas.addEventListener("pointercancel", release);
+    // Trackpad pinch arrives as ctrl+wheel; plain scrolling keeps scrolling the page.
+    canvas.addEventListener("wheel", e => { if (!e.ctrlKey && !e.metaKey) return; e.preventDefault(); zoom3D(1 + e.deltaY * 0.01); }, { passive: false });
+    canvas.addEventListener("keydown", e => {
+      const o = three.orbit;
+      switch (e.key) {
+        case "ArrowLeft": o.theta += 0.12; break;
+        case "ArrowRight": o.theta -= 0.12; break;
+        case "ArrowUp": o.phi = clamp(o.phi - 0.08, 0.18, 1.42); break;
+        case "ArrowDown": o.phi = clamp(o.phi + 0.08, 0.18, 1.42); break;
+        case "+": case "=": zoom3D(0.85); break;
+        case "-": zoom3D(1.18); break;
+        default: return;
+      }
+      e.preventDefault();
+      render3D();
+    });
+    document.getElementById("zIn").addEventListener("click", () => zoom3D(0.82));
+    document.getElementById("zOut").addEventListener("click", () => zoom3D(1.22));
+    document.getElementById("zReset").addEventListener("click", () => { resetOrbit(); render3D(); });
+    if (window.ResizeObserver) new ResizeObserver(size3D).observe(host);
+    else window.addEventListener("resize", size3D);
+    const mq = window.matchMedia("(prefers-color-scheme: dark)");
+    if (mq.addEventListener) mq.addEventListener("change", render3D);
+    return true;
+  }
+
+  function zoom3D(f) { three.orbit.r = clamp(three.orbit.r * f, three.R * 0.3, three.R * 2.2); render3D(); }
+  function resetOrbit() {
+    // Distance that fits the plan's width and depth in the frame (fov 38°, tan 19° ≈ 0.344).
+    const span = 2 * 0.344, camAspect = 1 / three.aspect;
+    const r = Math.max(1.4 * three.planW / (span * camAspect), 1.3 * three.planH / span);
+    Object.assign(three.orbit, { theta: 0.45, phi: 0.92, r });
+  }
+  function size3D() {
+    if (!three) return;
+    const canvas = three.renderer.domElement, w = canvas.parentElement.clientWidth;
+    if (!w) return;
+    const h = Math.round(clamp(w * three.aspect, 280, 620));
+    three.renderer.setSize(w, h, false);
+    canvas.style.height = h + "px";
+    three.camera.aspect = w / h;
+    three.camera.updateProjectionMatrix();
+    render3D();
+  }
+  function render3D() {
+    if (!three || three.queued) return;
+    three.queued = true;
+    requestAnimationFrame(() => {
+      three.queued = false;
+      const o = three.orbit, s = Math.sin(o.phi);
+      three.camera.position.set(o.r * s * Math.sin(o.theta), o.r * Math.cos(o.phi), o.r * s * Math.cos(o.theta));
+      three.camera.lookAt(0, 14, 0);
+      const bg = getComputedStyle(document.documentElement).getPropertyValue("--plan-bg").trim() || "#FFFFFF";
+      three.renderer.setClearColor(bg);
+      three.renderer.render(three.scene, three.camera);
+    });
+  }
+
+  function build3D(key, opt, resetView) {
+    const T = THREE, L = LAYOUTS[key], pal = PALETTES[opt.palette];
+    const lvl = opt.designed ? PACKAGES[opt.pkg].level : 0;
+    const { bedOn, roomOn, winOn } = ownership(L, opt, lvl);
+
+    if (three.group) {
+      three.scene.remove(three.group);
+      three.geos.forEach(g => g.dispose());
+      three.mats.forEach(m => { if (m.map) m.map.dispose(); m.dispose(); });
+    }
+    const geos = three.geos = [], mats = three.mats = [], cache = new Map();
+    const M = (color, o) => {
+      const k = color + (o ? JSON.stringify(o) : "");
+      if (!cache.has(k)) {
+        const m = new T.MeshStandardMaterial(Object.assign({ color, roughness: 0.82, metalness: 0 }, o || {}));
+        cache.set(k, m); mats.push(m);
+      }
+      return cache.get(k);
+    };
+    const g = new T.Group();
+    g.position.set(-L.w / 2, 0, -L.h / 2);
+    const mesh = (geo, mat, x, y, z, shadow) => {
+      geos.push(geo);
+      const m = new T.Mesh(geo, mat);
+      m.position.set(x, y, z);
+      m.castShadow = shadow !== false;
+      m.receiveShadow = true;
+      g.add(m);
+      return m;
+    };
+    // Plan rect (x, z, w, d) raised from y0 by h.
+    const box = (x, z, w, d, y0, h, mat, shadow) =>
+      mesh(new T.BoxGeometry(Math.max(w, 0.2), Math.max(h, 0.2), Math.max(d, 0.2)), mat, x + w / 2, y0 + h / 2, z + d / 2, shadow);
+    const cyl = (cx, cz, r, y0, h, mat) => mesh(new T.CylinderGeometry(r, r, h, 20), mat, cx, y0 + h / 2, cz);
+    const texMat = (draw, rx, ry) => {
+      const c = document.createElement("canvas");
+      c.width = c.height = 128;
+      draw(c.getContext("2d"));
+      const t = new T.CanvasTexture(c);
+      t.wrapS = t.wrapT = T.RepeatWrapping;
+      t.repeat.set(rx || 1, ry || 1);
+      const m = new T.MeshStandardMaterial({ map: t, roughness: 0.9 });
+      mats.push(m);
+      return m;
+    };
+
+    // Floor
+    const shape = new T.Shape();
+    L.outline.forEach((p, i) => (i ? shape.lineTo(p[0], -p[1]) : shape.moveTo(p[0], -p[1])));
+    const fg = new T.ShapeGeometry(shape);
+    geos.push(fg);
+    const floor = new T.Mesh(fg, M(C3.floor));
+    floor.rotation.x = -Math.PI / 2;
+    floor.receiveShadow = true;
+    g.add(floor);
+
+    // Walls, cut for doors and windows. The top face is dark like the ink on the plan.
+    const wallMat = [M(C3.wall), M(C3.wall), M(C3.ink), M(C3.wall), M(C3.wall), M(C3.wall)];
+    const segs = [];
+    L.outline.forEach((p, i) => { const q = L.outline[(i + 1) % L.outline.length]; segs.push([p[0], p[1], q[0], q[1], 5]); });
+    L.walls.forEach(w => segs.push([w[0], w[1], w[2], w[3], 3.4]));
+    const cuts = L.doors.map(d => (d.dir === "h" ? { hz: true, c: d.y, s: d.x, e: d.x + d.len } : { hz: false, c: d.x, s: d.y, e: d.y + d.len }))
+      .concat(L.windows.map((w, wi) => (w[1] === w[3]
+        ? { hz: true, c: w[1], s: Math.min(w[0], w[2]), e: Math.max(w[0], w[2]), win: wi }
+        : { hz: false, c: w[0], s: Math.min(w[1], w[3]), e: Math.max(w[1], w[3]), win: wi })));
+    const glass = M(C3.glass, { transparent: true, opacity: 0.35, roughness: 0.1 });
+    segs.forEach(([x1, y1, x2, y2, t]) => {
+      const hz = y1 === y2, c = hz ? y1 : x1;
+      const s = Math.min(hz ? x1 : y1, hz ? x2 : y2) - t / 2, e = Math.max(hz ? x1 : y1, hz ? x2 : y2) + t / 2;
+      const piece = (a, b, lo, hi) => {
+        if (b - a < 0.3) return;
+        if (hz) mesh(new T.BoxGeometry(b - a, hi - lo, t), wallMat, (a + b) / 2, (lo + hi) / 2, c);
+        else mesh(new T.BoxGeometry(t, hi - lo, b - a), wallMat, c, (lo + hi) / 2, (a + b) / 2);
+      };
+      let cur = s;
+      cuts.filter(k => k.hz === hz && Math.abs(k.c - c) < 2 && k.e > s && k.s < e).sort((a, b) => a.s - b.s).forEach(k => {
+        piece(cur, Math.max(cur, k.s), 0, WALL_H);
+        if (k.win != null) {
+          piece(k.s, k.e, 0, 24);
+          piece(k.s, k.e, WALL_H - 5, WALL_H);
+          const gm = lvl >= 2 && winOn[k.win] ? M(pal.deep, { transparent: true, opacity: 0.92 }) : glass;
+          if (hz) box(k.s, c - 0.6, k.e - k.s, 1.2, 24, WALL_H - 29, gm, false);
+          else box(c - 0.6, k.s, 1.2, k.e - k.s, 24, WALL_H - 29, gm, false);
+        }
+        cur = Math.max(cur, k.e);
+      });
+      piece(cur, e, 0, WALL_H);
+    });
+    L.doors.forEach(d => {
+      if (d.dir === "h") {
+        const hx = d.hinge === "a" ? d.x : d.x + d.len, ly = d.y + d.open * d.len;
+        box(hx - 1, Math.min(d.y, ly), 2, d.len, 0, 66, M(C3.wood));
+      } else {
+        const hy = d.hinge === "a" ? d.y : d.y + d.len, lx = d.x + d.open * d.len;
+        box(Math.min(d.x, lx), hy - 1, d.len, 2, 0, 66, M(C3.wood));
+      }
+    });
+
+    // University furniture and fixtures
+    const wood = M(C3.wood), dark = M(C3.woodDark), fix = M(C3.fix), furn = M(C3.furn), water = M(C3.water);
+    L.furn.forEach(f => {
+      const t = f[0];
+      if (t === "toilet") { box(f[1] - 8, f[2] - 13, 16, 6, 0, 26, fix); cyl(f[1], f[2] + 2, 7, 0, 14, fix); return; }
+      if (t === "round") { cyl(f[1], f[2], f[3], 0, 27, wood); return; }
+      const [, x, y, w, h] = f;
+      switch (t) {
+        case "wardrobe": case "closet": box(x, y, w, h, 0, 62, wood); break;
+        case "counter": box(x, y, w, h, 0, 33, M("#D6D0DE")); box(x, y, w, h, 33, 2, M("#8D86A0")); break;
+        case "appl": box(x, y, w, h, 0, 34, fix); break;
+        case "washer": case "dryer": box(x + 1, y + 1, w - 2, h - 2, 0, 32, fix); break;
+        case "couch": case "sofa": case "loveseat": box(x, y, w, h, 0, 15, furn); break;
+        case "chair": box(x, y, w, h, 0, 16, furn); break;
+        case "coffee": case "end": box(x, y, w, h, 12, 3, wood); box(x + 2, y + 2, w - 4, h - 4, 0, 12, dark); break;
+        case "table": box(x, y, w, h, 25, 3, wood); box(x + w * 0.35, y + h * 0.35, w * 0.3, h * 0.3, 0, 25, dark); break;
+        case "tv": box(x, y, w, h, 0, 18, wood); box(x + w / 2 - 1, y + 2, 2, h - 4, 18, 22, M(C3.screen)); break;
+        case "tub": box(x, y, w, h, 0, 18, fix); box(x + 4, y + 4, w - 8, h - 8, 17.6, 1, water); break;
+        case "shower": box(x, y, w, h, 0, 3, fix); box(x, y, w, h, 3, 58, M(C3.glass, { transparent: true, opacity: 0.22, roughness: 0.1 }), false); break;
+        case "sink": box(x, y, w, h, 0, 30, fix); box(x + w * 0.2, y + h * 0.2, w * 0.6, h * 0.6, 30, 1, water); break;
+        default: box(x, y, w, h, 0, 20, furn);
+      }
+    });
+
+    // Beds, with decor on the ones in the order
+    L.beds.forEach((b, i) => {
+      if (!bedOn[i]) {
+        box(b.x, b.y, b.w, b.h, 0, 13, wood);
+        box(b.x + 1, b.y + 1, b.w - 2, b.h - 2, 13, 7, M(C3.mattress));
+        return;
+      }
+      const horiz = b.head === "l" || b.head === "r", length = horiz ? b.w : b.h;
+      [[0, 0], [1, 0], [0, 1], [1, 1]].forEach(([u, v]) => box(b.x + u * (b.w - 3), b.y + v * (b.h - 3), 3, 3, 0, 10, wood));
+      box(b.x, b.y, b.w, b.h, 10, 3, wood);
+      const cx = b.x + b.w / 2, cz = b.y + b.h / 2, bw = horiz ? 22 : b.w * 0.6, bd = horiz ? b.h * 0.6 : 22;
+      [-1, 1].forEach(sn => box(cx - bw / 2 + (horiz ? sn * 12 : 0), cz - bd / 2 + (horiz ? 0 : sn * 12), bw, bd, 0, 8, M(pal.deep)));
+      const mh = lvl >= 2 ? 9 : 7, top = 13 + mh;
+      box(b.x + 1, b.y + 1, b.w - 2, b.h - 2, 13, mh, M(pal.bed));
+      const pil = inset(band(b, b.head, Math.min(18, length * 0.17) + 4), 4);
+      box(pil.x, pil.y, pil.w, pil.h, top, 4, M(pal.light));
+      if (lvl >= 3) {
+        const foot = band(inset(b, 1), OPP[b.head], length * 0.26);
+        box(foot.x, foot.y, foot.w, foot.h, top, 1.2, M(pal.accent));
+        const px = pil.x + pil.w / 2, pz = pil.y + pil.h / 2, dx = horiz ? 0 : pil.w * 0.22, dz = horiz ? pil.h * 0.22 : 0;
+        box(px - dx - 4, pz - dz - 4, 8, 8, top + 4, 4, M(pal.deep));
+        box(px + dx - 4, pz + dz - 4, 8, 8, top + 4, 4, M(pal.accent));
+      }
+      if (lvl >= 2) {
+        const [x1, y1, x2, y2, nx, ny] = b.art, hz = y1 === y2, inward = (hz ? ny : nx) > 0;
+        const lo = hz ? Math.min(x1, x2) : Math.min(y1, y2), run = Math.abs(hz ? x2 - x1 : y2 - y1);
+        const n = lvl >= 3 ? 5 : 3, slot = run / n, pl = Math.min(slot * 0.72, 20), ph = Math.min(pl * 1.35, 24);
+        const colors = [pal.accent, pal.deep, pal.bed, pal.accent, pal.deep];
+        const off = inward ? 2.6 : -3.4;
+        for (let k = 0; k < n; k++) {
+          const a = lo + (k + 0.5) * slot - pl / 2;
+          if (hz) box(a, y1 + off, pl, 0.8, 44 - ph / 2, ph, M(colors[k]), false);
+          else box(x1 + off, a, 0.8, pl, 44 - ph / 2, ph, M(colors[k]), false);
+        }
+        if (lvl >= 3) {
+          const wp = texMat(ctx => {
+            ctx.fillStyle = pal.light; ctx.fillRect(0, 0, 128, 128);
+            ctx.fillStyle = pal.bed;
+            for (let sx = -128; sx < 256; sx += 32) {
+              ctx.beginPath(); ctx.moveTo(sx, 0); ctx.lineTo(sx + 14, 0); ctx.lineTo(sx + 14 - 128, 128); ctx.lineTo(sx - 128, 128); ctx.closePath(); ctx.fill();
+            }
+          }, run / 32, WALL_H / 32);
+          const wo = inward ? 2.3 : -2.6;
+          if (hz) box(lo, y1 + wo, run, 0.3, 0, WALL_H, wp, false);
+          else box(x1 + wo, lo, 0.3, run, 0, WALL_H, wp, false);
+          const neon = M(pal.accent, { emissive: pal.accent, emissiveIntensity: 1.1 });
+          const no = inward ? 3.2 : -4.6;
+          if (hz) box(lo + 3, y1 + no, run - 6, 1.4, 64, 1.4, neon, false);
+          else box(x1 + no, lo + 3, 1.4, run - 6, 64, 1.4, neon, false);
+        }
+      }
+    });
+
+    // Desks: lamp, monitors and chair belong to the bed's student
+    L.desks.forEach((d, i) => {
+      box(d.x, d.y, d.w, d.h, 27, 3, wood);
+      if (d.w >= d.h) { box(d.x + d.w * 0.68, d.y + 1, d.w * 0.32 - 1, d.h - 2, 0, 27, dark); box(d.x + 1, d.y + 1, 2, d.h - 2, 0, 27, dark); }
+      else { box(d.x + 1, d.y + d.h * 0.68, d.w - 2, d.h * 0.32 - 1, 0, 27, dark); box(d.x + 1, d.y + 1, d.w - 2, 2, 0, 27, dark); }
+      if (!bedOn[i]) return;
+      const ws = d.wall;
+      if (lvl >= 2) {
+        const lx = ws === "r" ? d.x + d.w - 7 : d.x + 7, lz = ws === "b" ? d.y + d.h - 7 : d.y + 7;
+        cyl(lx, lz, 2.6, 30, 1, M(pal.deep));
+        cyl(lx, lz, 0.6, 31, 12, M(pal.deep));
+        mesh(new T.SphereGeometry(3, 16, 12), M("#FFD45E", { emissive: "#FFC83A", emissiveIntensity: 1 }), lx, 45, lz, false);
+        const lamp = new T.PointLight(0xffd27a, 0.5, 110, 2);
+        lamp.position.set(lx, 44, lz);
+        g.add(lamp);
+      }
+      if (opt.major === "eng") {
+        const mon = band(inset(d, 3), ws, 1.2), vertical = ws === "l" || ws === "r", a = vertical ? mon.h : mon.w, seg = a * 0.44;
+        [0, 1].forEach(k => {
+          if (vertical) box(mon.x, mon.y + k * (a - seg), mon.w, seg, 32, 13, M(C3.screen));
+          else box(mon.x + k * (a - seg), mon.y, seg, mon.h, 32, 13, M(C3.screen));
+        });
+      }
+      if (lvl >= 3) {
+        const s = 13;
+        let cx = d.x + d.w / 2, cz = d.y + d.h / 2;
+        if (ws === "t") cz = d.y + d.h + s / 2 + 2;
+        if (ws === "b") cz = d.y - s / 2 - 2;
+        if (ws === "l") cx = d.x + d.w + s / 2 + 2;
+        if (ws === "r") cx = d.x - s / 2 - 2;
+        const seat = M(pal.deep);
+        cyl(cx, cz, 1, 0, 14, M(C3.metal));
+        box(cx - s / 2, cz - s / 2, s, s, 14, 3, seat);
+        if (ws === "t") box(cx - s / 2, cz + s / 2 - 2, s, 2, 17, 14, seat);
+        if (ws === "b") box(cx - s / 2, cz - s / 2, s, 2, 17, 14, seat);
+        if (ws === "l") box(cx + s / 2 - 2, cz - s / 2, 2, s, 17, 14, seat);
+        if (ws === "r") box(cx - s / 2, cz - s / 2, 2, s, 17, 14, seat);
+      }
+    });
+
+    // Room pieces: rug, mini-fridge, beanbag, major add-on
+    L.rooms.forEach((r, ri) => {
+      if (!roomOn[ri]) return;
+      if (lvl >= 3 && r.rug) {
+        const [x, y, w, h] = r.rug;
+        const rug = texMat(ctx => {
+          ctx.fillStyle = pal.light; ctx.fillRect(0, 0, 128, 128);
+          ctx.strokeStyle = pal.accent; ctx.lineWidth = 7; ctx.strokeRect(5, 5, 118, 118);
+          ctx.setLineDash([8, 6]); ctx.lineWidth = 3; ctx.strokeRect(20, 20, 88, 88);
+        });
+        box(x, y, w, h, 0, 0.8, rug, false);
+      }
+      if (lvl >= 3 && r.fridge) {
+        const [x, y] = r.fridge;
+        box(x - 10, y - 10, 20, 20, 0, 27, M("#F1F0F4"));
+        box(x - 10.3, y - 10.3, 20.6, 20.6, 20, 0.8, M(pal.deep));
+      }
+      if (lvl >= 3 && r.bean) {
+        const [x, y] = r.bean;
+        mesh(new T.SphereGeometry(13, 24, 16), M(pal.accent, { roughness: 1 }), x, 7.6, y).scale.set(1, 0.6, 1);
+      }
+      if (r.extra && opt.major === "art") {
+        const [x, y] = r.extra;
+        [[-6, 2], [6, 2], [0, -5]].forEach(([dx, dz]) => cyl(x + dx, y + dz, 0.7, 0, 46, dark));
+        box(x - 9, y + 1.4, 18, 1.2, 22, 17, M("#FFFFFF"));
+        box(x - 9, y + 0.4, 18, 3, 21, 1.2, M(pal.accent));
+      }
+      if (r.extra && opt.major === "music") {
+        const [x, y] = r.extra;
+        box(x - 13, y - 1, 2, 2, 0, 26, M(C3.metal));
+        box(x + 11, y - 1, 2, 2, 0, 26, M(C3.metal));
+        box(x - 15, y - 5, 30, 10, 26, 3, M("#FFFFFF"));
+        box(x - 15, y - 5, 30, 3, 29, 0.6, M(C3.screen));
+      }
+    });
+
+    three.scene.add(g);
+    three.group = g;
+    const span = Math.max(L.w, L.h);
+    three.R = Math.hypot(L.w, L.h);
+    three.planW = L.w; three.planH = L.h;
+    three.aspect = clamp((L.h + 140) / (L.w + 60), 0.55, 0.9);
+    const sun = three.sun, sc = sun.shadow.camera;
+    sun.position.set(-span * 0.35, span * 1.1, span * 0.55);
+    sun.target.position.set(0, 0, 0);
+    sc.left = -span * 0.75; sc.right = span * 0.75; sc.top = span * 0.75; sc.bottom = -span * 0.75;
+    sc.near = 1; sc.far = span * 4;
+    sc.updateProjectionMatrix();
+    if (resetView) resetOrbit();
+    size3D();
   }
 
   /* ---------- Planner state ---------- */
   const STORE_KEY = "dormdesigner.planner";
-  const state = { hall: "susq", pkg: "basic", palette: "berry", major: "none", designed: true };
+  const state = { hall: "susq", pkg: "basic", palette: "berry", major: "none", designed: true, scope: "me", bed: 0, view: "2d" };
   try {
     const saved = JSON.parse(localStorage.getItem(STORE_KEY) || "null");
     if (saved) {
@@ -1146,6 +1640,8 @@ footer .team b { color: var(--ink); font-weight: 500; }
       if (PACKAGES[saved.pkg]) state.pkg = saved.pkg;
       if (PALETTES[saved.palette]) state.palette = saved.palette;
       if (MAJORS[saved.major]) state.major = saved.major;
+      if (saved.scope === "me" || saved.scope === "suite") state.scope = saved.scope;
+      if (LAYOUTS[state.hall].beds[saved.bed]) state.bed = saved.bed;
     }
   } catch (e) { /* storage unavailable; use defaults */ }
   function save() { try { localStorage.setItem(STORE_KEY, JSON.stringify(state)); } catch (e) { /* ignore */ } }
@@ -1192,10 +1688,16 @@ footer .team b { color: var(--ink); font-weight: 500; }
     fill($("#rMajor"), MAJORS, M => M.name + (M.price ? " · +" + money(M.price) : ""));
 
     $("#plannerForm").addEventListener("change", e => {
-      if (e.target.name && e.target.name in state) { state[e.target.name] = e.target.value; update(); }
+      const n = e.target.name;
+      if (!n || !(n in state)) return;
+      state[n] = n === "bed" ? Number(e.target.value) : e.target.value;
+      if (n === "bed") state.scope = "me";
+      update();
     });
     $("#viewEmpty").addEventListener("click", () => { state.designed = false; update(); });
     $("#viewDesigned").addEventListener("click", () => { state.designed = true; update(); });
+    $("#view2d").addEventListener("click", () => { state.view = "2d"; update(); });
+    $("#view3d").addEventListener("click", open3D);
     document.querySelectorAll("[data-pick]").forEach(b => b.addEventListener("click", () => {
       state.pkg = b.dataset.pick; state.designed = true; update();
       $("#planner").scrollIntoView({ behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" });
@@ -1207,9 +1709,27 @@ footer .team b { color: var(--ink); font-weight: 500; }
     $("#rHall").value = state.hall; $("#rPkg").value = state.pkg; $("#rPal").value = state.palette; $("#rMajor").value = state.major;
   }
 
+  let bedsBuiltFor = null, view3dFor = null;
+  function planOptions() {
+    const mine = state.scope === "me";
+    return {
+      pkg: state.pkg, palette: state.palette, major: state.major, designed: state.designed,
+      owned: mine ? [state.bed] : null,
+      you: mine ? state.bed : null,
+      onBed: i => { state.bed = i; state.scope = "me"; update(); }
+    };
+  }
+
   function update() {
     const L = LAYOUTS[state.hall], P = PACKAGES[state.pkg], pal = PALETTES[state.palette], M = MAJORS[state.major];
-    ["hall", "pkg", "palette", "major"].forEach(n => {
+    if (bedsBuiltFor !== state.hall) {
+      bedsBuiltFor = state.hall;
+      if (!L.beds[state.bed]) state.bed = 0;
+      $("#bedList").innerHTML = L.bedNames.map((n, i) =>
+        '<label class="opt"><input type="radio" name="bed" id="bed-' + i + '" value="' + i + '" aria-label="Bed ' + n + '"><span class="box"><b>' + n + '</b></span></label>').join("");
+    }
+    $("#bedPick").hidden = state.scope !== "me";
+    ["hall", "pkg", "palette", "major", "scope", "bed"].forEach(n => {
       const input = document.querySelector('input[name="' + n + '"][value="' + state[n] + '"]');
       if (input) input.checked = true;
     });
@@ -1218,8 +1738,20 @@ footer .team b { color: var(--ink); font-weight: 500; }
     $("#planTitle").textContent = L.name;
     $("#planType").textContent = L.type;
     const svg = $("#plan");
-    renderPlan(svg, state.hall, state);
-    svg.setAttribute("aria-label", "Floor plan of " + L.name + ", " + L.desc.toLowerCase() + (state.designed ? ", decorated with the " + P.name + " package in the " + pal.name + " palette" : ", shown empty"));
+    const opts = planOptions();
+    renderPlan(svg, state.hall, opts);
+    const whose = state.scope === "me" ? "bed " + L.bedNames[state.bed] : "every bed";
+    svg.setAttribute("aria-label", "Floor plan of " + L.name + ", " + L.desc.toLowerCase() + (state.designed ? ", with " + whose + " decorated in the " + P.name + " package and " + pal.name + " palette" : ", shown empty"));
+
+    const is3d = state.view === "3d";
+    svg.hidden = is3d;
+    $("#stage3d").hidden = !is3d;
+    $("#view2d").setAttribute("aria-pressed", String(!is3d));
+    $("#view3d").setAttribute("aria-pressed", String(is3d));
+    if (is3d && three) {
+      build3D(state.hall, opts, view3dFor !== state.hall);
+      view3dFor = state.hall;
+    }
 
     // Legend: only what is drawn.
     const leg = [];
@@ -1231,15 +1763,21 @@ footer .team b { color: var(--ink); font-weight: 500; }
     } else {
       leg.push(["transparent", "Furniture provided by UMBC"]);
     }
-    $("#legend").innerHTML = leg.map(l => '<span><i style="background:' + l[0] + ';border:1px solid var(--rule)"></i>' + l[1] + '</span>').join("");
+    $("#legend").innerHTML = leg.map(l => '<span><i style="background:' + l[0] + ';border:1px solid var(--rule)"></i>' + l[1] + '</span>').join("") +
+      (state.scope === "me" ? '<span><i style="border:1.5px dashed var(--accent)"></i>Your bed · roommates shown as provided</span>' : "");
 
     // Price summary
     const per = P.price + M.price;
     $("#qPkg").textContent = P.name + (M.price ? " + " + M.name + " setup" : "") + " · " + pal.name;
     $("#qPrice").textContent = money(per);
     $("#qMonth").textContent = money(Math.round(per / 9));
-    $("#qSuiteLabel").textContent = "Whole " + (L.group === "Apartments" ? "apartment" : "suite") + " (" + L.residents + " students)";
-    $("#qSuite").textContent = money(per * L.residents);
+    if (state.scope === "me") {
+      $("#qSuiteLabel").textContent = "Your bed · roommates order on their own";
+      $("#qSuite").textContent = L.bedNames[state.bed];
+    } else {
+      $("#qSuiteLabel").textContent = "Whole " + (L.group === "Apartments" ? "apartment" : "suite") + " (" + L.residents + " students)";
+      $("#qSuite").textContent = money(per * L.residents);
+    }
 
     // Item list
     const list = ITEMS.filter(it => it.lvl <= P.level && !(it.max && P.level > it.max));
@@ -1282,7 +1820,7 @@ footer .team b { color: var(--ink); font-weight: 500; }
 
   buildControls();
   initReserve();
-  renderPlan($("#heroPlan"), "susq", { pkg: "deluxe", palette: "berry", major: "none", designed: true });
+  renderPlan($("#heroPlan"), "susq", { pkg: "deluxe", palette: "berry", major: "none", designed: true, owned: [0, 1] });
   update();
 })();
 </script>
