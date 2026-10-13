@@ -23,6 +23,8 @@
   --plan-ink: #2B2442;
   --plan-furn: #F1EEF6;
   --plan-label: #6E6785;
+  --plan-tile: #F1EFF4;
+  --plan-tileline: #CFC8DA;
   --brand-1: #4B3BFF;
   --brand-2: #A93CFF;
   --brand-3: #F03CF5;
@@ -39,14 +41,14 @@
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
     --paper: #100C19; --surface: #1A1526; --ink: #EEEAF7; --muted: #A49CBA; --rule: #2F2843;
-    --plan-bg: #161120; --plan-floor: #1B1528; --plan-grid: #241D33; --plan-ink: #D9D2EC; --plan-furn: #251E35; --plan-label: #9C94B3;
+    --plan-bg: #161120; --plan-floor: #1B1528; --plan-grid: #241D33; --plan-ink: #D9D2EC; --plan-furn: #251E35; --plan-label: #9C94B3; --plan-tile: #221C2F; --plan-tileline: #3A3250;
     --accent: #FF6FAE; --accent-ink: #1A0D16; --accent-soft: #3A1830; --ok: #5FD39E;
     color-scheme: dark;
   }
 }
 :root[data-theme="dark"] {
   --paper: #100C19; --surface: #1A1526; --ink: #EEEAF7; --muted: #A49CBA; --rule: #2F2843;
-  --plan-bg: #161120; --plan-floor: #1B1528; --plan-grid: #241D33; --plan-ink: #D9D2EC; --plan-furn: #251E35; --plan-label: #9C94B3;
+  --plan-bg: #161120; --plan-floor: #1B1528; --plan-grid: #241D33; --plan-ink: #D9D2EC; --plan-furn: #251E35; --plan-label: #9C94B3; --plan-tile: #221C2F; --plan-tileline: #3A3250;
   --accent: #FF6FAE; --accent-ink: #1A0D16; --accent-soft: #3A1830; --ok: #5FD39E;
   color-scheme: dark;
 }
@@ -288,13 +290,19 @@ legend { padding: 0; margin-bottom: 10px; font: 500 0.75rem var(--font-mono); te
 .view3d canvas { display: block; width: 100%; touch-action: pan-y; cursor: grab; }
 .view3d canvas.grabbing { cursor: grabbing; }
 .view3d canvas:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
-.v3-ui { position: absolute; top: 10px; right: 10px; display: flex; gap: 6px; }
-.v3-ui button {
-  font: 500 0.78rem/1 var(--font-mono); color: var(--ink); background: var(--surface);
-  border: 1px solid var(--rule); border-radius: 999px; min-width: 32px; height: 32px; padding: 0 10px; cursor: pointer;
+.v-bar { display: flex; flex-wrap: wrap; gap: 8px 12px; align-items: center; justify-content: space-between; padding: 10px 16px 0; }
+.v-hint { font: 400 0.72rem var(--font-mono); color: var(--plan-label); }
+.v-ui { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+.v-btn {
+  font: 500 0.75rem/1 var(--font-mono); color: var(--ink); background: var(--surface);
+  border: 1px solid var(--rule); border-radius: 999px; min-width: 32px; height: 30px; padding: 0 11px; cursor: pointer;
 }
-.v3-ui button:hover { border-color: var(--ink); }
-.v3-hint { position: absolute; left: 12px; bottom: 10px; font: 400 0.72rem var(--font-mono); color: var(--plan-label); pointer-events: none; }
+.v-btn:hover { border-color: var(--ink); }
+.plan.zoomed { cursor: grab; }
+.plan.grabbing { cursor: grabbing; }
+.p-tile { fill: var(--plan-tile); }
+.p-tileline { stroke: var(--plan-tileline); stroke-width: .7; fill: none; }
+.p-carpet { fill: var(--plan-grid); }
 .v3-msg { position: absolute; inset: 0; display: grid; place-items: center; text-align: center; padding: 24px; font: 400 0.85rem var(--font-mono); color: var(--plan-label); }
 
 .summary { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr); gap: 16px; }
@@ -590,15 +598,22 @@ footer .team b { color: var(--ink); font-weight: 500; }
                 </div>
               </div>
             </div>
+            <div class="v-bar">
+              <p class="v-hint" id="vHint">Drag to move around · pinch or +/− to zoom</p>
+              <div class="v-ui" role="toolbar" aria-label="Plan view">
+                <div class="toggle" role="group" aria-label="3D drag mode" id="modeToggle" hidden>
+                  <button type="button" id="mRotate" aria-pressed="true">Rotate</button>
+                  <button type="button" id="mMove" aria-pressed="false">Move</button>
+                </div>
+                <button type="button" class="v-btn" id="zIn" aria-label="Zoom in">+</button>
+                <button type="button" class="v-btn" id="zOut" aria-label="Zoom out">−</button>
+                <button type="button" class="v-btn" id="zRoom">My room</button>
+                <button type="button" class="v-btn" id="zAll">Whole plan</button>
+              </div>
+            </div>
             <svg class="plan" id="plan" aria-label="Floor plan"></svg>
             <div class="view3d" id="stage3d" hidden>
-              <canvas id="c3d" tabindex="0" aria-label="3D model of the room. Drag or use arrow keys to rotate, plus and minus to zoom."></canvas>
-              <div class="v3-ui">
-                <button type="button" id="zIn" aria-label="Zoom in">+</button>
-                <button type="button" id="zOut" aria-label="Zoom out">−</button>
-                <button type="button" id="zReset">Reset</button>
-              </div>
-              <p class="v3-hint">Drag to rotate · pinch or +/− to zoom</p>
+              <canvas id="c3d" tabindex="0" aria-label="3D model of the room. Drag or use arrow keys to rotate, shift plus arrows to move, plus and minus to zoom."></canvas>
               <p class="v3-msg" id="v3msg" hidden></p>
             </div>
             <div class="legend" id="legend"></div>
@@ -945,6 +960,8 @@ footer .team b { color: var(--ink); font-weight: 500; }
       name: "Walker Avenue Apartments", short: "Walker Avenue apartment", group: "Apartments",
       type: "Apartment · 4 bedrooms · 2 baths", desc: "Four bedrooms, two baths, kitchen, laundry and living area", residents: 4,
       outline: [[132.5, 60], [1388.5, 60], [1388.5, 350], [1700, 350], [1700, 718], [132.5, 718], [132.5, 652], [100, 605], [57, 522], [132.5, 465]],
+      // Tile runs from the front door through the kitchen, laundry, vanities and baths; the rest is carpet.
+      floors: [{ type: "tile", poly: [[132.5, 465], [172.5, 525], [1395, 525], [1395, 718], [132.5, 718], [132.5, 652], [100, 605], [57, 522]] }],
       shell: [[103, 470], [103, 27.5], [1427, 27.5], [1427, 315], [1739.5, 315], [1739.5, 736], [103, 736], [103, 655]],
       walls: [[463.5, 60, 463.5, 440, 6], [775, 60, 775, 440, 10], [1084, 60, 1084, 440, 6], [1388.5, 350, 1388.5, 440],
               [1400, 350, 1400, 455], [1400, 540, 1400, 718],
@@ -996,6 +1013,7 @@ footer .team b { color: var(--ink); font-weight: 500; }
     const L = Object.assign({}, raw);
     L.outline = raw.outline.map(p => [s(p[0]), s(p[1])]);
     L.shell = raw.shell ? raw.shell.map(p => [s(p[0]), s(p[1])]) : null;
+    L.floors = raw.floors ? raw.floors.map(f => ({ type: f.type, poly: f.poly.map(p => [s(p[0]), s(p[1])]) })) : null;
     L.walls = raw.walls.map(w => [s(w[0]), s(w[1]), s(w[2]), s(w[3]), w[4] || 0]);
     L.windows = raw.windows.map(w => w.map(s));
     L.doors = raw.doors.map(d => ({ gap: d.gap ? d.gap.map(s) : null, leaf: d.leaf ? d.leaf.map(s) : null, arc: !!d.arc }));
@@ -1091,7 +1109,18 @@ footer .team b { color: var(--ink); font-weight: 500; }
 
     const pts = L.outline.map(p => p.join(",")).join(" ");
     el("polygon", { points: pts, class: "p-floor" }, svg);
-    el("polygon", { points: pts, fill: "url(#" + id + "-grid)" }, svg);
+    if (L.floors) {
+      const carpet = el("pattern", { id: id + "-carpet", width: 5, height: 5, patternUnits: "userSpaceOnUse" }, defs);
+      el("circle", { cx: 1.2, cy: 1.2, r: .5, class: "p-carpet" }, carpet);
+      el("circle", { cx: 3.7, cy: 3.7, r: .5, class: "p-carpet" }, carpet);
+      const tile = el("pattern", { id: id + "-tile", width: 15, height: 15, patternUnits: "userSpaceOnUse" }, defs);
+      el("rect", { width: 15, height: 15, class: "p-tile" }, tile);
+      el("path", { d: "M15 0 H0 V15", class: "p-tileline" }, tile);
+      el("polygon", { points: pts, fill: "url(#" + id + "-carpet)" }, svg);
+      L.floors.forEach(f => el("polygon", { points: f.poly.map(p => p.join(",")).join(" "), fill: "url(#" + id + "-" + f.type + ")" }, svg));
+    } else {
+      el("polygon", { points: pts, fill: "url(#" + id + "-grid)" }, svg);
+    }
 
     const under = el("g", { class: "decor" }, svg);
     const furnG = el("g", {}, svg);
@@ -1392,15 +1421,22 @@ footer .team b { color: var(--ink); font-weight: 500; }
     sun.shadow.mapSize.set(2048, 2048);
     sun.shadow.bias = -0.0008;
     scene.add(sun, sun.target);
-    three = { renderer, scene, camera, sun, group: null, geos: [], mats: [], orbit: { theta: 0.45, phi: 0.92, r: 700 }, R: 700, aspect: 0.7, queued: false };
+    three = { renderer, scene, camera, sun, group: null, geos: [], mats: [], L: null, mode: "rotate",
+      orbit: { theta: 0.45, phi: 0.92, r: 700, tx: 0, tz: 0 }, R: 700, aspect: 0.7, queued: false, tween: 0 };
 
+    // Left drag rotates (or moves, in Move mode); right drag, shift drag and two fingers move; pinch zooms.
     const pts = new Map();
-    let pinch = null;
-    const spread = () => { const a = Array.from(pts.values()); return Math.hypot(a[0].x - a[1].x, a[0].y - a[1].y) || 1; };
+    let pinch = null, panning = false;
+    const pair = () => Array.from(pts.values());
+    const spread = () => { const a = pair(); return Math.hypot(a[0].x - a[1].x, a[0].y - a[1].y) || 1; };
+    const mid = () => { const a = pair(); return { x: (a[0].x + a[1].x) / 2, y: (a[0].y + a[1].y) / 2 }; };
+    canvas.addEventListener("contextmenu", e => e.preventDefault());
     canvas.addEventListener("pointerdown", e => {
       canvas.setPointerCapture(e.pointerId);
       pts.set(e.pointerId, { x: e.clientX, y: e.clientY });
-      if (pts.size === 2) pinch = { d: spread(), r: three.orbit.r };
+      panning = three.mode === "move" || e.button === 2 || e.shiftKey;
+      if (pts.size === 2) pinch = { d: spread(), r: three.orbit.r, m: mid() };
+      three.tween++;
       canvas.classList.add("grabbing");
     });
     canvas.addEventListener("pointermove", e => {
@@ -1409,8 +1445,15 @@ footer .team b { color: var(--ink); font-weight: 500; }
       const dx = e.clientX - p.x, dy = e.clientY - p.y;
       p.x = e.clientX; p.y = e.clientY;
       const o = three.orbit;
-      if (pts.size === 1) { o.theta -= dx * 0.008; o.phi = clamp(o.phi - dy * 0.006, 0.18, 1.42); }
-      else if (pinch) o.r = clamp(pinch.r * pinch.d / spread(), three.R * 0.3, three.R * 2.2);
+      if (pts.size === 1) {
+        if (panning) pan3D(dx, dy);
+        else { o.theta -= dx * 0.008; o.phi = clamp(o.phi - dy * 0.006, 0.18, 1.42); }
+      } else if (pinch) {
+        o.r = clamp(pinch.r * pinch.d / spread(), three.R * 0.12, three.R * 2.2);
+        const m = mid();
+        pan3D(m.x - pinch.m.x, m.y - pinch.m.y);
+        pinch.m = m;
+      }
       render3D();
     });
     const release = e => { pts.delete(e.pointerId); if (pts.size < 2) pinch = null; if (!pts.size) canvas.classList.remove("grabbing"); };
@@ -1419,12 +1462,12 @@ footer .team b { color: var(--ink); font-weight: 500; }
     // Trackpad pinch arrives as ctrl+wheel; plain scrolling keeps scrolling the page.
     canvas.addEventListener("wheel", e => { if (!e.ctrlKey && !e.metaKey) return; e.preventDefault(); zoom3D(1 + e.deltaY * 0.01); }, { passive: false });
     canvas.addEventListener("keydown", e => {
-      const o = three.orbit;
+      const o = three.orbit, move = three.mode === "move" || e.shiftKey;
       switch (e.key) {
-        case "ArrowLeft": o.theta += 0.12; break;
-        case "ArrowRight": o.theta -= 0.12; break;
-        case "ArrowUp": o.phi = clamp(o.phi - 0.08, 0.18, 1.42); break;
-        case "ArrowDown": o.phi = clamp(o.phi + 0.08, 0.18, 1.42); break;
+        case "ArrowLeft": move ? pan3D(30, 0) : (o.theta += 0.12); break;
+        case "ArrowRight": move ? pan3D(-30, 0) : (o.theta -= 0.12); break;
+        case "ArrowUp": move ? pan3D(0, 30) : (o.phi = clamp(o.phi - 0.08, 0.18, 1.42)); break;
+        case "ArrowDown": move ? pan3D(0, -30) : (o.phi = clamp(o.phi + 0.08, 0.18, 1.42)); break;
         case "+": case "=": zoom3D(0.85); break;
         case "-": zoom3D(1.18); break;
         default: return;
@@ -1432,9 +1475,6 @@ footer .team b { color: var(--ink); font-weight: 500; }
       e.preventDefault();
       render3D();
     });
-    document.getElementById("zIn").addEventListener("click", () => zoom3D(0.82));
-    document.getElementById("zOut").addEventListener("click", () => zoom3D(1.22));
-    document.getElementById("zReset").addEventListener("click", () => { resetOrbit(); render3D(); });
     if (window.ResizeObserver) new ResizeObserver(size3D).observe(host);
     else window.addEventListener("resize", size3D);
     const mq = window.matchMedia("(prefers-color-scheme: dark)");
@@ -1442,13 +1482,37 @@ footer .team b { color: var(--ink); font-weight: 500; }
     return true;
   }
 
-  function zoom3D(f) { three.orbit.r = clamp(three.orbit.r * f, three.R * 0.3, three.R * 2.2); render3D(); }
-  function resetOrbit() {
-    // Distance that fits the plan's width and depth in the frame (fov 38°, tan 19° ≈ 0.344).
-    const span = 2 * 0.344, camAspect = 1 / three.aspect;
-    const r = Math.max(1.55 * three.planW / (span * camAspect), 1.5 * three.planH / span);
-    Object.assign(three.orbit, { theta: 0.45, phi: 0.92, r });
+  function zoom3D(f) { three.tween++; three.orbit.r = clamp(three.orbit.r * f, three.R * 0.12, three.R * 2.2); render3D(); }
+  // Slide the look-at point across the floor so the scene follows the pointer.
+  function pan3D(dx, dy) {
+    const o = three.orbit, L = three.L, k = o.r * 0.0016;
+    const rx = Math.cos(o.theta), rz = -Math.sin(o.theta), fx = -Math.sin(o.theta), fz = -Math.cos(o.theta);
+    o.tx = clamp(o.tx - rx * dx * k + fx * dy * k, -L.w / 2, L.w / 2);
+    o.tz = clamp(o.tz - rz * dx * k + fz * dy * k, -L.h / 2, L.h / 2);
+    render3D();
   }
+  // Frame a plan box (or the whole plan when box is null), easing there unless motion is reduced.
+  function focus3D(box, animate) {
+    const L = three.L, span = 2 * 0.344, camAspect = 1 / three.aspect;
+    const w = box ? box.w : L.w, h = box ? box.h : L.h;
+    const to = {
+      theta: three.orbit.theta, phi: box ? 0.82 : 0.92,
+      r: box ? Math.max(2.1 * w / (span * camAspect), 2.1 * h / span, 170) : Math.max(1.55 * w / (span * camAspect), 1.5 * h / span),
+      tx: box ? box.x + box.w / 2 - L.cx : 0, tz: box ? box.y + box.h / 2 - L.cy : 0
+    };
+    const id = ++three.tween;
+    if (!animate || window.matchMedia("(prefers-reduced-motion: reduce)").matches) { Object.assign(three.orbit, to); render3D(); return; }
+    const from = Object.assign({}, three.orbit), t0 = performance.now();
+    const step = now => {
+      if (id !== three.tween) return;
+      const t = Math.min(1, (now - t0) / 480), e = 1 - Math.pow(1 - t, 3);
+      Object.keys(to).forEach(k => { three.orbit[k] = from[k] + (to[k] - from[k]) * e; });
+      render3D();
+      if (t < 1) requestAnimationFrame(step);
+    };
+    requestAnimationFrame(step);
+  }
+  function resetOrbit() { three.orbit.theta = 0.45; focus3D(null, false); }
   function size3D() {
     if (!three) return;
     const canvas = three.renderer.domElement, w = canvas.parentElement.clientWidth;
@@ -1466,8 +1530,8 @@ footer .team b { color: var(--ink); font-weight: 500; }
     requestAnimationFrame(() => {
       three.queued = false;
       const o = three.orbit, s = Math.sin(o.phi);
-      three.camera.position.set(o.r * s * Math.sin(o.theta), o.r * Math.cos(o.phi), o.r * s * Math.cos(o.theta));
-      three.camera.lookAt(0, 14, 0);
+      three.camera.position.set(o.tx + o.r * s * Math.sin(o.theta), o.r * Math.cos(o.phi), o.tz + o.r * s * Math.cos(o.theta));
+      three.camera.lookAt(o.tx, 14, o.tz);
       const bg = getComputedStyle(document.documentElement).getPropertyValue("--plan-bg").trim() || "#FFFFFF";
       three.renderer.setClearColor(bg);
       three.renderer.render(three.scene, three.camera);
@@ -1478,6 +1542,7 @@ footer .team b { color: var(--ink); font-weight: 500; }
     const T = THREE, L = LAYOUTS[key], pal = PALETTES[opt.palette];
     const lvl = opt.designed ? PACKAGES[opt.pkg].level : 0;
     const { bedOn, roomOn, winOn } = ownership(L, opt, lvl);
+    three.L = L;
 
     if (three.group) {
       three.scene.remove(three.group);
@@ -1538,10 +1603,32 @@ footer .team b { color: var(--ink); font-weight: 500; }
     L.outline.forEach((p, i) => (i ? shape.lineTo(p[0], -p[1]) : shape.moveTo(p[0], -p[1])));
     const fg = new T.ShapeGeometry(shape);
     geos.push(fg);
-    const floor = new T.Mesh(fg, M(C3.floor));
+    // Carpet and tile where the plan has flooring detail; a plain floor elsewhere.
+    let seed = 7;
+    const rand = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
+    const floorMat = L.floors ? texMat(ctx => {
+      ctx.fillStyle = "#CDC6D4"; ctx.fillRect(0, 0, 128, 128);
+      for (let k = 0; k < 1400; k++) { ctx.fillStyle = rand() > 0.5 ? "#BDB5C7" : "#DAD4E0"; ctx.fillRect(rand() * 128, rand() * 128, 1.5, 1.5); }
+    }, 1 / 40, 1 / 40) : M(C3.floor);
+    const floor = new T.Mesh(fg, floorMat);
     floor.rotation.x = -Math.PI / 2;
     floor.receiveShadow = true;
     g.add(floor);
+    (L.floors || []).forEach(f => {
+      const sh = new T.Shape();
+      f.poly.forEach((p, i) => (i ? sh.lineTo(p[0], -p[1]) : sh.moveTo(p[0], -p[1])));
+      const geo = new T.ShapeGeometry(sh);
+      geos.push(geo);
+      const tile = texMat(ctx => {
+        ctx.fillStyle = "#EEECF1"; ctx.fillRect(0, 0, 128, 128);
+        ctx.strokeStyle = "#B4ADC0"; ctx.lineWidth = 6; ctx.strokeRect(0, 0, 128, 128);
+      }, 1 / 15, 1 / 15);
+      const m = new T.Mesh(geo, tile);
+      m.rotation.x = -Math.PI / 2;
+      m.position.y = 0.25;
+      m.receiveShadow = true;
+      g.add(m);
+    });
 
     // Walls, cut for door gaps and windows. The top face is dark like the ink on the plan.
     const wallMat = [M(C3.wall), M(C3.wall), M(C3.ink), M(C3.wall), M(C3.wall), M(C3.wall)];
@@ -1599,9 +1686,9 @@ footer .team b { color: var(--ink); font-weight: 500; }
       if (t === "heater") { cyl(f.cx, f.cy, f.r, 0, 50, fix); return; }
       const inner = inset(f, 2);
       switch (t) {
-        case "wardrobe": case "closet": case "pantry": fbox(f, 0, 62, wood); break;
+        case "wardrobe": case "closet": case "pantry": fbox(f, 0, WALL_H, [wood, wood, M(C3.ink), wood, wood, wood]); break;
         case "dresser": fbox(f, 0, 34, wood); break;
-        case "utility": fbox(f, 0, 64, fix); break;
+        case "utility": fbox(f, 0, WALL_H, [fix, fix, M(C3.ink), fix, fix, fix]); break;
         case "counter": fbox(f, 0, 33, M("#D6D0DE")); fbox(f, 33, 2, M("#8D86A0")); break;
         case "range": fbox(f, 0, 35.5, fix); break;
         case "ksink": fbox(f, 0, 35.4, fix); box(inner.x, inner.y, inner.w, inner.h, 35.4, 0.6, water, false); break;
@@ -1766,6 +1853,118 @@ footer .team b { color: var(--ink); font-weight: 500; }
     size3D();
   }
 
+  /* ---------- 2D zoom and pan ---------- */
+  let pv = null, focusKey = null, focus3dPending = null;
+  function fullBox(L) { const pad = 10; return { x: L.x0 - pad, y: L.y0 - pad, w: L.w + pad * 2, h: L.h + pad * 2 }; }
+  // Keep the view inside the plan, at the plan's aspect ratio so the drawing never changes height.
+  function clampView(L, v) {
+    const F = fullBox(L);
+    const w = clamp(v.w, F.w / 8, F.w), h = w * F.h / F.w;
+    const cx = v.x + v.w / 2, cy = v.y + v.h / 2;
+    return { w, h, x: clamp(cx - w / 2, F.x, F.x + F.w - w), y: clamp(cy - h / 2, F.y, F.y + F.h - h) };
+  }
+  function fitView(L, b) {
+    const F = fullBox(L), ar = F.w / F.h, pad = 16;
+    let w = b.w + pad * 2, h = b.h + pad * 2;
+    if (w / h > ar) h = w / ar; else w = h * ar;
+    return clampView(L, { x: b.x + b.w / 2 - w / 2, y: b.y + b.h / 2 - h / 2, w, h });
+  }
+  // The bedroom around a bed: its beds, desks and open floor spots.
+  function roomBox(L, ri) {
+    const xs = [], ys = [];
+    const add = (x, y, w, h) => { xs.push(x, x + w); ys.push(y, y + h); };
+    L.beds.forEach((b, i) => { if (L.bedRoom[i] !== ri) return; add(b.x, b.y, b.w, b.h); const d = L.desks[i]; add(d.x, d.y, d.w, d.h); });
+    const r = L.rooms[ri];
+    if (r) {
+      if (r.rug) add(r.rug[0], r.rug[1], r.rug[2], r.rug[3]);
+      ["fridge", "bean", "extra"].forEach(k => { if (r[k]) add(r[k][0] - 14, r[k][1] - 14, 28, 28); });
+    }
+    const x0 = Math.min.apply(null, xs), y0 = Math.min.apply(null, ys);
+    return { x: x0, y: y0, w: Math.max.apply(null, xs) - x0, h: Math.max.apply(null, ys) - y0 };
+  }
+  function applyView2D() {
+    const svg = $("#plan"), zoomed = pv.w < fullBox(LAYOUTS[state.hall]).w - 0.5;
+    svg.setAttribute("viewBox", pv.x + " " + pv.y + " " + pv.w + " " + pv.h);
+    svg.style.touchAction = zoomed ? "none" : "pan-y";
+    svg.classList.toggle("zoomed", zoomed);
+  }
+  function zoom2D(f, px, py) {
+    const L = LAYOUTS[state.hall], F = fullBox(L);
+    const cx = px == null ? pv.x + pv.w / 2 : px, cy = py == null ? pv.y + pv.h / 2 : py;
+    const w = clamp(pv.w * f, F.w / 8, F.w), k = w / pv.w;
+    pv = clampView(L, { x: cx - (cx - pv.x) * k, y: cy - (cy - pv.y) * k, w, h: pv.h * k });
+    applyView2D();
+  }
+  function svgPoint(svg, clientX, clientY) {
+    const r = svg.getBoundingClientRect(), cs = getComputedStyle(svg);
+    const pl = parseFloat(cs.paddingLeft), pt = parseFloat(cs.paddingTop);
+    const iw = r.width - pl - parseFloat(cs.paddingRight), ih = r.height - pt - parseFloat(cs.paddingBottom);
+    return { x: pv.x + (clientX - r.left - pl) / iw * pv.w, y: pv.y + (clientY - r.top - pt) / ih * pv.h, k: pv.w / iw };
+  }
+  function init2DGestures() {
+    const svg = $("#plan"), pts = new Map();
+    let moved = false, pinch = null;
+    const spread = () => { const a = Array.from(pts.values()); return Math.hypot(a[0].x - a[1].x, a[0].y - a[1].y) || 1; };
+    svg.addEventListener("pointerdown", e => {
+      pts.set(e.pointerId, { x: e.clientX, y: e.clientY, sx: e.clientX, sy: e.clientY });
+      moved = false;
+      if (pts.size === 2) {
+        const a = Array.from(pts.values());
+        pinch = { d: spread(), w: pv.w, c: svgPoint(svg, (a[0].x + a[1].x) / 2, (a[0].y + a[1].y) / 2) };
+      }
+    });
+    svg.addEventListener("pointermove", e => {
+      const p = pts.get(e.pointerId);
+      if (!p) return;
+      const dx = e.clientX - p.x, dy = e.clientY - p.y;
+      p.x = e.clientX; p.y = e.clientY;
+      if (pts.size === 2 && pinch) {
+        moved = true;
+        zoom2D(pinch.w * pinch.d / spread() / pv.w, pinch.c.x, pinch.c.y);
+        return;
+      }
+      if (!moved && Math.hypot(e.clientX - p.sx, e.clientY - p.sy) < 5) return;
+      if (!moved) { moved = true; svg.setPointerCapture(e.pointerId); svg.classList.add("grabbing"); }
+      const k = svgPoint(svg, 0, 0).k;
+      pv = clampView(LAYOUTS[state.hall], { x: pv.x - dx * k, y: pv.y - dy * k, w: pv.w, h: pv.h });
+      applyView2D();
+    });
+    const release = e => { pts.delete(e.pointerId); if (pts.size < 2) pinch = null; if (!pts.size) svg.classList.remove("grabbing"); };
+    svg.addEventListener("pointerup", release);
+    svg.addEventListener("pointercancel", release);
+    // A drag shouldn't also count as tapping a bed.
+    svg.addEventListener("click", e => { if (moved) { e.stopPropagation(); e.preventDefault(); moved = false; } }, true);
+    svg.addEventListener("wheel", e => {
+      if (!e.ctrlKey && !e.metaKey) return;
+      e.preventDefault();
+      const p = svgPoint(svg, e.clientX, e.clientY);
+      zoom2D(1 + e.deltaY * 0.01, p.x, p.y);
+    }, { passive: false });
+  }
+  function focusView(box, animate) {
+    const L = LAYOUTS[state.hall];
+    pv = box ? fitView(L, box) : fullBox(L);
+    applyView2D();
+    if (three && three.L === L && state.view === "3d") focus3D(box, animate);
+    else focus3dPending = "jump";
+  }
+  function setMode(m) {
+    if (three) {
+      three.mode = m;
+      three.renderer.domElement.style.touchAction = m === "move" ? "none" : "pan-y";
+    }
+    $("#mRotate").setAttribute("aria-pressed", String(m === "rotate"));
+    $("#mMove").setAttribute("aria-pressed", String(m === "move"));
+    updateHint();
+  }
+  function updateHint() {
+    const mode = three ? three.mode : "rotate";
+    $("#vHint").textContent = state.view !== "3d"
+      ? "Drag to move around · pinch or +/− to zoom · tap a bed to make it yours"
+      : mode === "move" ? "Drag to move around · pinch or +/− to zoom"
+      : "Drag to rotate · right-drag, shift-drag or two fingers to move";
+  }
+
   /* ---------- Planner state ---------- */
   const STORE_KEY = "dormdesigner.planner";
   const state = { hall: "susq", pkg: "basic", palette: "berry", major: "none", designed: true, scope: "me", bed: 0, view: "2d" };
@@ -1834,6 +2033,14 @@ footer .team b { color: var(--ink); font-weight: 500; }
     $("#viewDesigned").addEventListener("click", () => { state.designed = true; update(); });
     $("#view2d").addEventListener("click", () => { state.view = "2d"; update(); });
     $("#view3d").addEventListener("click", open3D);
+    init2DGestures();
+    const in3d = () => state.view === "3d" && three && three.L;
+    $("#zIn").addEventListener("click", () => (in3d() ? zoom3D(0.8) : zoom2D(0.75)));
+    $("#zOut").addEventListener("click", () => (in3d() ? zoom3D(1.25) : zoom2D(1.33)));
+    $("#zRoom").addEventListener("click", () => { const L = LAYOUTS[state.hall]; focusView(roomBox(L, L.bedRoom[state.bed]), true); });
+    $("#zAll").addEventListener("click", () => focusView(null, true));
+    $("#mRotate").addEventListener("click", () => setMode("rotate"));
+    $("#mMove").addEventListener("click", () => setMode("move"));
     document.querySelectorAll("[data-pick]").forEach(b => b.addEventListener("click", () => {
       state.pkg = b.dataset.pick; state.designed = true; update();
       $("#planner").scrollIntoView({ behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" });
@@ -1875,17 +2082,33 @@ footer .team b { color: var(--ink); font-weight: 500; }
     $("#planType").textContent = L.type;
     const svg = $("#plan");
     const opts = planOptions();
+    const focusBox = state.scope === "me" ? roomBox(L, L.bedRoom[state.bed]) : null;
+    const fKey = state.hall + "|" + state.scope + "|" + state.bed;
+    if (fKey !== focusKey) {
+      const sameHall = focusKey && focusKey.split("|")[0] === state.hall;
+      focusKey = fKey;
+      pv = focusBox ? fitView(L, focusBox) : fullBox(L);
+      focus3dPending = sameHall ? "animate" : "jump";
+    }
     renderPlan(svg, state.hall, opts);
+    applyView2D();
     const whose = state.scope === "me" ? "bed " + L.bedNames[state.bed] : "every bed";
     svg.setAttribute("aria-label", "Floor plan of " + L.name + ", " + L.desc.toLowerCase() + (state.designed ? ", with " + whose + " decorated in the " + P.name + " package and " + pal.name + " palette" : ", shown empty"));
 
     const is3d = state.view === "3d";
-    svg.hidden = is3d;
+    svg.toggleAttribute("hidden", is3d);  // SVG elements have no .hidden property
     $("#stage3d").hidden = !is3d;
     $("#view2d").setAttribute("aria-pressed", String(!is3d));
     $("#view3d").setAttribute("aria-pressed", String(is3d));
+    $("#modeToggle").hidden = !is3d;
+    $("#zRoom").textContent = L.bedRoom.filter(r => r === L.bedRoom[state.bed]).length > 1 ? "Room " + L.bedNames[state.bed].charAt(0) : "Bedroom " + L.bedNames[state.bed];
+    updateHint();
     if (is3d && three) {
-      build3D(state.hall, opts, view3dFor !== state.hall);
+      build3D(state.hall, opts, false);
+      if (focus3dPending || view3dFor !== state.hall) {
+        focus3D(focusBox, focus3dPending === "animate" && view3dFor === state.hall);
+        focus3dPending = null;
+      }
       view3dFor = state.hall;
     }
 
@@ -1899,6 +2122,7 @@ footer .team b { color: var(--ink); font-weight: 500; }
     } else {
       leg.push(["transparent", "Furniture provided by UMBC"]);
     }
+    if (L.floors) leg.push(["var(--plan-tile)", "Tile floor"], ["var(--plan-floor)", "Carpet"]);
     $("#legend").innerHTML = leg.map(l => '<span><i style="background:' + l[0] + ';border:1px solid var(--rule)"></i>' + l[1] + '</span>').join("") +
       (state.scope === "me" ? '<span><i style="border:1.5px dashed var(--accent)"></i>Your bed · roommates shown as provided</span>' : "");
 
