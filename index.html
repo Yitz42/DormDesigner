@@ -152,6 +152,7 @@ p { margin: 0; }
 .p-floor { fill: var(--plan-floor); }
 .p-gridline { stroke: var(--plan-grid); stroke-width: .6; fill: none; }
 .p-wall { stroke: var(--plan-ink); stroke-width: 4; fill: none; stroke-linejoin: miter; stroke-linecap: square; }
+.p-shell { stroke: var(--plan-ink); stroke-width: 12; fill: none; stroke-linejoin: miter; }
 .p-iwall { stroke: var(--plan-ink); stroke-width: 2.6; fill: none; stroke-linecap: square; }
 .p-gap { stroke: var(--plan-floor); stroke-width: 6; }
 .p-wingap { stroke: var(--plan-bg); stroke-width: 5.4; }
@@ -766,175 +767,264 @@ footer .team b { color: var(--ink); font-weight: 500; }
     { lvl: 3, name: "Rug & throw pillows", plan: true }
   ];
 
-  /* Floor plans, traced from UMBC Residential Life's published drawings.
-     Units are drawing units, not feet. Beds: head = pillow end, art = wall run
-     [x1,y1,x2,y2,nx,ny] where (nx,ny) points into the room. */
-  const LAYOUTS = {
+  /* Floor plans traced from UMBC Residential Life's published drawings.
+     Coordinates are pixels on a 4x render of each drawing (one unit on the plan = 2 px).
+     Rects are [x0, y0, x1, y1]. Beds: head = pillow end; art = the wall run for posters,
+     [x1, y1, x2, y2, nx, ny] with (nx, ny) pointing into the room. Doors: gap = the opening
+     in the wall, leaf = hinge -> leaf end, arc = draw the swing. Rooms list the open floor
+     spots for a rug, mini-fridge, beanbag and major add-on, one entry per bedroom, then
+     shared rooms. */
+  const RAW_LAYOUTS = {
     susq: {
-      bedRoom: [0,0,1,1], bedNames: ["A1","A2","B1","B2"],
+      bedRoom: [0, 0, 1, 1], bedNames: ["A1", "A2", "B1", "B2"],
       name: "Susquehanna · Patapsco · Chesapeake", short: "Susquehanna / Patapsco / Chesapeake", group: "Residence halls",
-      type: "Double rooms · shared bath", desc: "Two double rooms sharing a bathroom", residents: 4, w: 509, h: 359,
-      outline: [[0,0],[509,0],[509,359],[0,359]],
-      walls: [[203,0,203,30],[203,70,203,144],[305,0,305,30],[305,70,305,144],[203,144,225,144],[283,144,305,144],[254,187,254,202]],
-      windows: [[82,0,166,0],[341,0,425,0]],
-      doors: [{x:95,y:359,len:53,dir:"h",open:-1,hinge:"b"},{x:360,y:359,len:47,dir:"h",open:-1,hinge:"a"},
-              {x:203,y:30,len:40,dir:"v",open:-1,hinge:"a"},{x:305,y:30,len:40,dir:"v",open:1,hinge:"a"}],
-      furn: [["shower",232,6,48,44],["toilet",254,110],["sink",225,144,29,43],["sink",254,144,29,43],
-             ["wardrobe",212,202,42,78],["wardrobe",254,202,42,78],["wardrobe",212,280,42,79],["wardrobe",254,280,42,79]],
-      beds: [{x:0,y:24,w:142,h:61,head:"l",art:[4,0,78,0,0,1]},{x:0,y:222,w:65,h:137,head:"b",art:[0,228,0,352,1,0]},
-             {x:367,y:24,w:142,h:61,head:"r",art:[430,0,505,0,0,1]},{x:444,y:222,w:65,h:137,head:"b",art:[509,228,509,352,-1,0]}],
-      desks: [{x:0,y:85,w:34,h:69,wall:"l"},{x:0,y:154,w:34,h:68,wall:"l"},{x:475,y:85,w:34,h:69,wall:"r"},{x:475,y:154,w:34,h:68,wall:"r"}],
-      rooms: [{rug:[62,125,118,110],fridge:[190,170],bean:[165,300],extra:[172,42]},
-              {rug:[329,125,118,110],fridge:[318,170],bean:[340,300],extra:[337,42]}],
-      labels: [[120,108,"Room A"],[390,108,"Room B"],[254,72,"Bath"]]
+      type: "Double rooms · shared bath", desc: "Two double rooms sharing a bathroom", residents: 4,
+      outline: [[15.5, 17], [1032.5, 17], [1032.5, 734], [15.5, 734]],
+      walls: [[424, 17, 424, 114], [424, 211, 424, 303], [625, 17, 625, 114], [625, 211, 625, 303], [424, 303, 625, 303], [524.5, 303, 524.5, 734, 1.5]],
+      windows: [[182, 17, 347, 17], [699, 17, 864, 17]],
+      doors: [{ gap: [180, 734, 312, 734], leaf: [311, 734, 207, 667] }, { gap: [734, 734, 865, 734], leaf: [735, 734, 829, 666] },
+              { leaf: [424, 114, 373, 180] }, { leaf: [625, 114, 680, 178] }],
+      furn: [["shower", 474.5, 27, 576.5, 113.5], ["toilet", 524, 239, 21, 28, [484, 268, 566, 299]],
+             ["sink", 467.5, 303, 524.5, 394.5], ["sink", 524.5, 303, 581.5, 394.5],
+             ["wardrobe", 440, 422, 524.5, 577.5], ["wardrobe", 524.5, 422, 608.5, 577.5], ["wardrobe", 440, 577.5, 524.5, 734], ["wardrobe", 524.5, 577.5, 608.5, 734]],
+      beds: [{ r: [15.5, 62.5, 300.5, 185.5], head: "l", art: [22, 17, 176, 17, 0, 1] },
+             { r: [15.5, 462.5, 145.5, 734], head: "b", art: [15.5, 470, 15.5, 728, 1, 0] },
+             { r: [748.5, 62.5, 1032.5, 185.5], head: "r", art: [870, 17, 1026, 17, 0, 1] },
+             { r: [903.5, 462.5, 1032.5, 734], head: "b", art: [1032.5, 470, 1032.5, 728, -1, 0] }],
+      desks: [{ r: [15.5, 185.5, 83.5, 324], wall: "l" }, { r: [15.5, 324, 83.5, 462.5], wall: "l" },
+              { r: [965, 185.5, 1032.5, 324], wall: "r" }, { r: [965, 324, 1032.5, 462.5], wall: "r" }],
+      rooms: [{ rug: [150, 300, 390, 560], fridge: [418, 450], bean: [365, 70], extra: [250, 235] },
+              { rug: [658, 300, 898, 560], fridge: [630, 450], bean: [684, 70], extra: [798, 235] }],
+      labels: [[250, 640, "Room A"], [800, 640, "Room B"], [524, 160, "Bath"]]
     },
     potomac: {
-      bedRoom: [0,0,1,1], bedNames: ["A1","A2","B1","B2"],
+      bedRoom: [0, 0, 1, 1], bedNames: ["A1", "A2", "B1", "B2"],
       name: "Potomac Hall", short: "Potomac Hall", group: "Residence halls",
-      type: "Double rooms · shared bath", desc: "Two double rooms sharing a bathroom", residents: 4, w: 553, h: 372,
-      outline: [[0,0],[553,0],[553,372],[0,372]],
-      walls: [[276,0,276,235],[221,235,331,235],[221,235,221,290],[221,330,221,372],[331,235,331,290],[331,330,331,372]],
-      windows: [[90,0,181,0],[371,0,462,0]],
-      doors: [{x:91,y:372,len:60,dir:"h",open:-1,hinge:"a"},{x:402,y:372,len:60,dir:"h",open:-1,hinge:"b"},
-              {x:221,y:290,len:40,dir:"v",open:-1,hinge:"b"},{x:331,y:290,len:40,dir:"v",open:1,hinge:"b"}],
-      furn: [["sink",193,226,26,44],["sink",333,226,26,44],["toilet",276,258],["shower",248,322,56,47],
-             ["wardrobe",0,212,44,80],["wardrobe",0,292,44,80],["wardrobe",509,212,44,80],["wardrobe",509,292,44,80]],
-      beds: [{x:0,y:0,w:71,h:140,head:"t",art:[0,10,0,132,1,0]},{x:206,y:0,w:70,h:140,head:"t",art:[210,0,272,0,0,1]},
-             {x:276,y:0,w:72,h:140,head:"t",art:[280,0,345,0,0,1]},{x:482,y:0,w:71,h:140,head:"t",art:[553,10,553,132,-1,0]}],
-      desks: [{x:0,y:140,w:36,h:72,wall:"l"},{x:238,y:140,w:38,h:72,wall:"r"},{x:276,y:140,w:38,h:72,wall:"l"},{x:517,y:140,w:36,h:72,wall:"r"}],
-      rooms: [{rug:[66,182,120,108],fridge:[192,160],bean:[175,338],extra:[135,62]},
-              {rug:[367,182,120,108],fridge:[372,160],bean:[378,338],extra:[418,62]}],
-      labels: [[125,165,"Room A"],[430,165,"Room B"],[276,302,"Bath"]]
+      type: "Double rooms · shared bath", desc: "Two double rooms sharing a bathroom", residents: 4,
+      outline: [[18, 17.5], [1123, 17.5], [1123, 760.5], [18, 760.5]],
+      walls: [[571, 17.5, 571, 465, 1.5], [399, 465, 741, 465], [399, 465, 399, 560], [741, 465, 741, 560],
+              [460.5, 661, 460.5, 760.5], [680.5, 661, 680.5, 760.5]],
+      windows: [[199, 17.5, 378, 17.5], [761, 17.5, 940, 17.5]],
+      doors: [{ gap: [202, 760.5, 340, 760.5], leaf: [202, 760.5, 300, 690] }, { gap: [799, 760.5, 941, 760.5], leaf: [940, 760.5, 828, 690] },
+              { leaf: [460.5, 661, 400, 594] }, { leaf: [680.5, 661, 741, 594] }],
+      furn: [["sink", 399, 465, 461, 560], ["sink", 680, 465, 741, 560], ["toilet", 570, 530, 21, 29, [524, 468, 614, 500]],
+             ["shower", 515, 662, 627, 752],
+             ["wardrobe", 18, 439, 108, 600.5], ["wardrobe", 18, 600.5, 108, 760.5], ["wardrobe", 1033, 439, 1123, 600.5], ["wardrobe", 1033, 600.5, 1123, 760.5]],
+      beds: [{ r: [18, 17.5, 159, 296], head: "t", art: [18, 25, 18, 290, 1, 0] },
+             { r: [428.5, 17.5, 571, 296], head: "t", art: [433, 17.5, 566, 17.5, 0, 1] },
+             { r: [571, 17.5, 713.5, 296], head: "t", art: [576, 17.5, 708, 17.5, 0, 1] },
+             { r: [982.5, 17.5, 1123, 296], head: "t", art: [1123, 25, 1123, 290, -1, 0] }],
+      desks: [{ r: [18, 296, 92, 439], wall: "l" }, { r: [495.5, 296, 571, 439], wall: "r" },
+              { r: [571, 296, 646.5, 439], wall: "l" }, { r: [1047.5, 296, 1123, 439], wall: "r" }],
+      rooms: [{ rug: [175, 310, 385, 560], fridge: [472, 320], bean: [205, 80], extra: [360, 75] },
+              { rug: [756, 310, 966, 560], fridge: [669, 320], bean: [936, 80], extra: [781, 75] }],
+      labels: [[290, 640, "Room A"], [852, 640, "Room B"], [570, 612, "Bath"]]
     },
     erickson: {
-      bedRoom: [0,0,1,1], bedNames: ["A1","A2","B1","B2"],
+      bedRoom: [0, 0, 1, 1], bedNames: ["A1", "A2", "B1", "B2"],
       name: "Erickson & Harbor Halls", short: "Erickson / Harbor double suite", group: "Residence halls",
-      type: "Double suite · common room", desc: "Two double rooms, a common room and a bathroom", residents: 4, w: 512, h: 352,
-      outline: [[0,0],[512,0],[512,352],[0,352]],
-      walls: [[170,0,170,210],[342,0,342,210],[108,265,200,265],[245,265,245,352],[108,265,108,319],[380,255,380,352]],
-      windows: [[42,0,127,0],[178,0,333,0],[385,0,470,0]],
-      doors: [{x:170,y:210,len:45,dir:"v",open:-1,hinge:"b"},{x:342,y:210,len:45,dir:"v",open:1,hinge:"b"},
-              {x:200,y:265,len:45,dir:"h",open:-1,hinge:"b"},{x:262,y:352,len:45,dir:"h",open:-1,hinge:"b"}],
-      furn: [["couch",175,6,113,41],["end",291,11,41,35],["coffee",193,63,70,26],["chair",299,74,36,45],
-             ["closet",0,265,30,87],["closet",30,319,78,33],["closet",483,265,29,87],["closet",380,319,103,33],
-             ["sink",110,268,22,40],["shower",134,268,44,46],["toilet",222,312],["sink",382,267,24,40]],
-      beds: [{x:0,y:6,w:118,h:59,head:"l",art:[0,6,0,62,1,0]},{x:0,y:134,w:53,h:131,head:"b",art:[0,140,0,258,1,0]},
-             {x:395,y:6,w:117,h:59,head:"r",art:[512,6,512,62,-1,0]},{x:457,y:134,w:55,h:112,head:"b",art:[512,140,512,240,-1,0]}],
-      desks: [{x:0,y:65,w:30,h:69,wall:"l"},{x:142,y:109,w:28,h:69,wall:"r"},{x:482,y:65,w:30,h:68,wall:"r"},{x:342,y:109,w:28,h:69,wall:"l"}],
-      rooms: [{rug:[58,80,76,104],fridge:[72,244],bean:[100,232],extra:[146,42]},
-              {rug:[376,80,76,104],fridge:[432,282],bean:[420,214],extra:[366,42]},
-              {rug:[186,100,140,92]}],
-      labels: [[92,205,"Room A"],[412,262,"Room B"],[256,215,"Common"],[178,335,"Bath"]]
+      type: "Double suite · common room", desc: "Two double rooms, a common room and a bathroom", residents: 4,
+      outline: [[12.5, 17], [1038.5, 17], [1038.5, 720], [12.5, 720]],
+      walls: [[354, 17, 354, 419], [696, 17, 696, 419], [12.5, 548, 120, 548], [230, 548, 397, 548], [482, 548, 501, 548],
+              [277, 548, 277, 720], [501, 548, 501, 720], [672, 548, 773, 548], [772, 548, 772, 720], [927, 548, 1038.5, 548]],
+      windows: [[97, 17, 267, 17], [371, 17, 681, 17], [785, 17, 954, 17]],
+      doors: [{ leaf: [354, 548, 292, 455] }, { leaf: [697, 548, 755, 453] },
+              { gap: [397, 548, 482, 548], leaf: [481, 548, 425, 600] },
+              { gap: [523, 720, 630, 720], leaf: [523, 720, 600, 650] }],
+      furn: [["couch", 364.5, 28.5, 590.5, 112.5], ["end", 599.5, 38, 671.5, 112.5], ["coffee", 400, 140.5, 539, 199.5], ["chair", 612, 160, 688, 262],
+             ["closet", 12.5, 548, 68.5, 718], ["closet", 68.5, 656, 230, 718], ["closet", 981.5, 548, 1038.5, 718], ["closet", 820.5, 654, 981.5, 718],
+             ["sink", 230, 548, 277, 638], ["cabinet", 230, 638, 277, 718], ["shower", 285, 562, 361, 655],
+             ["toilet", 440, 620, 17, 29, [407, 677, 475, 708]], ["sink", 772, 548, 820.5, 640], ["cabinet", 772, 640, 820.5, 718]],
+      beds: [{ r: [12.5, 28.5, 249, 149], head: "l", art: [12.5, 34, 12.5, 143, 1, 0] },
+             { r: [12.5, 285, 120, 548], head: "b", art: [12.5, 292, 12.5, 540, 1, 0] },
+             { r: [802.5, 28.5, 1038.5, 149], head: "r", art: [1038.5, 34, 1038.5, 143, -1, 0] },
+             { r: [928, 285, 1038.5, 548], head: "b", art: [1038.5, 292, 1038.5, 540, -1, 0] }],
+      desks: [{ r: [12.5, 149, 69.5, 285], wall: "l" }, { r: [296.5, 238.5, 354, 371.5], wall: "r" },
+              { r: [981.5, 149, 1038.5, 283], wall: "r" }, { r: [696, 238.5, 753.5, 371.5], wall: "l" }],
+      rooms: [{ rug: [125, 165, 285, 410], fridge: [332, 400], bean: [300, 80], extra: [180, 480] },
+              { rug: [766, 165, 926, 410], fridge: [719, 400], bean: [751, 80], extra: [871, 480] },
+              { rug: [375, 125, 595, 235] }],
+      labels: [[198, 255, "Room A"], [835, 255, "Room B"], [525, 330, "Common"], [389, 692, "Bath"]]
     },
     harbor: {
-      bedRoom: [0,1,2,3], bedNames: ["A","B","C","D"],
+      bedRoom: [0, 1, 2, 3], bedNames: ["A", "B", "C", "D"],
       name: "Harbor Hall", short: "Harbor Hall single suite", group: "Residence halls",
-      type: "Single suite · 4 bedrooms", desc: "Four single bedrooms around a shared bath and lounge", residents: 4, w: 558, h: 351,
-      outline: [[0,0],[558,0],[558,351],[0,351]],
-      walls: [[138,0,138,224],[278,0,278,224],[418,0,418,224],[0,224,86,224],[190,224,366,224],[470,224,558,224],
-              [213,255,213,351],[345,255,345,351],[213,255,235,255],[325,255,345,255]],
-      windows: [[18,0,70,0],[150,0,212,0],[290,0,345,0],[492,0,545,0]],
-      doors: [{x:86,y:224,len:52,dir:"h",open:-1,hinge:"b"},{x:138,y:224,len:52,dir:"h",open:-1,hinge:"a"},
-              {x:366,y:224,len:52,dir:"h",open:-1,hinge:"b"},{x:418,y:224,len:52,dir:"h",open:-1,hinge:"a"},
-              {x:113,y:351,len:45,dir:"h",open:-1,hinge:"b"}],
-      furn: [["closet",0,198,65,26],["closet",204,198,74,26],["closet",278,198,68,26],["closet",483,198,75,26],
-             ["loveseat",5,232,36,80],["end",8,312,30,34],["chair",505,236,46,36],["round",529,288,11],["chair",505,306,46,36],
-             ["tub",216,283,72,43],["toilet",318,300],["sink",168,324,43,24],["sink",347,324,43,24]],
-      beds: [{x:0,y:6,w:58,h:127,head:"t",art:[0,12,0,126,1,0]},{x:219,y:6,w:59,h:127,head:"t",art:[278,12,278,126,-1,0]},
-             {x:278,y:6,w:60,h:127,head:"t",art:[278,12,278,126,1,0]},{x:499,y:6,w:59,h:127,head:"t",art:[558,12,558,126,-1,0]}],
-      desks: [{x:73,y:0,w:65,h:33,wall:"t"},{x:138,y:0,w:66,h:33,wall:"t"},{x:353,y:0,w:65,h:33,wall:"t"},{x:418,y:0,w:67,h:33,wall:"t"}],
-      rooms: [{rug:[64,62,66,92],fridge:[124,46],bean:[96,160],extra:[72,180]},
-              {rug:[148,62,66,92],fridge:[152,46],bean:[196,158],extra:[178,140]},
-              {rug:[344,62,66,92],fridge:[346,46],bean:[392,150],extra:[358,178]},
-              {rug:[428,62,66,92],fridge:[472,46],bean:[446,150],extra:[486,178]},
-              {rug:[50,250,108,86]}],
-      labels: [[98,112,"A"],[178,112,"B"],[378,112,"C"],[458,112,"D"],[280,342,"Bath"],[104,244,"Lounge"]]
+      type: "Single suite · 4 bedrooms", desc: "Four single bedrooms around a shared bath and lounge", residents: 4,
+      outline: [[12, 16], [1129.5, 16], [1129.5, 714], [12, 714]],
+      walls: [[291, 16, 291, 461], [570.5, 16, 570.5, 461], [849.5, 16, 849.5, 461],
+              [12, 461, 162, 461], [281, 461, 299, 461], [418, 461, 720, 461], [840, 461, 860, 461], [980, 461, 1129.5, 461],
+              [437.5, 566, 437.5, 714], [699.5, 566, 699.5, 714], [600.5, 581, 600.5, 671], [437.5, 670, 699.5, 670]],
+      windows: [[52, 16, 238, 16], [348, 16, 533, 16], [615, 16, 799, 16], [896, 16, 1081, 16]],
+      doors: [{ leaf: [283, 461, 185, 394] }, { leaf: [297, 461, 385, 394] }, { leaf: [842, 461, 745, 394] }, { leaf: [858, 461, 945, 393] },
+              { leaf: [437.5, 463, 490, 537] }, { leaf: [704, 463, 655, 537] },
+              { gap: [217, 714, 337, 714], leaf: [337, 714, 240, 647] }, { gap: [802, 714, 912, 714], leaf: [802, 714, 882, 650] }],
+      furn: [["closet", 12, 409, 146.5, 461], ["closet", 437.5, 409, 570.5, 461], ["closet", 570.5, 409, 704, 461], ["closet", 997, 409, 1129.5, 461],
+             ["loveseat", 19.5, 466.5, 103.5, 632], ["end", 28.5, 637, 91, 710],
+             ["chair", 1022, 467, 1116, 552], ["round", 1075, 586.5, 23.5], ["chair", 1022, 619, 1116, 705],
+             ["tub", 445, 581, 588, 665], ["toilet", 651, 605, 19, 28, [614, 635, 688, 663]],
+             ["sink", 348, 662, 437.5, 712], ["sink", 700, 661, 792, 712]],
+      beds: [{ r: [12, 16, 129.5, 278.5], head: "t", art: [12, 24, 12, 270, 1, 0] },
+             { r: [452, 16, 570.5, 278.5], head: "t", art: [570.5, 24, 570.5, 270, -1, 0] },
+             { r: [570.5, 16, 688, 278.5], head: "t", art: [570.5, 24, 570.5, 270, 1, 0] },
+             { r: [1011.5, 16, 1129.5, 278.5], head: "t", art: [1129.5, 24, 1129.5, 270, -1, 0] }],
+      desks: [{ r: [158, 16, 291, 79], wall: "t" }, { r: [291, 16, 424, 79], wall: "t" },
+              { r: [716.5, 16, 849.5, 79], wall: "t" }, { r: [849.5, 16, 983.5, 79], wall: "t" }],
+      rooms: [{ rug: [145, 110, 240, 330], fridge: [269, 105], bean: [165, 345], extra: [255, 355] },
+              { rug: [342, 110, 437, 330], fridge: [313, 105], bean: [417, 345], extra: [327, 355] },
+              { rug: [704, 110, 799, 330], fridge: [828, 105], bean: [724, 345], extra: [814, 355] },
+              { rug: [901.5, 110, 996.5, 330], fridge: [872.5, 105], bean: [976.5, 345], extra: [886.5, 355] },
+              { rug: [115, 480, 330, 630] }],
+      labels: [[195, 260, "A"], [370, 260, "B"], [765, 260, "C"], [945, 260, "D"], [520, 692, "Bath"], [200, 560, "Lounge"]]
     },
     terrace: {
-      bedRoom: [0,1,2,3], bedNames: ["1","2","3","4"],
+      bedRoom: [0, 1, 2, 3], bedNames: ["1", "2", "3", "4"],
       name: "Terrace & Hillside Apartments", short: "Terrace / Hillside apartment", group: "Apartments",
-      type: "Apartment · 4 single bedrooms", desc: "Four single bedrooms, a kitchen and a shared bath", residents: 4, w: 487, h: 404,
-      outline: [[0,0],[487,0],[487,256],[362,256],[362,404],[89,404],[89,257],[0,257]],
-      walls: [[0,127,157,127],[157,0,157,84],[157,119,157,214],[157,251,157,257],[157,257,180,257],[270,257,362,257],[225,257,225,404],
-              [294,0,294,131],[157,131,200,131],[240,131,294,131]],
-      windows: [[0,64,0,122],[0,194,0,251]],
-      doors: [{x:157,y:84,len:35,dir:"v",open:-1,hinge:"b"},{x:157,y:214,len:37,dir:"v",open:-1,hinge:"b"},
-              {x:180,y:257,len:45,dir:"h",open:1,hinge:"b"},{x:225,y:257,len:45,dir:"h",open:1,hinge:"a"},
-              {x:200,y:131,len:40,dir:"h",open:-1,hinge:"a"}],
-      furn: [["closet",130,0,27,62],["closet",130,129,27,62],["closet",89,257,68,24],["closet",294,257,68,24],
-             ["tub",162,5,110,34],["sink",272,49,20,38],["sink",272,89,20,38],["toilet",240,108],
-             ["counter",296,0,26,130],["appl",417,5,22,14],["appl",452,5,22,14],["table",412,26,70,30],
-             ["chair",412,94,32,32],["chair",450,94,32,32],["loveseat",447,139,38,72],["chair",414,216,34,32]],
-      beds: [{x:0,y:0,w:60,h:122,head:"t",art:[0,6,0,60,1,0]},{x:0,y:129,w:60,h:122,head:"t",art:[0,135,0,190,1,0]},
-             {x:89,y:349,w:131,h:55,head:"l",art:[95,404,215,404,0,-1]},{x:230,y:349,w:132,h:55,head:"r",art:[235,404,357,404,0,-1]}],
-      desks: [{x:62,y:0,w:65,h:29,wall:"t"},{x:62,y:129,w:65,h:30,wall:"t"},{x:92,y:284,w:28,h:65,wall:"l"},{x:334,y:284,w:28,h:65,wall:"r"}],
-      rooms: [{rug:[68,38,56,58],fridge:[74,110],bean:[106,108],extra:[118,74]},
-              {rug:[68,167,56,58],fridge:[74,239],bean:[106,237],extra:[118,203]},
-              {rug:[124,286,94,56],fridge:[134,300],bean:[172,322],extra:[208,334]},
-              {rug:[232,286,94,56],fridge:[318,300],bean:[282,322],extra:[246,334]},
-              {rug:[318,150,112,92]}],
-      labels: [[30,104,"1"],[30,233,"2"],[150,392,"3"],[296,392,"4"],[369,72,"Kitchen"],[220,80,"Bath"]]
+      type: "Apartment · 4 single bedrooms", desc: "Four single bedrooms, a kitchen and a shared bath", residents: 4,
+      outline: [[17.5, 12], [988.5, 12], [988.5, 525], [927.5, 525], [927.5, 668], [740.5, 668], [740.5, 821], [195.5, 821], [195.5, 527], [17.5, 527]],
+      walls: [[17.5, 270, 332, 270], [329.5, 12, 329.5, 148], [329.5, 262, 329.5, 406], [329.5, 520, 329.5, 527],
+              [195.5, 527, 341, 527], [461, 526, 475, 526], [467.5, 526, 467.5, 821], [595, 526, 740.5, 526], [740.5, 526, 740.5, 668],
+              [604.5, 12, 604.5, 275], [548, 275, 740.5, 275], [740.5, 275, 740.5, 404], [548, 404, 740.5, 404]],
+      windows: [[17.5, 73, 17.5, 206], [17.5, 331, 17.5, 464], [261, 821, 402, 821], [533, 821, 674, 821], [870, 668, 925, 668]],
+      doors: [{ leaf: [330, 269, 262, 180] }, { leaf: [330, 523, 262, 440] },
+              { gap: [341, 526, 461, 526], leaf: [464, 526, 375, 589] }, { gap: [475, 526, 595, 526], leaf: [471, 526, 573, 588] },
+              { leaf: [549, 402, 612, 312] }, { leaf: [604, 524, 540, 440] }, { gap: [742, 668, 869, 668], leaf: [742, 668, 845, 727] }],
+      furn: [["closet", 278, 12, 327, 137], ["closet", 278, 270, 327, 395.5], ["closet", 195.5, 527, 329.5, 574.5], ["closet", 607.5, 527, 740.5, 574.5],
+             ["tub", 333, 14, 566, 98], ["sink", 555, 110, 604.5, 193], ["sink", 555, 193, 604.5, 275],
+             ["toilet", 675, 340, 27, 21, [704, 302, 732, 375]],
+             ["appl", 606, 14, 711, 58], ["counter", 606, 58, 659, 272], ["ksink", 612, 68, 653, 125],
+             ["table", 842, 61, 977, 122], ["chair", 850, 25, 895, 49], ["chair", 920, 25, 965, 49],
+             ["chair", 853, 133, 898, 157], ["chair", 922, 134, 967, 158],
+             ["chair", 832, 198, 908, 274], ["chair", 920, 215, 977, 272], ["loveseat", 907, 281, 988, 432], ["chair", 842, 438, 918, 515]],
+      beds: [{ r: [17.5, 12, 136.5, 256.5], head: "t", art: [22, 12, 132, 12, 0, 1] },
+             { r: [17.5, 270, 136.5, 514.5], head: "t", art: [22, 270, 132, 270, 0, 1] },
+             { r: [195.5, 708.5, 455.5, 821], head: "l", art: [195.5, 712, 195.5, 816, 1, 0] },
+             { r: [479.5, 708.5, 740.5, 821], head: "r", art: [740.5, 712, 740.5, 816, -1, 0] }],
+      desks: [{ r: [139.5, 12, 271.5, 70.5], wall: "t" }, { r: [139.5, 270, 271.5, 329.5], wall: "t" },
+              { r: [195.5, 581, 258.5, 705.5], wall: "l" }, { r: [677.5, 580, 740.5, 705], wall: "r" }],
+      rooms: [{ rug: [150, 90, 255, 225], fridge: [305, 160], bean: [170, 232], extra: [225, 240] },
+              { rug: [150, 348, 255, 483], fridge: [305, 418], bean: [170, 490], extra: [225, 498] },
+              { rug: [305, 592, 455, 700], fridge: [280, 600], bean: [420, 675], extra: [440, 622] },
+              { rug: [485, 592, 630, 700], fridge: [655, 600], bean: [510, 675], extra: [500, 622] },
+              { rug: [750, 290, 900, 430] }],
+      labels: [[215, 130, "1"], [215, 390, "2"], [380, 650, "3"], [560, 650, "4"], [445, 172, "Bath"], [790, 160, "Kitchen"]]
     },
     westhill: {
-      bedRoom: [0,1,2,3], bedNames: ["1","2","3","4"],
+      bedRoom: [0, 1, 2, 3], bedNames: ["1", "2", "3", "4"],
       name: "West Hill Apartments", short: "West Hill apartment", group: "Apartments",
-      type: "Apartment · 4 single bedrooms", desc: "Four single bedrooms, a kitchen and living room", residents: 4, w: 544, h: 350,
-      outline: [[0,0],[514,0],[514,137],[544,137],[544,350],[0,350]],
-      walls: [[0,137,126,137],[179,137,204,137],[256,137,381,137],[204,0,204,137],[381,0,381,137],
-              [64,192,84,192],[126,192,211,192],[256,192,331,192],[361,192,381,192],[129,192,129,350],[256,192,256,350],[381,192,381,350]],
-      windows: [[30,350,110,350],[150,350,240,350]],
-      doors: [{x:126,y:137,len:53,dir:"h",open:-1,hinge:"b"},{x:204,y:137,len:52,dir:"h",open:-1,hinge:"a"},
-              {x:84,y:192,len:42,dir:"h",open:1,hinge:"b"},{x:211,y:192,len:45,dir:"h",open:1,hinge:"b"},
-              {x:331,y:192,len:30,dir:"h",open:1,hinge:"a"}],
-      furn: [["closet",179,0,25,67],["closet",179,67,25,70],["closet",0,140,64,26],["closet",0,166,64,26],
-             ["counter",486,0,28,137],["sink",260,207,22,38],["sink",260,247,22,38],["tub",276,302,77,45],["toilet",358,262],
-             ["table",391,287,25,38],["coffee",463,252,23,75],["couch",501,214,40,126],["chair",392,212,44,44]],
-      beds: [{x:0,y:0,w:56,h:137,head:"t",art:[0,8,0,130,1,0]},{x:324,y:0,w:57,h:137,head:"t",art:[381,8,381,130,-1,0]},
-             {x:3,y:287,w:123,h:63,head:"l",art:[8,350,26,350,0,-1]},{x:131,y:287,w:125,h:63,head:"r",art:[256,292,256,346,-1,0]}],
-      desks: [{x:96,y:0,w:65,h:32,wall:"t"},{x:226,y:0,w:63,h:32,wall:"t"},{x:3,y:204,w:33,h:80,wall:"l"},{x:133,y:204,w:28,h:80,wall:"l"}],
-      rooms: [{rug:[66,44,98,62],fridge:[70,120],bean:[100,116],extra:[168,52]},
-              {rug:[214,44,100,62],fridge:[310,120],bean:[276,116],extra:[214,52]},
-              {rug:[44,212,78,62],fridge:[50,274],bean:[100,262],extra:[62,214]},
-              {rug:[168,212,80,62],fridge:[176,274],bean:[232,262],extra:[178,214]},
-              {rug:[424,224,72,112]}],
-      labels: [[60,120,"1"],[300,120,"2"],[80,300,"3"],[200,300,"4"],[447,52,"Kitchen"],[320,226,"Bath"],[452,176,"Living"]]
+      type: "Apartment · 4 single bedrooms", desc: "Four single bedrooms, a kitchen and living room", residents: 4,
+      outline: [[13, 16], [1040, 16], [1040, 293], [1101.5, 293], [1101.5, 717], [13, 717]],
+      walls: [[371, 16, 371, 293], [418, 16, 418, 293], [775, 16, 775, 293],
+              [13, 293, 245, 293], [358, 293, 430, 293], [542, 293, 775, 293],
+              [13, 400, 151, 400], [263, 400, 404, 400], [515, 400, 540, 400], [654, 400, 775, 400],
+              [270.5, 400, 270.5, 717], [529, 400, 529, 717], [775, 400, 775, 717],
+              [673, 500, 673, 613], [673, 613, 775, 613], [1040, 427, 1101.5, 427]],
+      windows: [],
+      doors: [{ gap: [245, 293, 358, 293], leaf: [360, 293, 268, 222] }, { gap: [430, 293, 542, 293], leaf: [430, 293, 509, 224] },
+              { gap: [151, 400, 263, 400], leaf: [270, 401, 183, 469] }, { gap: [404, 400, 515, 400], leaf: [515, 401, 437, 468] },
+              { leaf: [673, 401, 735, 481] }, { gap: [1101.5, 295, 1101.5, 427], leaf: [1101, 295, 1040, 393] }],
+      furn: [["closet", 371, 16, 418, 155], ["closet", 371, 155, 418, 286], ["closet", 13, 295, 140.5, 347], ["closet", 13, 347, 140.5, 400],
+             ["counter", 775.5, 16, 827, 293], ["counter", 986, 16, 1040, 293],
+             ["sink", 529, 429, 575.5, 518.5], ["sink", 529, 518.5, 575.5, 608], ["shower", 588, 622, 722, 708],
+             ["toilet", 720, 547, 15, 29, [690, 576, 760, 607]],
+             ["chair", 800, 462, 880, 542, 45], ["table", 793, 590, 848, 665], ["coffee", 933, 518, 987, 672], ["couch", 1016, 442, 1093, 697]],
+      beds: [{ r: [13, 16, 125.5, 293], head: "t", art: [13, 24, 13, 285, 1, 0] },
+             { r: [662, 16, 775, 293], head: "t", art: [775, 24, 775, 285, -1, 0] },
+             { r: [18.5, 589.5, 265, 714], head: "l", art: [13, 594, 13, 710, 1, 0] },
+             { r: [276.5, 589.5, 523, 714], head: "r", art: [529, 594, 529, 710, -1, 0] }],
+      desks: [{ r: [207.5, 16, 333.5, 83.5], wall: "t" }, { r: [465.5, 16, 592, 83], wall: "t" },
+              { r: [18.5, 444, 77.5, 585], wall: "l" }, { r: [276.5, 444, 335.5, 585], wall: "l" }],
+      rooms: [{ rug: [150, 100, 300, 215], fridge: [350, 110], bean: [165, 255], extra: [345, 180] },
+              { rug: [470, 100, 640, 215], fridge: [440, 110], bean: [630, 255], extra: [445, 180] },
+              { rug: [95, 470, 250, 575], fridge: [100, 422], bean: [240, 555], extra: [150, 430] },
+              { rug: [350, 470, 505, 575], fridge: [360, 422], bean: [495, 555], extra: [400, 430] },
+              { rug: [895, 480, 1005, 700] }],
+      labels: [[165, 45, "1"], [627, 45, "2"], [200, 520, "3"], [460, 520, "4"], [905, 120, "Kitchen"], [624, 520, "Bath"], [900, 340, "Living"]]
     },
     walker: {
-      bedRoom: [0,1,2,3], bedNames: ["A","B","C","D"],
+      bedRoom: [0, 1, 2, 3], bedNames: ["A", "B", "C", "D"],
       name: "Walker Avenue Apartments", short: "Walker Avenue apartment", group: "Apartments",
-      type: "Apartment · 4 bedrooms · 2 baths", desc: "Four bedrooms, two baths, kitchen, laundry and living area", residents: 4, w: 828, h: 365,
-      outline: [[0,0],[673,0],[673,145],[828,145],[828,365],[0,365]],
-      walls: [[183,0,183,210],[340,0,340,210],[495,0,495,210],[650,0,650,145],
-              [183,210,285,210],[340,210,440,210],[495,210,595,210],[643,210,653,210],
-              [653,145,653,160],[653,205,653,365],
-              [228,258,228,365],[343,258,343,365],[493,258,493,365],[640,258,640,365],
-              [228,258,265,258],[300,258,410,258],[450,258,560,258],[600,258,640,258]],
-      windows: [[24,0,160,0],[200,0,320,0],[355,0,475,0],[510,0,630,0],[690,365,800,365]],
-      doors: [{x:285,y:210,len:48,dir:"h",open:-1,hinge:"b"},{x:440,y:210,len:48,dir:"h",open:-1,hinge:"b"},
-              {x:595,y:210,len:48,dir:"h",open:-1,hinge:"b"},{x:653,y:160,len:45,dir:"v",open:1,hinge:"a"},
-              {x:265,y:258,len:35,dir:"h",open:1,hinge:"a"},{x:410,y:258,len:40,dir:"h",open:1,hinge:"a"},
-              {x:560,y:258,len:40,dir:"h",open:1,hinge:"b"},{x:0,y:205,len:50,dir:"v",open:1,hinge:"a"}],
-      furn: [["sofa",20,64,36,104],["chair",86,26,34,32],["coffee",86,96,36,36],["tv",152,84,24,64],
-             ["table",80,200,54,46],["chair",64,210,14,26],["chair",136,210,14,26],
-             ["counter",8,322,214,36],["washer",256,322,30,30],["dryer",290,322,30,30],
-             ["tub",458,265,32,80],["tub",497,265,32,80],["toilet",420,330],["toilet",565,330],["sink",355,330,32,24],["sink",600,330,32,24],
-             ["closet",188,170,80,36],["closet",413,170,78,36],["closet",498,170,90,36],["closet",658,210,30,100]],
-      beds: [{x:188,y:8,w:65,h:100,head:"t",art:[183,14,183,104,1,0]},{x:426,y:8,w:65,h:100,head:"t",art:[495,14,495,104,-1,0]},
-             {x:500,y:8,w:65,h:100,head:"t",art:[495,14,495,104,1,0]},{x:760,y:258,w:66,h:105,head:"b",art:[828,262,828,358,-1,0]}],
-      desks: [{x:300,y:24,w:38,h:80,wall:"r"},{x:344,y:24,w:38,h:80,wall:"l"},{x:609,y:24,w:38,h:80,wall:"r"},{x:748,y:149,w:50,h:30,wall:"t"}],
-      rooms: [{rug:[192,116,92,48],fridge:[275,20],bean:[312,140],extra:[275,80]},
-              {rug:[350,116,92,48],fridge:[404,20],bean:[364,140],extra:[404,80]},
-              {rug:[504,116,92,48],fridge:[586,20],bean:[524,140],extra:[586,80]},
-              {rug:[696,212,58,110],fridge:[812,168],bean:[720,340],extra:[726,240]},
-              {rug:[62,58,92,96]}],
-      labels: [[262,186,"Bedroom A","10'1\" × 12'0\""],[388,186,"Bedroom B","10'1\" × 12'0\""],[548,186,"Bedroom C","10'2\" × 12'0\""],
-               [740,330,"Bedroom D","10'3\" × 12'3\""],[104,176,"Living","11'1\" × 15'5\""],[115,292,"Kitchen","14'2\" × 8'2\""],
-               [286,288,"Laundry"],[395,290,"Bath"],[590,290,"Bath"]]
+      type: "Apartment · 4 bedrooms · 2 baths", desc: "Four bedrooms, two baths, kitchen, laundry and living area", residents: 4,
+      outline: [[132.5, 60], [1388.5, 60], [1388.5, 350], [1700, 350], [1700, 718], [132.5, 718], [132.5, 652], [100, 605], [57, 522], [132.5, 465]],
+      shell: [[103, 470], [103, 27.5], [1427, 27.5], [1427, 315], [1739.5, 315], [1739.5, 736], [103, 736], [103, 655]],
+      walls: [[463.5, 60, 463.5, 440, 6], [775, 60, 775, 440, 10], [1084, 60, 1084, 440, 6], [1388.5, 350, 1388.5, 440],
+              [1400, 350, 1400, 455], [1400, 540, 1400, 718],
+              [470, 434, 662.5, 434], [750, 434, 800, 434], [887.5, 434, 1283, 434], [1370.5, 434, 1394, 434],
+              [627.5, 355, 627.5, 434], [920.5, 355, 920.5, 434], [1248, 355, 1248, 434],
+              [557, 612, 557, 718], [680, 535, 775, 535], [775, 535, 775, 718],
+              [900, 540, 1280, 540], [900, 635, 900, 718], [1095, 540, 1095, 718], [1280, 635, 1280, 718]],
+      windows: [[219, 60, 443, 60], [559.5, 60, 705.5, 60], [861, 60, 1006, 60], [1163, 60, 1305, 60], [1507, 350, 1652, 350]],
+      doors: [{ gap: [57, 522, 100, 605], leaf: [100, 605, 183, 562], arc: true },
+              { gap: [662.5, 434, 750, 434], leaf: [750, 434, 750, 349], arc: true },
+              { gap: [800, 434, 887.5, 434], leaf: [800, 434, 800, 349], arc: true },
+              { gap: [1283, 434, 1370.5, 434], leaf: [1370.5, 434, 1370.5, 349], arc: true },
+              { gap: [1400, 455, 1400, 540], leaf: [1400, 540, 1485, 540], arc: true },
+              { gap: [590, 535, 680, 535], leaf: [680, 535, 680, 625], arc: true },
+              { gap: [900, 545, 900, 635], leaf: [900, 545, 990, 545], arc: true },
+              { gap: [1280, 545, 1280, 635], leaf: [1280, 545, 1190, 545], arc: true }],
+      furn: [["utility", 132.5, 60, 180, 147.5], ["endround", 195, 72.5, 252.5, 135], ["chair", 265, 69, 337.5, 146],
+             ["sofa", 139, 155, 212.5, 361.5], ["coffee", 267.5, 211, 335, 308.5], ["tv", 396, 198.5, 455, 321],
+             ["table", 257.5, 447.5, 362.5, 522.5], ["chair", 282.5, 412.5, 335, 447.5], ["chair", 282.5, 522.5, 335, 555],
+             ["chair", 227.5, 457.5, 257.5, 512.5], ["chair", 362.5, 457.5, 395, 512.5],
+             ["counter", 133, 652, 540, 715], ["range", 190, 655, 262, 715], ["ksink", 335, 655, 400, 715], ["appl", 400, 655, 465, 715, 0, "DW"],
+             ["pantry", 548, 540, 585, 610], ["heater", 597, 672, 32], ["washer", 630, 645, 695, 715], ["dryer", 695, 645, 765, 715],
+             ["sink", 790, 648, 895, 715], ["sink", 1285, 648, 1385, 715], ["tub", 1015, 545, 1090, 690], ["tub", 1105, 545, 1175, 690],
+             ["toilet", 957, 670, 17, 24, [935, 698, 980, 716]], ["toilet", 1215, 670, 17, 24, [1193, 698, 1238, 716]],
+             ["closet", 470, 355, 627.5, 434], ["closet", 920.5, 355, 1078, 434], ["closet", 1090.5, 355, 1248, 434],
+             ["closet", 1400, 350, 1455, 445], ["closet", 1400, 557, 1470, 718],
+             ["dresser", 712.5, 167.5, 765, 265], ["dresser", 785, 167.5, 837.5, 265], ["dresser", 1333, 167.5, 1388.5, 265]],
+      beds: [{ r: [472.5, 62.5, 600, 262.5], head: "t", art: [470, 70, 470, 255, 1, 0] },
+             { r: [948, 62.5, 1075.5, 262.5], head: "t", art: [1078, 70, 1078, 255, -1, 0] },
+             { r: [1093, 62.5, 1220.5, 262.5], head: "t", art: [1090.5, 70, 1090.5, 255, 1, 0] },
+             { r: [1571.5, 521.5, 1700, 718], head: "b", art: [1700, 530, 1700, 712, -1, 0] }],
+      desks: [{ r: [712.5, 62.5, 765, 167.5], wall: "r" }, { r: [785, 62.5, 837.5, 167.5], wall: "l" },
+              { r: [1333, 62.5, 1388.5, 167.5], wall: "r" }, { r: [1600, 350, 1700, 406.5], wall: "t" }],
+      rooms: [{ rug: [490, 272, 700, 350], fridge: [622, 85], bean: [690, 310], extra: [650, 180] },
+              { rug: [848, 272, 1058, 350], fridge: [926, 85], bean: [858, 310], extra: [898, 180] },
+              { rug: [1110.5, 272, 1320.5, 350], fridge: [1242.5, 85], bean: [1310.5, 310], extra: [1270.5, 180] },
+              { rug: [1480, 420, 1690, 505], fridge: [1578, 372], bean: [1520, 680], extra: [1520, 585] },
+              { rug: [240, 175, 370, 345] }],
+      labels: [[632, 300, "Bedroom A", "10'1\" × 12'0\""], [930, 300, "Bedroom B", "10'1\" × 12'0\""], [1270, 300, "Bedroom C", "10'2\" × 12'0\""],
+               [1540, 460, "Bedroom D", "10'3\" × 12'3\""], [300, 395, "Living", "11'1\" × 15'5\""], [460, 600, "Kitchen", "14'2\" × 6'2\""],
+               [725, 590, "Laundry"], [955, 590, "Bath"], [1235, 590, "Bath"]]
     }
   };
 
+  // Convert traced pixels to plan units (2 px per unit) and rects to {x, y, w, h}.
+  function prepLayout(raw) {
+    const s = v => v / 2;
+    const box = r => ({ x: s(r[0]), y: s(r[1]), w: s(r[2] - r[0]), h: s(r[3] - r[1]) });
+    const L = Object.assign({}, raw);
+    L.outline = raw.outline.map(p => [s(p[0]), s(p[1])]);
+    L.shell = raw.shell ? raw.shell.map(p => [s(p[0]), s(p[1])]) : null;
+    L.walls = raw.walls.map(w => [s(w[0]), s(w[1]), s(w[2]), s(w[3]), w[4] || 0]);
+    L.windows = raw.windows.map(w => w.map(s));
+    L.doors = raw.doors.map(d => ({ gap: d.gap ? d.gap.map(s) : null, leaf: d.leaf ? d.leaf.map(s) : null, arc: !!d.arc }));
+    L.furn = raw.furn.map(f => {
+      const t = f[0];
+      if (t === "toilet") return { t, cx: s(f[1]), cy: s(f[2]), rx: s(f[3]), ry: s(f[4]), tank: box(f[5]) };
+      if (t === "round" || t === "heater") return { t, cx: s(f[1]), cy: s(f[2]), r: s(f[3]) };
+      return Object.assign({ t, rot: f[5] || 0, label: f[6] }, box(f.slice(1, 5)));
+    });
+    L.beds = raw.beds.map(b => Object.assign(box(b.r), { head: b.head, art: b.art.slice(0, 4).map(s).concat(b.art.slice(4)) }));
+    L.desks = raw.desks.map(d => Object.assign(box(d.r), { wall: d.wall }));
+    L.rooms = raw.rooms.map(r => ({
+      rug: r.rug ? [s(r.rug[0]), s(r.rug[1]), s(r.rug[2] - r.rug[0]), s(r.rug[3] - r.rug[1])] : null,
+      fridge: r.fridge ? r.fridge.map(s) : null, bean: r.bean ? r.bean.map(s) : null, extra: r.extra ? r.extra.map(s) : null
+    }));
+    L.labels = raw.labels.map(l => [s(l[0]), s(l[1]), l[2], l[3]]);
+    const pts = L.outline.concat(L.shell || []);
+    const xs = pts.map(p => p[0]), ys = pts.map(p => p[1]);
+    L.x0 = Math.min.apply(null, xs); L.y0 = Math.min.apply(null, ys);
+    L.w = Math.max.apply(null, xs) - L.x0; L.h = Math.max.apply(null, ys) - L.y0;
+    L.cx = L.x0 + L.w / 2; L.cy = L.y0 + L.h / 2;
+    L.wallT = raw.shell ? 6 : 4;
+    return L;
+  }
+  const LAYOUTS = {};
+  Object.keys(RAW_LAYOUTS).forEach(k => { LAYOUTS[k] = prepLayout(RAW_LAYOUTS[k]); });
+
   const FURN_LABEL = { wardrobe: "Wardrobe", closet: "Closet", couch: "Couch", sofa: "Sofa", end: "End table", coffee: "Coffee table",
-    chair: "", loveseat: "Love seat", table: "Table", tv: "TV", counter: "", washer: "W", dryer: "D", appl: "" };
+    loveseat: "Love seat", table: "Table", tv: "TV", washer: "W", dryer: "D", dresser: "Dresser", pantry: "P" };
 
   /* ---------- SVG helpers ---------- */
   function el(tag, attrs, parent) {
@@ -965,6 +1055,13 @@ footer .team b { color: var(--ink); font-weight: 500; }
   const OPP = { t: "b", b: "t", l: "r", r: "l" };
   function inset(r, d) { return { x: r.x + d, y: r.y + d, w: Math.max(0, r.w - 2 * d), h: Math.max(0, r.h - 2 * d) }; }
   function rect(g, r, attrs) { return el("rect", Object.assign({ x: r.x, y: r.y, width: r.w, height: r.h }, attrs), g); }
+  // The far end of a door's opening, where the swing arc lands.
+  function doorFar(d) {
+    const [hx, hy] = d.leaf, g = d.gap;
+    if (!g) return null;
+    const d1 = Math.hypot(g[0] - hx, g[1] - hy), d2 = Math.hypot(g[2] - hx, g[3] - hy);
+    return d1 > d2 ? [g[0], g[1]] : [g[2], g[3]];
+  }
 
   /* ---------- Plan renderer ---------- */
   function renderPlan(svg, key, opt) {
@@ -975,7 +1072,7 @@ footer .team b { color: var(--ink); font-weight: 500; }
     const id = svg.id;
     const pad = 10;
     svg.innerHTML = "";
-    svg.setAttribute("viewBox", (-pad) + " " + (-pad) + " " + (L.w + pad * 2) + " " + (L.h + pad * 2));
+    svg.setAttribute("viewBox", (L.x0 - pad) + " " + (L.y0 - pad) + " " + (L.w + pad * 2) + " " + (L.h + pad * 2));
 
     const defs = el("defs", {}, svg);
     const grid = el("pattern", { id: id + "-grid", width: 16, height: 16, patternUnits: "userSpaceOnUse" }, defs);
@@ -1022,56 +1119,70 @@ footer .team b { color: var(--ink); font-weight: 500; }
 
     // Furniture and fixtures from the drawing.
     L.furn.forEach(f => {
-      const t = f[0];
+      const t = f.t;
       if (t === "toilet") {
-        const [, x, y] = f;
-        el("rect", { x: x - 8, y: y - 13, width: 16, height: 6, rx: 1, class: "p-fix" }, furnG);
-        el("ellipse", { cx: x, cy: y + 2, rx: 7, ry: 9, class: "p-fix" }, furnG);
+        rect(furnG, f.tank, { rx: 1, class: "p-fix" });
+        el("ellipse", { cx: f.cx, cy: f.cy, rx: f.rx, ry: f.ry, class: "p-fix" }, furnG);
         return;
       }
-      if (t === "round") { el("circle", { cx: f[1], cy: f[2], r: f[3], class: "p-furn" }, furnG); return; }
-      const [, x, y, w, h] = f;
-      if (t === "shower") {
-        rect(furnG, { x, y, w, h }, { class: "p-fix" });
-        el("path", { d: "M" + x + " " + y + " L" + (x + w) + " " + (y + h) + " M" + (x + w) + " " + y + " L" + x + " " + (y + h), class: "p-fixline" }, furnG);
+      if (t === "round" || t === "heater") {
+        el("circle", { cx: f.cx, cy: f.cy, r: f.r, class: t === "heater" ? "p-fix" : "p-furn" }, furnG);
+        if (t === "heater") el("circle", { cx: f.cx, cy: f.cy, r: f.r * .55, class: "p-fixline" }, furnG);
+        return;
+      }
+      const g = f.rot ? el("g", { transform: "rotate(" + f.rot + " " + (f.x + f.w / 2) + " " + (f.y + f.h / 2) + ")" }, furnG) : furnG;
+      const { x, y, w, h } = f;
+      if (t === "shower" || t === "utility") {
+        rect(g, f, { class: "p-fix" });
+        el("path", { d: "M" + x + " " + y + " L" + (x + w) + " " + (y + h) + " M" + (x + w) + " " + y + " L" + x + " " + (y + h), class: "p-fixline" }, g);
       } else if (t === "tub") {
-        rect(furnG, { x, y, w, h }, { class: "p-fix" });
-        rect(furnG, inset({ x, y, w, h }, 4), { rx: 7, class: "p-fixline" });
-      } else if (t === "sink") {
-        rect(furnG, { x, y, w, h }, { class: "p-fix" });
-        el("ellipse", { cx: x + w / 2, cy: y + h / 2, rx: Math.min(w, h) * .32, ry: Math.min(w, h) * .38, class: "p-fixline" }, furnG);
+        rect(g, f, { class: "p-fix" });
+        rect(g, inset(f, Math.min(w, h) * .12), { rx: Math.min(w, h) * .3, class: "p-fixline" });
+      } else if (t === "sink" || t === "ksink") {
+        rect(g, f, { class: "p-fix" });
+        if (t === "sink") el("ellipse", { cx: x + w / 2, cy: y + h / 2, rx: Math.min(w, h) * .32, ry: Math.min(w, h) * .38, class: "p-fixline" }, g);
+        else rect(g, inset(f, 4), { rx: 2, class: "p-fixline" });
+      } else if (t === "range") {
+        rect(g, f, { class: "p-fix" });
+        [[.3, .3], [.7, .3], [.3, .7], [.7, .7]].forEach(([u, v]) => el("circle", { cx: x + w * u, cy: y + h * v, r: Math.min(w, h) * .14, class: "p-fixline" }, g));
+      } else if (t === "endround") {
+        rect(g, f, { class: "p-furn" });
+        el("circle", { cx: x + w / 2, cy: y + h / 2, r: Math.min(w, h) * .38, class: "p-fixline" }, g);
+      } else if (t === "appl" || t === "washer" || t === "dryer" || t === "cabinet") {
+        rect(g, f, { class: "p-fix" });
+        rectLabel(g, x, y, w, h, f.label || FURN_LABEL[t]);
       } else {
-        rect(furnG, { x, y, w, h }, { class: "p-furn", rx: t === "chair" || t === "couch" || t === "sofa" || t === "loveseat" ? 3 : 0 });
-        rectLabel(furnG, x, y, w, h, FURN_LABEL[t]);
+        rect(g, f, { class: "p-furn", rx: t === "chair" || t === "couch" || t === "sofa" || t === "loveseat" ? 3 : 0 });
+        rectLabel(g, x, y, w, h, f.label || FURN_LABEL[t]);
       }
     });
     L.desks.forEach((d, i) => { rect(furnG, d, { class: "p-furn" }); if (!bedOn[i]) rectLabel(furnG, d.x, d.y, d.w, d.h, "Desk"); });
     L.beds.forEach((b, i) => { rect(furnG, b, { class: "p-furn" }); if (!bedOn[i]) rectLabel(furnG, b.x, b.y, b.w, b.h, "Bed"); });
 
     // Walls, windows, doors.
-    el("polygon", { points: pts, class: "p-wall" }, wallsG);
-    L.walls.forEach(w => el("line", { x1: w[0], y1: w[1], x2: w[2], y2: w[3], class: "p-iwall" }, wallsG));
+    if (L.shell) el("polyline", { points: L.shell.map(p => p.join(",")).join(" "), class: "p-shell" }, wallsG);
+    el("polygon", { points: pts, class: "p-wall", style: "stroke-width:" + L.wallT }, wallsG);
+    L.walls.forEach(w => {
+      const line = el("line", { x1: w[0], y1: w[1], x2: w[2], y2: w[3], class: "p-iwall" }, wallsG);
+      if (w[4]) line.setAttribute("style", "stroke-width:" + w[4]);
+    });
     L.windows.forEach((w, wi) => {
       const [x1, y1, x2, y2] = w;
-      el("line", { x1, y1, x2, y2, class: "p-wingap" }, wallsG);
+      el("line", { x1, y1, x2, y2, class: "p-wingap", style: "stroke-width:" + (L.wallT + 1.4) }, wallsG);
       const horiz = y1 === y2;
       [-1.6, 1.6].forEach(o => el("line", horiz ? { x1, y1: y1 + o, x2, y2: y2 + o, class: "p-win" } : { x1: x1 + o, y1, x2: x2 + o, y2, class: "p-win" }, wallsG));
       if (lvl >= 2 && winOn[wi]) el("line", { x1, y1, x2, y2, stroke: pal.deep, "stroke-width": 2.6, "stroke-linecap": "round", class: "blinds" }, over);
     });
     L.doors.forEach(d => {
-      const { x, y, len, dir, open, hinge } = d;
-      if (dir === "h") {
-        el("line", { x1: x + 1, y1: y, x2: x + len - 1, y2: y, class: "p-gap" }, wallsG);
-        const hx = hinge === "a" ? x : x + len, fx = hinge === "a" ? x + len : x, ly = y + open * len;
-        el("line", { x1: hx, y1: y, x2: hx, y2: ly, class: "p-leaf" }, wallsG);
-        const sweep = (fx - hx) * open < 0 ? 1 : 0;
-        el("path", { d: "M" + hx + " " + ly + " A" + len + " " + len + " 0 0 " + sweep + " " + fx + " " + y, class: "p-arc" }, wallsG);
-      } else {
-        el("line", { x1: x, y1: y + 1, x2: x, y2: y + len - 1, class: "p-gap" }, wallsG);
-        const hy = hinge === "a" ? y : y + len, fy = hinge === "a" ? y + len : y, lx = x + open * len;
-        el("line", { x1: x, y1: hy, x2: lx, y2: hy, class: "p-leaf" }, wallsG);
-        const sweep = (fy - hy) * open > 0 ? 1 : 0;
-        el("path", { d: "M" + lx + " " + hy + " A" + len + " " + len + " 0 0 " + sweep + " " + x + " " + fy, class: "p-arc" }, wallsG);
+      if (d.gap) el("line", { x1: d.gap[0], y1: d.gap[1], x2: d.gap[2], y2: d.gap[3], class: "p-gap", style: "stroke-width:" + (L.wallT + 2) }, wallsG);
+      if (!d.leaf) return;
+      const [hx, hy, ex, ey] = d.leaf;
+      el("line", { x1: hx, y1: hy, x2: ex, y2: ey, class: "p-leaf" }, wallsG);
+      const far = d.arc && doorFar(d);
+      if (far) {
+        const r = Math.hypot(ex - hx, ey - hy);
+        const cross = (ex - hx) * (far[1] - hy) - (ey - hy) * (far[0] - hx);
+        el("path", { d: "M" + ex + " " + ey + " A" + r + " " + r + " 0 0 " + (cross > 0 ? 1 : 0) + " " + far[0] + " " + far[1], class: "p-arc" }, wallsG);
       }
     });
 
@@ -1086,8 +1197,8 @@ footer .team b { color: var(--ink); font-weight: 500; }
         // under-bed storage, drawn dashed (hidden-line convention)
         const c = { x: b.x + b.w / 2, y: b.y + b.h / 2 };
         const bw = horiz ? 20 : b.w * .55, bh = horiz ? b.h * .55 : 20;
-        [-1, 1].forEach(s => {
-          const off = s * (horiz ? 13 : 13);
+        [-1, 1].forEach(sgn => {
+          const off = sgn * 13;
           rect(g, { x: c.x - bw / 2 + (horiz ? off : 0), y: c.y - bh / 2 + (horiz ? 0 : off), w: bw, h: bh }, { fill: "none", stroke: pal.deep, "stroke-width": .7, "stroke-dasharray": "2 2", opacity: .7 });
         });
         if (lvl >= 2) rect(g, inset(b, 4), { rx: 3, fill: "none", stroke: pal.accent, "stroke-width": .9, "stroke-dasharray": "4 2" });
@@ -1112,12 +1223,12 @@ footer .team b { color: var(--ink); font-weight: 500; }
           const slot = runLen / n;
           const pl = Math.min(slot * .72, 20);
           const colors = [pal.accent, pal.deep, pal.bed, pal.accent, pal.deep];
-          for (let i = 0; i < n; i++) {
-            const along = Math.min(x1, x2) * horizWall + Math.min(y1, y2) * !horizWall + (i + .5) * slot;
+          for (let k = 0; k < n; k++) {
+            const along = (horizWall ? Math.min(x1, x2) : Math.min(y1, y2)) + (k + .5) * slot;
             const r = horizWall
               ? { x: along - pl / 2, y: ny > 0 ? y1 + 2.4 : y1 - 7.4, w: pl, h: 5 }
               : { x: nx > 0 ? x1 + 2.4 : x1 - 7.4, y: along - pl / 2, w: 5, h: pl };
-            rect(g, r, { fill: colors[i], stroke: "#FFFFFF", "stroke-width": .6 });
+            rect(g, r, { fill: colors[k], stroke: "#FFFFFF", "stroke-width": .6 });
           }
           if (lvl >= 3) {
             const o = 10;
@@ -1140,26 +1251,26 @@ footer .team b { color: var(--ink); font-weight: 500; }
           el("circle", { cx: lx, cy: ly, r: 13, fill: "url(#" + id + "-lamp)" }, g);
           el("circle", { cx: lx, cy: ly, r: 3.4, fill: "#FFC83A", stroke: pal.deep, "stroke-width": .8 }, g);
         }
-        if (opt.major === "eng" && opt.designed) {
+        if (opt.major === "eng") {
           const mon = band(inset(d, 3), wallSide, 3.2);
           const vertical = wallSide === "l" || wallSide === "r";
-          const half = vertical ? { a: mon.h } : { a: mon.w };
-          const seg = half.a * .44;
-          [0, 1].forEach(i => {
-            const r = vertical ? { x: mon.x, y: mon.y + i * (half.a - seg), w: mon.w, h: seg } : { x: mon.x + i * (half.a - seg), y: mon.y, w: seg, h: mon.h };
+          const span = vertical ? mon.h : mon.w;
+          const seg = span * .44;
+          [0, 1].forEach(k => {
+            const r = vertical ? { x: mon.x, y: mon.y + k * (span - seg), w: mon.w, h: seg } : { x: mon.x + k * (span - seg), y: mon.y, w: seg, h: mon.h };
             rect(g, r, { fill: pal.deep, rx: 1 });
           });
           rect(g, inset(d, 6), { fill: "none", stroke: pal.accent, "stroke-width": .9, rx: 2 });
         }
         if (lvl >= 3) {
           // upgraded chair, pulled out from the desk
-          const s = 13;
+          const sz = 13;
           let cx = d.x + d.w / 2, cy = d.y + d.h / 2;
-          if (wallSide === "t") cy = d.y + d.h + s / 2 + 2;
-          if (wallSide === "b") cy = d.y - s / 2 - 2;
-          if (wallSide === "l") cx = d.x + d.w + s / 2 + 2;
-          if (wallSide === "r") cx = d.x - s / 2 - 2;
-          rect(g, { x: cx - s / 2, y: cy - s / 2, w: s, h: s }, { rx: 4, fill: pal.deep, stroke: pal.light, "stroke-width": 1 });
+          if (wallSide === "t") cy = d.y + d.h + sz / 2 + 2;
+          if (wallSide === "b") cy = d.y - sz / 2 - 2;
+          if (wallSide === "l") cx = d.x + d.w + sz / 2 + 2;
+          if (wallSide === "r") cx = d.x - sz / 2 - 2;
+          rect(g, { x: cx - sz / 2, y: cy - sz / 2, w: sz, h: sz }, { rx: 4, fill: pal.deep, stroke: pal.light, "stroke-width": 1 });
         }
       });
 
@@ -1177,7 +1288,7 @@ footer .team b { color: var(--ink); font-weight: 500; }
           el("circle", { cx: x, cy: y, r: 13, fill: pal.accent }, g);
           el("circle", { cx: x - 3, cy: y - 3, r: 6, fill: "#FFFFFF", opacity: .28 }, g);
         }
-        if (r.extra && opt.designed && (opt.major === "art" || opt.major === "music")) {
+        if (r.extra && (opt.major === "art" || opt.major === "music")) {
           const g = el("g", {}, over);
           const [x, y] = r.extra;
           if (opt.major === "art") {
@@ -1185,7 +1296,7 @@ footer .team b { color: var(--ink); font-weight: 500; }
             rect(g, { x: x - 7, y: y - 6, w: 14, h: 9 }, { fill: "#FFFFFF", stroke: pal.accent, "stroke-width": 1.2 });
           } else {
             rect(g, { x: x - 15, y: y - 5, w: 30, h: 10 }, { fill: "#FFFFFF", stroke: pal.deep, "stroke-width": 1.1, rx: 1 });
-            for (let i = 1; i < 7; i++) if (i !== 3) el("line", { x1: x - 15 + i * 30 / 7, y1: y - 5, x2: x - 15 + i * 30 / 7, y2: y, stroke: pal.deep, "stroke-width": 1.4 }, g);
+            for (let k = 1; k < 7; k++) if (k !== 3) el("line", { x1: x - 15 + k * 30 / 7, y1: y - 5, x2: x - 15 + k * 30 / 7, y2: y, stroke: pal.deep, "stroke-width": 1.4 }, g);
           }
         }
       });
@@ -1335,7 +1446,7 @@ footer .team b { color: var(--ink); font-weight: 500; }
   function resetOrbit() {
     // Distance that fits the plan's width and depth in the frame (fov 38°, tan 19° ≈ 0.344).
     const span = 2 * 0.344, camAspect = 1 / three.aspect;
-    const r = Math.max(1.4 * three.planW / (span * camAspect), 1.3 * three.planH / span);
+    const r = Math.max(1.55 * three.planW / (span * camAspect), 1.5 * three.planH / span);
     Object.assign(three.orbit, { theta: 0.45, phi: 0.92, r });
   }
   function size3D() {
@@ -1383,7 +1494,7 @@ footer .team b { color: var(--ink); font-weight: 500; }
       return cache.get(k);
     };
     const g = new T.Group();
-    g.position.set(-L.w / 2, 0, -L.h / 2);
+    g.position.set(-L.cx, 0, -L.cy);
     const mesh = (geo, mat, x, y, z, shadow) => {
       geos.push(geo);
       const m = new T.Mesh(geo, mat);
@@ -1396,6 +1507,19 @@ footer .team b { color: var(--ink); font-weight: 500; }
     // Plan rect (x, z, w, d) raised from y0 by h.
     const box = (x, z, w, d, y0, h, mat, shadow) =>
       mesh(new T.BoxGeometry(Math.max(w, 0.2), Math.max(h, 0.2), Math.max(d, 0.2)), mat, x + w / 2, y0 + h / 2, z + d / 2, shadow);
+    const fbox = (f, y0, h, mat, shadow) => {
+      const m = box(f.x, f.y, f.w, f.h, y0, h, mat, shadow);
+      if (f.rot) m.rotation.y = -f.rot * Math.PI / 180;
+      return m;
+    };
+    // A slab along any plan segment, t thick, from y0 to y1.
+    const slab = (x1, z1, x2, z2, t, y0, y1, mat, shadow) => {
+      const len = Math.hypot(x2 - x1, z2 - z1);
+      if (len < 0.3) return null;
+      const m = mesh(new T.BoxGeometry(len, y1 - y0, t), mat, (x1 + x2) / 2, (y0 + y1) / 2, (z1 + z2) / 2, shadow);
+      m.rotation.y = Math.atan2(-(z2 - z1), x2 - x1);
+      return m;
+    };
     const cyl = (cx, cz, r, y0, h, mat) => mesh(new T.CylinderGeometry(r, r, h, 20), mat, cx, y0 + h / 2, cz);
     const texMat = (draw, rx, ry) => {
       const c = document.createElement("canvas");
@@ -1419,69 +1543,81 @@ footer .team b { color: var(--ink); font-weight: 500; }
     floor.receiveShadow = true;
     g.add(floor);
 
-    // Walls, cut for doors and windows. The top face is dark like the ink on the plan.
+    // Walls, cut for door gaps and windows. The top face is dark like the ink on the plan.
     const wallMat = [M(C3.wall), M(C3.wall), M(C3.ink), M(C3.wall), M(C3.wall), M(C3.wall)];
     const segs = [];
-    L.outline.forEach((p, i) => { const q = L.outline[(i + 1) % L.outline.length]; segs.push([p[0], p[1], q[0], q[1], 5]); });
-    L.walls.forEach(w => segs.push([w[0], w[1], w[2], w[3], 3.4]));
-    const cuts = L.doors.map(d => (d.dir === "h" ? { hz: true, c: d.y, s: d.x, e: d.x + d.len } : { hz: false, c: d.x, s: d.y, e: d.y + d.len }))
-      .concat(L.windows.map((w, wi) => (w[1] === w[3]
-        ? { hz: true, c: w[1], s: Math.min(w[0], w[2]), e: Math.max(w[0], w[2]), win: wi }
-        : { hz: false, c: w[0], s: Math.min(w[1], w[3]), e: Math.max(w[1], w[3]), win: wi })));
+    L.outline.forEach((p, i) => { const q = L.outline[(i + 1) % L.outline.length]; segs.push([p[0], p[1], q[0], q[1], L.wallT + 1]); });
+    L.walls.forEach(w => segs.push([w[0], w[1], w[2], w[3], Math.max(w[4] || 3.4, 1.5)]));
+    const cuts = L.doors.filter(d => d.gap).map(d => ({ p: d.gap }))
+      .concat(L.windows.map((w, wi) => ({ p: w, win: wi })));
     const glass = M(C3.glass, { transparent: true, opacity: 0.35, roughness: 0.1 });
     segs.forEach(([x1, y1, x2, y2, t]) => {
-      const hz = y1 === y2, c = hz ? y1 : x1;
-      const s = Math.min(hz ? x1 : y1, hz ? x2 : y2) - t / 2, e = Math.max(hz ? x1 : y1, hz ? x2 : y2) + t / 2;
-      const piece = (a, b, lo, hi) => {
+      const len = Math.hypot(x2 - x1, y2 - y1);
+      if (len < 0.5) return;
+      const ux = (x2 - x1) / len, uy = (y2 - y1) / len;
+      const along = (x, y) => (x - x1) * ux + (y - y1) * uy;
+      const off = (x, y) => Math.abs((x - x1) * -uy + (y - y1) * ux);
+      const at = s => [x1 + ux * s, y1 + uy * s];
+      const piece = (a, b, lo, hi, mat) => {
         if (b - a < 0.3) return;
-        if (hz) mesh(new T.BoxGeometry(b - a, hi - lo, t), wallMat, (a + b) / 2, (lo + hi) / 2, c);
-        else mesh(new T.BoxGeometry(t, hi - lo, b - a), wallMat, c, (lo + hi) / 2, (a + b) / 2);
+        const p = at(a), q = at(b);
+        slab(p[0], p[1], q[0], q[1], t, lo, hi, mat || wallMat);
       };
-      let cur = s;
-      cuts.filter(k => k.hz === hz && Math.abs(k.c - c) < 2 && k.e > s && k.s < e).sort((a, b) => a.s - b.s).forEach(k => {
-        piece(cur, Math.max(cur, k.s), 0, WALL_H);
+      const s0 = -t / 2, s1 = len + t / 2;
+      const mine = cuts.map(c => {
+        const [ax, ay, bx, by] = c.p;
+        if (off(ax, ay) > 2.5 || off(bx, by) > 2.5) return null;
+        const a = Math.max(s0, Math.min(along(ax, ay), along(bx, by))), b = Math.min(s1, Math.max(along(ax, ay), along(bx, by)));
+        return b > a ? { a, b, win: c.win } : null;
+      }).filter(Boolean).sort((p, q) => p.a - q.a);
+      let cur = s0;
+      mine.forEach(k => {
+        piece(cur, Math.max(cur, k.a), 0, WALL_H);
         if (k.win != null) {
-          piece(k.s, k.e, 0, 24);
-          piece(k.s, k.e, WALL_H - 5, WALL_H);
+          piece(k.a, k.b, 0, 24);
+          piece(k.a, k.b, WALL_H - 5, WALL_H);
+          const p = at(k.a), q = at(k.b);
           const gm = lvl >= 2 && winOn[k.win] ? M(pal.deep, { transparent: true, opacity: 0.92 }) : glass;
-          if (hz) box(k.s, c - 0.6, k.e - k.s, 1.2, 24, WALL_H - 29, gm, false);
-          else box(c - 0.6, k.s, 1.2, k.e - k.s, 24, WALL_H - 29, gm, false);
+          slab(p[0], p[1], q[0], q[1], 1.2, 24, WALL_H - 5, gm, false);
         }
-        cur = Math.max(cur, k.e);
+        cur = Math.max(cur, k.b);
       });
-      piece(cur, e, 0, WALL_H);
+      piece(cur, s1, 0, WALL_H);
     });
-    L.doors.forEach(d => {
-      if (d.dir === "h") {
-        const hx = d.hinge === "a" ? d.x : d.x + d.len, ly = d.y + d.open * d.len;
-        box(hx - 1, Math.min(d.y, ly), 2, d.len, 0, 66, M(C3.wood));
-      } else {
-        const hy = d.hinge === "a" ? d.y : d.y + d.len, lx = d.x + d.open * d.len;
-        box(Math.min(d.x, lx), hy - 1, d.len, 2, 0, 66, M(C3.wood));
-      }
-    });
+    L.doors.forEach(d => { if (d.leaf) slab(d.leaf[0], d.leaf[1], d.leaf[2], d.leaf[3], 2, 0, 66, M(C3.wood)); });
 
     // University furniture and fixtures
     const wood = M(C3.wood), dark = M(C3.woodDark), fix = M(C3.fix), furn = M(C3.furn), water = M(C3.water);
     L.furn.forEach(f => {
-      const t = f[0];
-      if (t === "toilet") { box(f[1] - 8, f[2] - 13, 16, 6, 0, 26, fix); cyl(f[1], f[2] + 2, 7, 0, 14, fix); return; }
-      if (t === "round") { cyl(f[1], f[2], f[3], 0, 27, wood); return; }
-      const [, x, y, w, h] = f;
+      const t = f.t;
+      if (t === "toilet") {
+        box(f.tank.x, f.tank.y, f.tank.w, f.tank.h, 0, 26, fix);
+        cyl(f.cx, f.cy, 1, 0, 14, fix).scale.set(f.rx, 1, f.ry);
+        return;
+      }
+      if (t === "round") { cyl(f.cx, f.cy, f.r, 0, 27, wood); return; }
+      if (t === "heater") { cyl(f.cx, f.cy, f.r, 0, 50, fix); return; }
+      const inner = inset(f, 2);
       switch (t) {
-        case "wardrobe": case "closet": box(x, y, w, h, 0, 62, wood); break;
-        case "counter": box(x, y, w, h, 0, 33, M("#D6D0DE")); box(x, y, w, h, 33, 2, M("#8D86A0")); break;
-        case "appl": box(x, y, w, h, 0, 34, fix); break;
-        case "washer": case "dryer": box(x + 1, y + 1, w - 2, h - 2, 0, 32, fix); break;
-        case "couch": case "sofa": case "loveseat": box(x, y, w, h, 0, 15, furn); break;
-        case "chair": box(x, y, w, h, 0, 16, furn); break;
-        case "coffee": case "end": box(x, y, w, h, 12, 3, wood); box(x + 2, y + 2, w - 4, h - 4, 0, 12, dark); break;
-        case "table": box(x, y, w, h, 25, 3, wood); box(x + w * 0.35, y + h * 0.35, w * 0.3, h * 0.3, 0, 25, dark); break;
-        case "tv": box(x, y, w, h, 0, 18, wood); box(x + w / 2 - 1, y + 2, 2, h - 4, 18, 22, M(C3.screen)); break;
-        case "tub": box(x, y, w, h, 0, 18, fix); box(x + 4, y + 4, w - 8, h - 8, 17.6, 1, water); break;
-        case "shower": box(x, y, w, h, 0, 3, fix); box(x, y, w, h, 3, 58, M(C3.glass, { transparent: true, opacity: 0.22, roughness: 0.1 }), false); break;
-        case "sink": box(x, y, w, h, 0, 30, fix); box(x + w * 0.2, y + h * 0.2, w * 0.6, h * 0.6, 30, 1, water); break;
-        default: box(x, y, w, h, 0, 20, furn);
+        case "wardrobe": case "closet": case "pantry": fbox(f, 0, 62, wood); break;
+        case "dresser": fbox(f, 0, 34, wood); break;
+        case "utility": fbox(f, 0, 64, fix); break;
+        case "counter": fbox(f, 0, 33, M("#D6D0DE")); fbox(f, 33, 2, M("#8D86A0")); break;
+        case "range": fbox(f, 0, 35.5, fix); break;
+        case "ksink": fbox(f, 0, 35.4, fix); box(inner.x, inner.y, inner.w, inner.h, 35.4, 0.6, water, false); break;
+        case "cabinet": fbox(f, 0, 30, fix); break;
+        case "appl": fbox(f, 0, 34, fix); break;
+        case "washer": case "dryer": fbox(inset(f, 1), 0, 32, fix); break;
+        case "couch": case "sofa": case "loveseat": fbox(f, 0, 15, furn); break;
+        case "chair": fbox(f, 0, 16, furn); break;
+        case "coffee": case "end": fbox(f, 12, 3, wood); fbox(inset(f, 2), 0, 12, dark); break;
+        case "endround": fbox(f, 0, 16, wood); break;
+        case "table": fbox(f, 25, 3, wood); box(f.x + f.w * 0.35, f.y + f.h * 0.35, f.w * 0.3, f.h * 0.3, 0, 25, dark); break;
+        case "tv": fbox(f, 0, 18, wood); box(f.x + f.w / 2 - 1, f.y + 2, 2, f.h - 4, 18, 22, M(C3.screen)); break;
+        case "tub": fbox(f, 0, 18, fix); box(inner.x + 2, inner.y + 2, inner.w - 4, inner.h - 4, 17.6, 1, water); break;
+        case "shower": fbox(f, 0, 3, fix); fbox(f, 3, 58, M(C3.glass, { transparent: true, opacity: 0.22, roughness: 0.1 }), false); break;
+        case "sink": fbox(f, 0, 30, fix); box(f.x + f.w * 0.2, f.y + f.h * 0.2, f.w * 0.6, f.h * 0.6, 30, 1, water); break;
+        default: fbox(f, 0, 20, furn);
       }
     });
 
