@@ -25,6 +25,8 @@
   --plan-label: #6E6785;
   --plan-tile: #F1EFF4;
   --plan-tileline: #CFC8DA;
+  --plan-wood: #F6EFE6;
+  --plan-woodline: #E2D4C1;
   --brand-1: #4B3BFF;
   --brand-2: #A93CFF;
   --brand-3: #F03CF5;
@@ -41,14 +43,14 @@
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
     --paper: #100C19; --surface: #1A1526; --ink: #EEEAF7; --muted: #A49CBA; --rule: #2F2843;
-    --plan-bg: #161120; --plan-floor: #1B1528; --plan-grid: #241D33; --plan-ink: #D9D2EC; --plan-furn: #251E35; --plan-label: #9C94B3; --plan-tile: #221C2F; --plan-tileline: #3A3250;
+    --plan-bg: #161120; --plan-floor: #1B1528; --plan-grid: #241D33; --plan-ink: #D9D2EC; --plan-furn: #251E35; --plan-label: #9C94B3; --plan-tile: #221C2F; --plan-tileline: #3A3250; --plan-wood: #241D2A; --plan-woodline: #3B3140;
     --accent: #FF6FAE; --accent-ink: #1A0D16; --accent-soft: #3A1830; --ok: #5FD39E;
     color-scheme: dark;
   }
 }
 :root[data-theme="dark"] {
   --paper: #100C19; --surface: #1A1526; --ink: #EEEAF7; --muted: #A49CBA; --rule: #2F2843;
-  --plan-bg: #161120; --plan-floor: #1B1528; --plan-grid: #241D33; --plan-ink: #D9D2EC; --plan-furn: #251E35; --plan-label: #9C94B3; --plan-tile: #221C2F; --plan-tileline: #3A3250;
+  --plan-bg: #161120; --plan-floor: #1B1528; --plan-grid: #241D33; --plan-ink: #D9D2EC; --plan-furn: #251E35; --plan-label: #9C94B3; --plan-tile: #221C2F; --plan-tileline: #3A3250; --plan-wood: #241D2A; --plan-woodline: #3B3140;
   --accent: #FF6FAE; --accent-ink: #1A0D16; --accent-soft: #3A1830; --ok: #5FD39E;
   color-scheme: dark;
 }
@@ -303,6 +305,17 @@ legend { padding: 0; margin-bottom: 10px; font: 500 0.75rem var(--font-mono); te
 .p-tile { fill: var(--plan-tile); }
 .p-tileline { stroke: var(--plan-tileline); stroke-width: .7; fill: none; }
 .p-carpet { fill: var(--plan-grid); }
+.p-wood { fill: var(--plan-wood); }
+.p-woodline { stroke: var(--plan-woodline); stroke-width: .7; fill: none; }
+.building { background: var(--paper); border: 1px solid var(--rule); border-radius: var(--radius); padding: 20px; display: grid; gap: 16px; min-width: 0; }
+.b-head { display: flex; flex-wrap: wrap; gap: 12px; justify-content: space-between; align-items: flex-start; }
+.b-head h3 { margin-top: 6px; }
+.b-facts { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 14px 22px; margin: 0; }
+.b-facts dt { font: 500 0.7rem var(--font-mono); text-transform: uppercase; letter-spacing: .08em; color: var(--muted); }
+.b-facts dd { margin: 3px 0 0; font-size: 0.92rem; }
+.b-notes { margin: 0; padding-left: 18px; display: grid; gap: 4px; color: var(--muted); font-size: 0.9rem; }
+.b-tips { border-top: 1px dashed var(--rule); padding-top: 12px; display: grid; gap: 4px; font-size: 0.9rem; }
+.b-tips b { font: 500 0.7rem var(--font-mono); text-transform: uppercase; letter-spacing: .08em; color: var(--accent); }
 .v3-msg { position: absolute; inset: 0; display: grid; place-items: center; text-align: center; padding: 24px; font: 400 0.85rem var(--font-mono); color: var(--plan-label); }
 
 .summary { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr); gap: 16px; }
@@ -457,7 +470,7 @@ footer .team b { color: var(--ink); font-weight: 500; }
         <div class="step"><h3>Pick your hall</h3><p>Choose your UMBC building and room type. We already have the floor plan, so we know where the bed, desk and wardrobe go.</p></div>
         <div class="step"><h3>Choose a package</h3><p>Essentials, Basic or Deluxe. Each one is priced per student for the full school year.</p></div>
         <div class="step"><h3>Make it yours</h3><p>Pick your colors, posters and lighting, and add a setup for your major, like an easel for art students.</p></div>
-        <div class="step"><h3>Move in</h3><p>We deliver and assemble everything before move-in day. In May we pick it up, or you buy the pieces you want to keep.</p></div>
+        <div class="step"><h3>Move in</h3><p>We deliver and assemble everything before your move-in appointment. In May we pick it up, or you buy the pieces you want to keep.</p></div>
       </div>
     </div>
   </section>
@@ -478,7 +491,7 @@ footer .team b { color: var(--ink); font-weight: 500; }
           </div>
           <div class="includes">Includes</div>
           <ul>
-            <li>Cotton sheets <span class="keep">Keep</span></li>
+            <li>Twin XL cotton sheets <span class="keep">Keep</span></li>
             <li>Cotton towels <span class="keep">Keep</span></li>
             <li>Pillows</li>
             <li>Laundry hamper</li>
@@ -633,6 +646,7 @@ footer .team b { color: var(--ink); font-weight: 500; }
               <ul id="items"></ul>
             </div>
           </div>
+          <section class="building" id="building" aria-label="About this building"></section>
         </div>
       </div>
     </div>
@@ -725,7 +739,7 @@ footer .team b { color: var(--ink); font-weight: 500; }
   <div class="wrap">
     <div style="display:grid;gap:12px">
       <a class="brand" href="#top" aria-label="DormDesigner home"><svg class="mark" aria-hidden="true"><use href="#logo"/></svg><span class="wordmark">DormDesigner</span></a>
-      <p>Example concept site for a student business. Floor plans are redrawn from UMBC Residential Life's published hall and apartment plans. DormDesigner is not affiliated with or endorsed by UMBC.</p>
+      <p>Example concept site for a student business. Floor plans are redrawn from UMBC Residential Life's published hall and apartment plans, and building details come from reslife.umbc.edu and UMBC's 360° tours. DormDesigner is not affiliated with or endorsed by UMBC.</p>
     </div>
     <div class="team">
       <b>ENTR 200 · Group A</b><br>
@@ -758,7 +772,7 @@ footer .team b { color: var(--ink); font-weight: 500; }
     music: { name: "Music",       item: "Keyboard stand & headphone hook", price: 75 }
   };
   const ITEMS = [
-    { lvl: 1, name: "Cotton sheets", keep: true, plan: true },
+    { lvl: 1, name: "Twin XL cotton sheets", keep: true, plan: true },
     { lvl: 1, name: "Cotton towels", keep: true },
     { lvl: 1, name: "Pillows", plan: true },
     { lvl: 1, name: "Laundry hamper" },
@@ -791,6 +805,7 @@ footer .team b { color: var(--ink); font-weight: 500; }
      shared rooms. */
   const RAW_LAYOUTS = {
     susq: {
+      floorBase: "carpetGray", floors: [{ type: "tile", poly: [[424, 17], [625, 17], [625, 303], [424, 303]] }],
       bedRoom: [0, 0, 1, 1], bedNames: ["A1", "A2", "B1", "B2"],
       name: "Susquehanna · Patapsco · Chesapeake", short: "Susquehanna / Patapsco / Chesapeake", group: "Residence halls",
       type: "Double rooms · shared bath", desc: "Two double rooms sharing a bathroom", residents: 4,
@@ -813,6 +828,7 @@ footer .team b { color: var(--ink); font-weight: 500; }
       labels: [[250, 640, "Room A"], [800, 640, "Room B"], [524, 160, "Bath"]]
     },
     potomac: {
+      floorBase: "carpetGray", floors: [{ type: "tile", poly: [[399, 465], [741, 465], [741, 560], [680.5, 661], [680.5, 760.5], [460.5, 760.5], [460.5, 661], [399, 560]] }],
       bedRoom: [0, 0, 1, 1], bedNames: ["A1", "A2", "B1", "B2"],
       name: "Potomac Hall", short: "Potomac Hall", group: "Residence halls",
       type: "Double rooms · shared bath", desc: "Two double rooms sharing a bathroom", residents: 4,
@@ -836,6 +852,7 @@ footer .team b { color: var(--ink); font-weight: 500; }
       labels: [[290, 640, "Room A"], [852, 640, "Room B"], [570, 612, "Bath"]]
     },
     erickson: {
+      floorBase: "wood", floors: [{ type: "tile", poly: [[277, 548], [501, 548], [501, 720], [277, 720]] }],
       bedRoom: [0, 0, 1, 1], bedNames: ["A1", "A2", "B1", "B2"],
       name: "Erickson & Harbor Halls", short: "Erickson / Harbor double suite", group: "Residence halls",
       type: "Double suite · common room", desc: "Two double rooms, a common room and a bathroom", residents: 4,
@@ -862,6 +879,7 @@ footer .team b { color: var(--ink); font-weight: 500; }
       labels: [[198, 255, "Room A"], [835, 255, "Room B"], [525, 330, "Common"], [389, 692, "Bath"]]
     },
     harbor: {
+      floorBase: "wood", floors: [{ type: "tile", poly: [[437.5, 566], [699.5, 566], [699.5, 714], [437.5, 714]] }],
       bedRoom: [0, 1, 2, 3], bedNames: ["A", "B", "C", "D"],
       name: "Harbor Hall", short: "Harbor Hall single suite", group: "Residence halls",
       type: "Single suite · 4 bedrooms", desc: "Four single bedrooms around a shared bath and lounge", residents: 4,
@@ -892,6 +910,7 @@ footer .team b { color: var(--ink); font-weight: 500; }
       labels: [[195, 260, "A"], [370, 260, "B"], [765, 260, "C"], [945, 260, "D"], [520, 692, "Bath"], [200, 560, "Lounge"]]
     },
     terrace: {
+      floorBase: "carpetBrown", floors: [{ type: "tile", poly: [[333, 12], [604.5, 12], [604.5, 140], [333, 140]] }, { type: "tile", poly: [[548, 275], [740.5, 275], [740.5, 404], [548, 404]] }, { type: "vinyl", poly: [[604.5, 12], [988.5, 12], [988.5, 280], [604.5, 280]] }],
       bedRoom: [0, 1, 2, 3], bedNames: ["1", "2", "3", "4"],
       name: "Terrace & Hillside Apartments", short: "Terrace / Hillside apartment", group: "Apartments",
       type: "Apartment · 4 single bedrooms", desc: "Four single bedrooms, a kitchen and a shared bath", residents: 4,
@@ -924,6 +943,7 @@ footer .team b { color: var(--ink); font-weight: 500; }
       labels: [[215, 130, "1"], [215, 390, "2"], [380, 650, "3"], [560, 650, "4"], [445, 172, "Bath"], [790, 160, "Kitchen"]]
     },
     westhill: {
+      floorBase: "carpetBrown", floors: [{ type: "tile", poly: [[529, 400], [775, 400], [775, 717], [529, 717]] }, { type: "vinyl", poly: [[775, 16], [1040, 16], [1040, 293], [775, 293]] }],
       bedRoom: [0, 1, 2, 3], bedNames: ["1", "2", "3", "4"],
       name: "West Hill Apartments", short: "West Hill apartment", group: "Apartments",
       type: "Apartment · 4 single bedrooms", desc: "Four single bedrooms, a kitchen and living room", residents: 4,
@@ -961,7 +981,7 @@ footer .team b { color: var(--ink); font-weight: 500; }
       type: "Apartment · 4 bedrooms · 2 baths", desc: "Four bedrooms, two baths, kitchen, laundry and living area", residents: 4,
       outline: [[132.5, 60], [1388.5, 60], [1388.5, 350], [1700, 350], [1700, 718], [132.5, 718], [132.5, 652], [100, 605], [57, 522], [132.5, 465]],
       // Tile runs from the front door through the kitchen, laundry, vanities and baths; the rest is carpet.
-      floors: [{ type: "tile", poly: [[132.5, 465], [172.5, 525], [1395, 525], [1395, 718], [132.5, 718], [132.5, 652], [100, 605], [57, 522]] }],
+      floorBase: "carpet", floors: [{ type: "tile", poly: [[132.5, 465], [172.5, 525], [1395, 525], [1395, 718], [132.5, 718], [132.5, 652], [100, 605], [57, 522]] }],
       shell: [[103, 470], [103, 27.5], [1427, 27.5], [1427, 315], [1739.5, 315], [1739.5, 736], [103, 736], [103, 655]],
       walls: [[463.5, 60, 463.5, 440, 6], [775, 60, 775, 440, 10], [1084, 60, 1084, 440, 6], [1388.5, 350, 1388.5, 440],
               [1400, 350, 1400, 455], [1400, 540, 1400, 718],
@@ -1013,6 +1033,7 @@ footer .team b { color: var(--ink); font-weight: 500; }
     const L = Object.assign({}, raw);
     L.outline = raw.outline.map(p => [s(p[0]), s(p[1])]);
     L.shell = raw.shell ? raw.shell.map(p => [s(p[0]), s(p[1])]) : null;
+    L.floorBase = raw.floorBase || null;
     L.floors = raw.floors ? raw.floors.map(f => ({ type: f.type, poly: f.poly.map(p => [s(p[0]), s(p[1])]) })) : null;
     L.walls = raw.walls.map(w => [s(w[0]), s(w[1]), s(w[2]), s(w[3]), w[4] || 0]);
     L.windows = raw.windows.map(w => w.map(s));
@@ -1081,6 +1102,8 @@ footer .team b { color: var(--ink); font-weight: 500; }
     return d1 > d2 ? [g[0], g[1]] : [g[2], g[3]];
   }
 
+  function baseFloor(L) { return /^carpet/.test(L.floorBase || "") ? "carpet" : L.floorBase; }
+
   /* ---------- Plan renderer ---------- */
   function renderPlan(svg, key, opt) {
     const L = LAYOUTS[key];
@@ -1116,7 +1139,13 @@ footer .team b { color: var(--ink); font-weight: 500; }
       const tile = el("pattern", { id: id + "-tile", width: 15, height: 15, patternUnits: "userSpaceOnUse" }, defs);
       el("rect", { width: 15, height: 15, class: "p-tile" }, tile);
       el("path", { d: "M15 0 H0 V15", class: "p-tileline" }, tile);
-      el("polygon", { points: pts, fill: "url(#" + id + "-carpet)" }, svg);
+      const vinyl = el("pattern", { id: id + "-vinyl", width: 24, height: 24, patternUnits: "userSpaceOnUse" }, defs);
+      el("rect", { width: 24, height: 24, class: "p-tile" }, vinyl);
+      el("path", { d: "M24 0 H0 V24", class: "p-tileline" }, vinyl);
+      const wood = el("pattern", { id: id + "-wood", width: 72, height: 12, patternUnits: "userSpaceOnUse" }, defs);
+      el("rect", { width: 72, height: 12, class: "p-wood" }, wood);
+      el("path", { d: "M0 6 H72 M0 12 H72 M0 0 V6 M36 6 V12", class: "p-woodline" }, wood);
+      el("polygon", { points: pts, fill: "url(#" + id + "-" + baseFloor(L) + ")" }, svg);
       L.floors.forEach(f => el("polygon", { points: f.poly.map(p => p.join(",")).join(" "), fill: "url(#" + id + "-" + f.type + ")" }, svg));
     } else {
       el("polygon", { points: pts, fill: "url(#" + id + "-grid)" }, svg);
@@ -1603,14 +1632,37 @@ footer .team b { color: var(--ink); font-weight: 500; }
     L.outline.forEach((p, i) => (i ? shape.lineTo(p[0], -p[1]) : shape.moveTo(p[0], -p[1])));
     const fg = new T.ShapeGeometry(shape);
     geos.push(fg);
-    // Carpet and tile where the plan has flooring detail; a plain floor elsewhere.
+    // Flooring from the plans and UMBC's 360° tours: carpet, wood-look plank, tile and vinyl.
     let seed = 7;
     const rand = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
-    const floorMat = L.floors ? texMat(ctx => {
-      ctx.fillStyle = "#CDC6D4"; ctx.fillRect(0, 0, 128, 128);
-      for (let k = 0; k < 1400; k++) { ctx.fillStyle = rand() > 0.5 ? "#BDB5C7" : "#DAD4E0"; ctx.fillRect(rand() * 128, rand() * 128, 1.5, 1.5); }
-    }, 1 / 40, 1 / 40) : M(C3.floor);
-    const floor = new T.Mesh(fg, floorMat);
+    const CARPETS = { carpet: ["#CDC6D4", "#BDB5C7", "#DAD4E0"], carpetGray: ["#B7B4BC", "#A6A3AC", "#C8C5CC"], carpetBrown: ["#9C8763", "#8A7655", "#AD9773"] };
+    const floorTex = type => {
+      if (CARPETS[type]) {
+        const c = CARPETS[type];
+        return texMat(ctx => {
+          ctx.fillStyle = c[0]; ctx.fillRect(0, 0, 128, 128);
+          for (let k = 0; k < 1400; k++) { ctx.fillStyle = rand() > 0.5 ? c[1] : c[2]; ctx.fillRect(rand() * 128, rand() * 128, 1.5, 1.5); }
+        }, 1 / 40, 1 / 40);
+      }
+      if (type === "wood") {
+        return texMat(ctx => {
+          const tones = ["#B9773D", "#C4854A", "#AD6C35", "#C98E55"];
+          for (let row = 0; row < 8; row++) {
+            for (let col = -1; col < 2; col++) {
+              ctx.fillStyle = tones[(row * 3 + col + 4) % 4];
+              ctx.fillRect(col * 96 + (row % 2) * 48, row * 16, 96, 16);
+            }
+            ctx.fillStyle = "rgba(60,30,10,.35)"; ctx.fillRect(0, row * 16, 128, 1.2);
+          }
+        }, 1 / 64, 1 / 64);
+      }
+      const big = type === "vinyl";
+      return texMat(ctx => {
+        ctx.fillStyle = big ? "#E6DCCB" : "#EEECF1"; ctx.fillRect(0, 0, 128, 128);
+        ctx.strokeStyle = big ? "#CBBDA5" : "#B4ADC0"; ctx.lineWidth = big ? 4 : 6; ctx.strokeRect(0, 0, 128, 128);
+      }, 1 / (big ? 24 : 15), 1 / (big ? 24 : 15));
+    };
+    const floor = new T.Mesh(fg, L.floorBase ? floorTex(L.floorBase) : M(C3.floor));
     floor.rotation.x = -Math.PI / 2;
     floor.receiveShadow = true;
     g.add(floor);
@@ -1619,11 +1671,7 @@ footer .team b { color: var(--ink); font-weight: 500; }
       f.poly.forEach((p, i) => (i ? sh.lineTo(p[0], -p[1]) : sh.moveTo(p[0], -p[1])));
       const geo = new T.ShapeGeometry(sh);
       geos.push(geo);
-      const tile = texMat(ctx => {
-        ctx.fillStyle = "#EEECF1"; ctx.fillRect(0, 0, 128, 128);
-        ctx.strokeStyle = "#B4ADC0"; ctx.lineWidth = 6; ctx.strokeRect(0, 0, 128, 128);
-      }, 1 / 15, 1 / 15);
-      const m = new T.Mesh(geo, tile);
+      const m = new T.Mesh(geo, floorTex(f.type));
       m.rotation.x = -Math.PI / 2;
       m.position.y = 0.25;
       m.receiveShadow = true;
@@ -1851,6 +1899,104 @@ footer .team b { color: var(--ink); font-weight: 500; }
     sc.updateProjectionMatrix();
     if (resetView) resetOrbit();
     size3D();
+  }
+
+  /* Building facts from UMBC Residential Life (reslife.umbc.edu/communities), checked October 2026,
+     and finishes seen in UMBC's 360° Matterport tours. */
+  const TOUR = id => "https://my.matterport.com/show/?m=" + id;
+  const HALL_INFO = {
+    susq: {
+      title: "Chesapeake, Patapsco & Susquehanna Halls",
+      facts: [["Bedroom", "Double, about 180 sq ft (10′ × 18′)"], ["UMBC provides", "XL twin beds, desks and chairs, wardrobes, blinds"],
+              ["Floors", "Carpet, tile bathroom"], ["Who lives here", "Mostly first-year students. Residential meal plan required."],
+              ["Kitchen & laundry", "Shared community kitchens. Free laundry on the basement or ground floor."]],
+      rate: 9654, rateNote: "residence hall single or double",
+      notes: ["Chesapeake: Center for Women in Technology living-learning community. Quiet floor 3W.",
+              "Patapsco: LEED-certified. Discovery Scholars and STEM communities. Quiet floor 0S.",
+              "Susquehanna: Honors College and first-year Meyerhoff Scholars, plus a large community room and kitchen. Quiet floor 3S."],
+      tour: TOUR("3QDhJKoWT3H"), tourName: "Residence hall double"
+    },
+    potomac: {
+      title: "Potomac Hall",
+      facts: [["Bedroom", "Double, about 180 sq ft (10′ × 18′)"], ["UMBC provides", "XL twin beds, desks and chairs, wardrobes, blinds"],
+              ["Floors", "Carpet, tile bathroom"], ["Who lives here", "Mostly first-year students. Meal plan required, plus a $50 January flex plan."],
+              ["Kitchen & laundry", "Shared community kitchens. Free laundry on the basement or ground floor."]],
+      rate: 9654, rateNote: "residence hall single or double",
+      notes: ["UMBC's only nine-month residence hall, so it stays open over breaks.",
+              "One all-male and one all-female floor wing.", "Quiet floor 0S."],
+      tour: TOUR("3QDhJKoWT3H"), tourName: "Residence hall double"
+    },
+    erickson: {
+      title: "Erickson & Harbor Halls · double suites",
+      facts: [["Bedroom", "Double, about 130 sq ft (10′ × 15′) plus a 5′ × 6′ walk-in closet"],
+              ["UMBC provides", "XL twin beds, desks and chairs, dressers, blinds, a furnished common room"],
+              ["Floors", "Wood-look plank in UMBC's 360° tour, tile bathroom"],
+              ["Who lives here", "Students with 30+ credits or in a living-learning community. Meal plan required."],
+              ["Kitchen & laundry", "Shared community kitchens. Free laundry in the building."]],
+      rate: 9654, rateNote: "suite, 8-month (Harbor 9-month is $10,174)",
+      notes: ["Erickson is home to Residential Life and the Shriver Living Learning Center. Quiet floor 4S.",
+              "Harbor communities: Humanities, Intercultural Living Exchange, Visual & Performing Arts, and WILL. Quiet floor 4S."],
+      tour: TOUR("qvvP68Cmrmh"), tourName: "Suite doubles"
+    },
+    harbor: {
+      title: "Harbor Hall · single suites",
+      facts: [["Bedroom", "Single, about 88 sq ft (8′ × 11′)"], ["UMBC provides", "XL twin bed, desk and chair, dresser, blinds"],
+              ["Floors", "Wood-look plank in UMBC's 360° tour, tile bathroom"],
+              ["Who lives here", "Singles go first to approved medical accommodations and upperclass students. Meal plan required."],
+              ["Kitchen & laundry", "Shared community kitchens. Free laundry in the building."]],
+      rate: 9654, rateNote: "suite, 8-month (9-month wings are $10,174)",
+      notes: ["Four single bedrooms, a shared bath and two small entry areas.",
+              "Half of Harbor stays open over breaks; those residents add a $50 January flex plan.", "Quiet floor 4S."],
+      tour: TOUR("FnzeovJeARa"), tourName: "Suite singles"
+    },
+    terrace: {
+      title: "Terrace & Hillside Apartments",
+      facts: [["Bedroom", "Single, about 80 sq ft (8′ × 10′)"],
+              ["UMBC provides", "XL twin bed, desk and chair, dresser, blinds. Loveseat, chair, end table, dining table and four chairs."],
+              ["Floors", "Carpet, vinyl kitchen, tile bathroom"], ["Who lives here", "Students with 50+ credits. Meal plan optional."],
+              ["Kitchen & laundry", "Electric stove and oven, microwave, full-size fridge. Free laundry at the Apartment Community Center and in Elk."]],
+      rate: 10268, rateNote: "apartment single, 9-month continuous",
+      notes: ["Open over breaks.", "Quiet buildings: Elk (Hillside) and Chincoteague (Terrace)."],
+      tour: TOUR("XnNFCCgqmCD"), tourName: "Hillside & Terrace"
+    },
+    westhill: {
+      title: "West Hill Apartments",
+      facts: [["Bedroom", "Single, about 90 sq ft (9′ × 10′)"],
+              ["UMBC provides", "XL twin bed, desk and chair, dresser, blinds. Loveseat or sofa, chair, end table, dining table and four chairs."],
+              ["Floors", "Carpet, vinyl kitchen, tile bathroom"], ["Who lives here", "Students with 50+ credits. Meal plan optional."],
+              ["Kitchen & laundry", "Electric stove and oven, microwave, full-size fridge. Free laundry at the Apartment Community Center."]],
+      rate: 10268, rateNote: "apartment single, 9-month continuous",
+      notes: ["Open over breaks.", "Quiet building: Wye."],
+      tour: TOUR("Ec3aufsLroF"), tourName: "West Hill"
+    },
+    walker: {
+      title: "Walker Avenue Apartments",
+      facts: [["Bedroom", "Single, 10′1″ × 12′0″ to 10′3″ × 12′3″"], ["UMBC provides", "Bed, desk and chair, dresser. Full kitchen and living area."],
+              ["Floors", "Carpet; tile in the kitchen, laundry and baths"],
+              ["Who lives here", "Students with 39+ credits. The only campus housing open to graduate students."],
+              ["Kitchen & laundry", "Full kitchen. A washer and dryer in every apartment."]],
+      rate: null, rateNote: "Rates are set by Walker Avenue management",
+      notes: ["Owned by MEDCO and run by Capstone On-Campus Management, with Residential Life services.", "Two full baths for four bedrooms."],
+      tour: "https://walkeravenueapts.com", tourName: "Walker Avenue website"
+    }
+  };
+  const FLOOR_NAMES = { carpet: "Carpet", wood: "Wood-look plank", tile: "Tile", vinyl: "Vinyl" };
+
+  function renderBuilding() {
+    const L = LAYOUTS[state.hall], I = HALL_INFO[state.hall], P = PACKAGES[state.pkg], M = MAJORS[state.major];
+    const esc = s => String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;");
+    const per = P.price + M.price;
+    const tips = ["Sheets come in Twin XL to fit UMBC's extra-long twin beds."];
+    if (L.group === "Residence halls") tips.push("Microwaves aren't allowed in hall and suite rooms, so the Deluxe mini-fridge comes without one.");
+    tips.push("UMBC rooms come with standard blinds. Basic and Deluxe swap in blackout blinds.");
+    if (I.rate) tips.push("Your " + P.name + " setup costs about " + Math.round(per / I.rate * 100) + "% of a year's housing rate.");
+    $("#building").innerHTML =
+      '<div class="b-head"><div><p class="eyebrow">About this building · from UMBC Residential Life</p><h3>' + esc(I.title) + '</h3></div>' +
+      '<a class="btn btn-ghost btn-sm" href="' + I.tour + '" target="_blank" rel="noopener">' + (I.tour.indexOf("matterport") > 0 ? "360° tour: " : "") + esc(I.tourName) + ' ↗</a></div>' +
+      '<dl class="b-facts">' + I.facts.map(f => '<div><dt>' + esc(f[0]) + '</dt><dd>' + esc(f[1]) + '</dd></div>').join("") +
+      '<div><dt>Housing rate 2026–27</dt><dd>' + (I.rate ? money(I.rate) + ' a year · ' + esc(I.rateNote) : esc(I.rateNote)) + '</dd></div></dl>' +
+      '<ul class="b-notes">' + I.notes.map(n => '<li>' + esc(n) + '</li>').join("") + '</ul>' +
+      '<div class="b-tips"><b>For your order</b>' + tips.map(t => '<span>' + esc(t) + '</span>').join("") + '</div>';
   }
 
   /* ---------- 2D zoom and pan ---------- */
@@ -2122,7 +2268,11 @@ footer .team b { color: var(--ink); font-weight: 500; }
     } else {
       leg.push(["transparent", "Furniture provided by UMBC"]);
     }
-    if (L.floors) leg.push(["var(--plan-tile)", "Tile floor"], ["var(--plan-floor)", "Carpet"]);
+    if (L.floors) {
+      const kinds = [baseFloor(L)].concat(L.floors.map(f => f.type)).filter((k, i, a) => a.indexOf(k) === i);
+      const sw = { carpet: "var(--plan-floor)", wood: "var(--plan-wood)", tile: "var(--plan-tile)", vinyl: "var(--plan-tile)" };
+      kinds.forEach(k => leg.push([sw[k], FLOOR_NAMES[k] + " floor"]));
+    }
     $("#legend").innerHTML = leg.map(l => '<span><i style="background:' + l[0] + ';border:1px solid var(--rule)"></i>' + l[1] + '</span>').join("") +
       (state.scope === "me" ? '<span><i style="border:1.5px dashed var(--accent)"></i>Your bed · roommates shown as provided</span>' : "");
 
@@ -2148,6 +2298,7 @@ footer .team b { color: var(--ink); font-weight: 500; }
     $("#items").innerHTML = html;
     $("#itemsHead").textContent = "Per student · " + (list.length + (M.item ? 1 : 0)) + " items";
 
+    renderBuilding();
     syncReserve();
     save();
   }
