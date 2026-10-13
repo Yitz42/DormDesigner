@@ -15,6 +15,8 @@ Example website for DormDesigner, a dorm setup and decor rental service (ENTR 20
 - Comparison with DIY retail and basic rental
 - Who it's for, our values, and a demo reservation form (nothing is sent)
 
+Plans are drawn to scale: each one is stretched to the overall size measured with the measuring tool in UMBC's 360° tours (Walker Avenue uses the room sizes printed on its plan, and Potomac is scaled from its extra-long twin beds). Beds use UMBC's real frame size (about 40" × 84"), and the 3D view uses real heights: 8 ft ceilings, 80" doors, 30" desks with hutches in the halls.
+
 The floor plans are redrawn from UMBC Residential Life's published plans: Susquehanna/Patapsco/Chesapeake, Potomac, Erickson/Harbor double suite, Harbor single suite, Terrace/Hillside, West Hill and Walker Avenue. DormDesigner isn't affiliated with UMBC.
 
 ## Run it
