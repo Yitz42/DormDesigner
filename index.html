@@ -858,6 +858,22 @@ footer .team b { color: var(--ink); font-weight: 500; }
               { rug: [756, 310, 966, 560], fridge: [669, 320], bean: [936, 80], extra: [781, 75] }],
       labels: [[290, 640, "Room A"], [852, 640, "Room B"], [570, 612, "Bath"]]
     },
+    triple: {
+      real: { w: 308, h: 256, src: "measured in UMBC's 360° tour (furniture placement approximate)" }, bedIn: [40, 84], deskIn: [42, 24], hutch: true, taskChair: true,
+      floorBase: "carpetGray", floors: [{ type: "tile", poly: [[302.6,  547.4],  [731.0,  547.4],  [731.0,  870.4],  [302.6,  870.4]] }],
+      bedRoom: [0, 0, 0, 1], bedNames: ["T1", "T2", "T3", "S"], roomNames: ["Triple", "Single"],
+      name: "Residence hall triple + single", short: "Residence hall triple + single", group: "Residence halls",
+      type: "Triple bedroom + single · shared bath", desc: "A triple bedroom and a single bedroom sharing a bathroom", residents: 4,
+      outline: [[0.0,  0.0],  [666.4,  0.0],  [666.4,  88.4],  [1047.2,  88.4],  [1047.2,  870.4],  [25.5,  870.4],  [25.5,  547.4],  [0.0,  547.4]],
+      walls: [[666.4,  88.4,  666.4,  547.4],  [302.6,  547.4,  731.0,  547.4],  [302.6,  547.4,  302.6,  666.4],  [302.6,  788.8,  302.6,  870.4],  [731.0,  547.4,  731.0,  666.4],  [731.0,  788.8,  731.0,  870.4]],
+      windows: [[0.0,  20.4,  0.0,  136.0],  [353.6,  0.0,  612.0,  0.0],  [25.5,  612.0,  25.5,  850.0],  [1047.2,  612.0,  1047.2,  816.0]],
+      doors: [{ gap: [170.0,  870.4,  292.4,  870.4], leaf: [292.4,  870.4,  292.4,  748.0], arc: true }, { gap: [850.0,  870.4,  972.4,  870.4], leaf: [972.4,  870.4,  972.4,  748.0], arc: true }, { gap: [302.6,  666.4,  302.6,  788.8], leaf: [302.6,  788.8,  425.0,  788.8], arc: true }, { gap: [731.0,  666.4,  731.0,  788.8], leaf: [731.0,  788.8,  608.6,  788.8], arc: true }],
+      furn: [["shower",  598.4,  547.4,  724.2,  669.8], ["toilet",  380.8,  618.8,  27.2,  40.8,  [353.6,  554.2,  408.0,  581.4]], ["sink",  221.0,  571.2,  302.6,  768.4], ["sink",  731.0,  571.2,  812.6,  768.4], ["wardrobe",  0.0,  156.4,  81.6,  319.6], ["wardrobe",  0.0,  319.6,  81.6,  482.8], ["wardrobe",  170.0,  0.0,  333.2,  81.6], ["wardrobe",  965.6,  408.0,  1047.2,  571.2]],
+      beds: [{ r: [340.0,  0.0,  625.6,  136.0], head: "r", art: [353.6,  0.0,  612.0,  0.0,  0,  1] }, { r: [380.8,  404.6,  666.4,  540.6], head: "r", art: [387.6,  547.4,  659.6,  547.4,  0,  -1] }, { r: [27.2,  584.8,  163.2,  870.4], head: "b", art: [25.5,  598.4,  25.5,  856.8,  1,  0] }, { r: [754.8,  88.4,  1040.4,  224.4], head: "r", art: [768.4,  88.4,  1026.8,  88.4,  0,  1] }],
+      desks: [{ r: [0.0,  0.0,  81.6,  142.8], wall: "l" }, { r: [584.8,  149.6,  666.4,  292.4], wall: "r" }, { r: [231.2,  465.8,  374.0,  547.4], wall: "b" }, { r: [666.4,  326.4,  748.0,  469.2], wall: "l" }],
+      rooms: [{ rug: [102.0,  163.2,  510.0,  374.0], fridge: [187.0,  510.0], bean: [510.0,  323.0], extra: [136.0,  476.0] }, { rug: [768.4,  510.0,  986.0,  782.0], fridge: [999.6,  306.0], bean: [850.0,  680.0], extra: [884.0,  408.0] }],
+      labels: [[340.0,  272.0,  "Triple"],  [867.0,  340.0,  "Single"],  [510.0,  765.0,  "Bath"]]
+    },
     erickson: {
       real: { w: 386, h: 245, src: "measured in UMBC's 360° tour" }, bedIn: [40, 84], deskIn: [42, 24], taskChair: true, upholstery: "#55657A",
       floorBase: "wood", floors: [{ type: "tile", poly: [[277, 548], [501, 548], [501, 720], [277, 720]] }],
@@ -917,6 +933,37 @@ footer .team b { color: var(--ink); font-weight: 500; }
               { rug: [901.5, 110, 996.5, 330], fridge: [872.5, 105], bean: [976.5, 345], extra: [886.5, 355] },
               { rug: [115, 480, 330, 630] }],
       labels: [[195, 260, "A"], [370, 260, "B"], [765, 260, "C"], [945, 260, "D"], [520, 692, "Bath"], [200, 560, "Lounge"]]
+    },
+    harbormix: {
+      real: { w: 401, h: 240, src: "the Harbor single-suite shell; UMBC hasn't published this plan" }, bedIn: [40, 84], deskIn: [42, 24], taskChair: true, upholstery: "#55657A",
+      floorBase: "wood", floors: [{ type: "tile", poly: [[437.5, 566], [699.5, 566], [699.5, 714], [437.5, 714]] }],
+      bedRoom: [0, 0, 1, 2], bedNames: ["A1", "A2", "C", "D"], roomNames: ["Double", "Bedroom C", "Bedroom D"],
+      name: "Harbor Hall", short: "Harbor Hall two singles + double", group: "Residence halls",
+      type: "Suite · one double, two singles · approximate", desc: "One double and two single bedrooms around a shared bath and lounge", residents: 4,
+      outline: [[12, 16], [1129.5, 16], [1129.5, 714], [12, 714]],
+      walls: [[570.5, 16, 570.5, 461], [849.5, 16, 849.5, 461],
+              [12, 461, 162, 461], [281, 461, 720, 461], [840, 461, 860, 461], [980, 461, 1129.5, 461],
+              [437.5, 566, 437.5, 714], [699.5, 566, 699.5, 714], [600.5, 581, 600.5, 671], [437.5, 670, 699.5, 670]],
+      windows: [[52, 16, 238, 16], [348, 16, 533, 16], [615, 16, 799, 16], [896, 16, 1081, 16]],
+      doors: [{ leaf: [283, 461, 185, 394] }, { leaf: [842, 461, 745, 394] }, { leaf: [858, 461, 945, 393] },
+              { leaf: [437.5, 463, 490, 537] }, { leaf: [704, 463, 655, 537] },
+              { gap: [217, 714, 337, 714], leaf: [337, 714, 240, 647] }, { gap: [802, 714, 912, 714], leaf: [802, 714, 882, 650] }],
+      furn: [["closet", 12, 409, 146.5, 461], ["closet", 437.5, 409, 570.5, 461], ["closet", 570.5, 409, 704, 461], ["closet", 997, 409, 1129.5, 461],
+             ["loveseat", 19.5, 466.5, 103.5, 632], ["end", 28.5, 637, 91, 710],
+             ["chair", 1022, 467, 1116, 552], ["round", 1075, 586.5, 23.5], ["chair", 1022, 619, 1116, 705],
+             ["tub", 445, 581, 588, 665], ["toilet", 651, 605, 19, 28, [614, 635, 688, 663]],
+             ["sink", 348, 662, 437.5, 712], ["sink", 700, 661, 792, 712]],
+      beds: [{ r: [12, 16, 129.5, 278.5], head: "t", art: [12, 24, 12, 270, 1, 0] },
+             { r: [452, 16, 570.5, 278.5], head: "t", art: [570.5, 24, 570.5, 270, -1, 0] },
+             { r: [570.5, 16, 688, 278.5], head: "t", art: [570.5, 24, 570.5, 270, 1, 0] },
+             { r: [1011.5, 16, 1129.5, 278.5], head: "t", art: [1129.5, 24, 1129.5, 270, -1, 0] }],
+      desks: [{ r: [158, 16, 291, 79], wall: "t" }, { r: [291, 16, 424, 79], wall: "t" },
+              { r: [716.5, 16, 849.5, 79], wall: "t" }, { r: [849.5, 16, 983.5, 79], wall: "t" }],
+      rooms: [{ rug: [190, 110, 410, 330], fridge: [300, 105], bean: [200, 345], extra: [380, 355] },
+              { rug: [704, 110, 799, 330], fridge: [828, 105], bean: [724, 345], extra: [814, 355] },
+              { rug: [901.5, 110, 996.5, 330], fridge: [872.5, 105], bean: [976.5, 345], extra: [886.5, 355] },
+              { rug: [115, 480, 330, 630] }],
+      labels: [[290, 260, "Double"], [765, 260, "C"], [945, 260, "D"], [520, 692, "Bath"], [200, 560, "Lounge"]]
     },
     terrace: {
       real: { w: 394, h: 329, src: "measured in UMBC's 360° tour" }, bedIn: [40, 84], deskIn: [42, 24], upholstery: "#2F3B5C",
@@ -1761,7 +1808,7 @@ footer .team b { color: var(--ink); font-weight: 500; }
 
   /* ---------- 3D view (three.js, loaded the first time someone opens it) ---------- */
   const THREE_URL = "https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js";
-  const C3 = { wall: "#F3F0F7", ink: "#2B2442", floor: "#D9D3E0", wood: "#D8B676", woodDark: "#B48F55", door: "#7A4E32",
+  const C3 = { wall: "#EEEAE2", ink: "#77716A", floor: "#D9D3E0", wood: "#D8B676", woodDark: "#B48F55", door: "#7A4E32",
     furn: "#9C95B2", fix: "#FAFAFC", glass: "#BFD9EE", mattress: "#F4F2F7", screen: "#1D1730", metal: "#3A3448", water: "#D7E6F0" };
   const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
   let three = null, threeLoading = null;
@@ -1801,15 +1848,23 @@ footer .team b { color: var(--ink); font-weight: 500; }
     let renderer;
     try { renderer = new THREE.WebGLRenderer({ canvas, antialias: true }); } catch (e) { return false; }
     renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+    renderer.outputEncoding = THREE.sRGBEncoding;
+    renderer.toneMapping = THREE.ACESFilmicToneMapping;
+    renderer.toneMappingExposure = 0.86;
     renderer.shadowMap.enabled = true;
     renderer.shadowMap.type = THREE.PCFSoftShadowMap;
     const scene = new THREE.Scene();
     const camera = new THREE.PerspectiveCamera(38, 1, 1, 8000);
-    scene.add(new THREE.HemisphereLight(0xffffff, 0xcfc6de, 0.62));
-    const sun = new THREE.DirectionalLight(0xffffff, 0.5);
+    scene.add(new THREE.HemisphereLight(0xfff8ec, 0xa9b4c0, 0.48));
+    const sun = new THREE.DirectionalLight(0xffefd8, 0.85);
     sun.castShadow = true;
     sun.shadow.mapSize.set(2048, 2048);
-    sun.shadow.bias = -0.0008;
+    sun.shadow.bias = -0.0003;
+    sun.shadow.normalBias = 0.6;
+    sun.shadow.radius = 4;
+    const fill = new THREE.DirectionalLight(0xc6dfff, 0.22);
+    fill.position.set(-300, 240, -180);
+    scene.add(fill);
     scene.add(sun, sun.target);
     three = { renderer, scene, camera, sun, group: null, geos: [], mats: [], L: null, mode: "rotate",
       orbit: { theta: 0.45, phi: 0.92, r: 700, tx: 0, tz: 0 }, R: 700, aspect: 0.7, queued: false, tween: 0 };
@@ -1960,8 +2015,30 @@ footer .team b { color: var(--ink); font-weight: 500; }
       return m;
     };
     // Plan rect (x, z, w, d) raised from y0 by h.
+    // Small edge radii catch highlights without changing the furniture footprint.
+    const softenedBox = (w, h, d) => {
+      w = Math.max(w, .2); h = Math.max(h, .2); d = Math.max(d, .2);
+      const radius = Math.min(w, h, d) * .12;
+      const sh = new T.Shape(), x = -w / 2 + radius, y = -h / 2 + radius;
+      sh.moveTo(x, y); sh.lineTo(-x, y); sh.lineTo(-x, -y); sh.lineTo(x, -y); sh.closePath();
+      const geo = new T.ExtrudeGeometry(sh, { depth: d - 2 * radius, bevelEnabled: true,
+        bevelThickness: radius, bevelSize: radius, bevelSegments: 3, steps: 1, curveSegments: 3 });
+      geo.translate(0, 0, -d / 2 + radius);
+      return geo;
+    };
     const box = (x, z, w, d, y0, h, mat, shadow) =>
-      mesh(new T.BoxGeometry(Math.max(w, 0.2), Math.max(h, 0.2), Math.max(d, 0.2)), mat, x + w / 2, y0 + h / 2, z + d / 2, shadow);
+      mesh(softenedBox(w, h, d), mat, x + w / 2, y0 + h / 2, z + d / 2, shadow);
+    // A stuffed cushion has curved shoulders and a slightly uneven crown, rather than flat box faces.
+    const cushionGeometry = (w,h,d) => {
+      const geo = new T.SphereGeometry(1,24,16), pos=geo.attributes.position;
+      const curve=v=>Math.sign(v)*Math.pow(Math.abs(v),.38);
+      for(let i=0;i<pos.count;i++) {
+        const x=pos.getX(i),y=pos.getY(i),z=pos.getZ(i);
+        pos.setXYZ(i,curve(x)*w/2,curve(y)*h/2,curve(z)*d/2);
+      }
+      geo.computeVertexNormals();return geo;
+    };
+    const puff = (x,z,w,d,y,h,mat) => mesh(cushionGeometry(w,h,d),mat,x+w/2,y+h/2,z+d/2);
     const fbox = (f, y0, h, mat, shadow) => {
       const m = box(f.x, f.y, f.w, f.h, y0, h, mat, shadow);
       if (f.rot) m.rotation.y = -f.rot * Math.PI / 180;
@@ -1983,6 +2060,8 @@ footer .team b { color: var(--ink); font-weight: 500; }
       const t = new T.CanvasTexture(c);
       t.wrapS = t.wrapT = T.RepeatWrapping;
       t.repeat.set(rx || 1, ry || 1);
+      t.encoding = T.sRGBEncoding;
+      t.anisotropy = Math.min(8, three.renderer.capabilities.getMaxAnisotropy());
       const m = new T.MeshStandardMaterial({ map: t, roughness: 0.9 });
       mats.push(m);
       return m;
@@ -2090,8 +2169,30 @@ footer .team b { color: var(--ink); font-weight: 500; }
     });
     L.doors.forEach(d => { if (d.leaf) slab(d.leaf[0], d.leaf[1], d.leaf[2], d.leaf[3], IN(1.75), 0, Math.min(IN(80), WH), M(C3.door, { transparent: true, opacity: 0.35, depthWrite: false }), false); });
 
-    const wood = M(C3.wood), dark = M(C3.woodDark), fix = M(C3.fix), water = M(C3.water), metal = M(C3.metal);
-    const uph = M(L.upholstery || C3.furn);
+    // Repeatable, locally generated material maps keep the preview self-contained.
+    const grain = color => texMat(ctx => {
+      ctx.fillStyle = color; ctx.fillRect(0,0,128,128);
+      for (let i=0;i<100;i++) {
+        const y=(i*37)%128;
+        ctx.strokeStyle = i%3 ? "rgba(83,47,20,.10)" : "rgba(255,244,213,.22)";
+        ctx.lineWidth=.4+(i%4)*.2; ctx.beginPath(); ctx.moveTo(0,y);
+        ctx.bezierCurveTo(35,y+Math.sin(i)*3,85,y-Math.cos(i)*2,128,y+1);ctx.stroke();
+      }
+    }, 1, 2);
+    const fabric = color => {
+      const material = texMat(ctx => {
+        ctx.fillStyle=color;ctx.fillRect(0,0,128,128);
+        for(let i=0;i<128;i+=3) {
+          ctx.fillStyle="rgba(255,255,255,.09)";ctx.fillRect(i,0,1,128);
+          ctx.fillStyle="rgba(0,0,0,.055)";ctx.fillRect(0,i,128,1);
+        }
+      }, 3, 3);
+      material.roughness=.96;return material;
+    };
+    const wood = grain(C3.wood), dark = grain(C3.woodDark), fix = M(C3.fix, { roughness:.28 }),
+      water = M(C3.water, { roughness:.15 }), metal = M(C3.metal, { metalness:.65, roughness:.32 });
+    const uph = fabric(L.upholstery || C3.furn);
+    const bedding = fabric(pal.bed), linen = fabric(pal.light), throwFabric = fabric(pal.accent);
     const legs = (r, h, mat) => {
       const s = Math.min(IN(1.75), r.w / 4, r.h / 4);
       [[0, 0], [1, 0], [0, 1], [1, 1]].forEach(([u, v]) => box(r.x + u * (r.w - s), r.y + v * (r.h - s), s, s, 0, h, mat || wood));
@@ -2102,8 +2203,8 @@ footer .team b { color: var(--ink); font-weight: 500; }
       sub.position.set(c.x, 0, c.y);
       sub.rotation.y = -(f.rot || 0) * Math.PI / 180;
       g.add(sub);
-      const put = (x, z, w, d, y0, h, mat) => {
-        const geo = new T.BoxGeometry(Math.max(w, 0.2), Math.max(h, 0.2), Math.max(d, 0.2));
+      const put = (x, z, w, d, y0, h, mat, upholstered = false) => {
+        const geo = upholstered ? cushionGeometry(w,h,d) : softenedBox(w, h, d);
         geos.push(geo);
         const m = new T.Mesh(geo, mat);
         m.position.set(x - c.x + w / 2, y0 + h / 2, z - c.y + d / 2);
@@ -2117,16 +2218,31 @@ footer .team b { color: var(--ink); font-weight: 500; }
         fourLegs(q, IN(17));
         put(q.x, q.y, q.w, q.h, IN(17), IN(1.5), wood);
         const bk = band(q, back, IN(1.5));
-        put(bk.x, bk.y, bk.w, bk.h, IN(18.5), IN(15), wood);
+        // Open slatted chair back, with separate uprights and a top rail.
+        const vertical = back === "l" || back === "r";
+        for(let k=0;k<4;k++) {
+          const u=(k+.5)/4;
+          put(vertical?bk.x:bk.x+bk.w*u-IN(.6), vertical?bk.y+bk.h*u-IN(.6):bk.y,
+            vertical?bk.w:IN(1.2),vertical?IN(1.2):bk.h,IN(18.5),IN(13),wood);
+        }
+        put(bk.x,bk.y,bk.w,bk.h,IN(31.5),IN(2),wood);
         return;
       }
       const bd = Math.min(IN(8), Math.min(r.w, r.h) * 0.3);
       fourLegs(inset(r, IN(1)), IN(6));
       put(r.x, r.y, r.w, r.h, IN(6), IN(4), wood);                                 // maple frame
       const cush = inset(r, IN(2));
-      put(cush.x, cush.y, cush.w, cush.h, IN(10), IN(7), uph);                     // seat cushion
+      const horizontal = back === "t" || back === "b";
+      const count = f.t === "chair" ? 1 : Math.max(2,Math.round((horizontal?r.w:r.h)/IN(24)));
       const bk = band(r, back, bd);
-      put(bk.x, bk.y, bk.w, bk.h, IN(10), IN(22), uph);                            // back cushion
+      for(let n=0;n<count;n++) {
+        const gap=IN(.6), span=(horizontal?cush.w:cush.h)/count;
+        put(horizontal?cush.x+n*span+gap/2:cush.x,horizontal?cush.y:cush.y+n*span+gap/2,
+          horizontal?span-gap:cush.w,horizontal?cush.h:span-gap,IN(10),IN(7),uph,true);
+        const backSpan=(horizontal?bk.w:bk.h)/count;
+        put(horizontal?bk.x+n*backSpan+gap/2:bk.x,horizontal?bk.y:bk.y+n*backSpan+gap/2,
+          horizontal?backSpan-gap:bk.w,horizontal?bk.h:backSpan-gap,IN(17),IN(15),uph,true);
+      }                            // back cushion
       const arms = back === "t" || back === "b" ? [band(r, "l", IN(3)), band(r, "r", IN(3))] : [band(r, "t", IN(3)), band(r, "b", IN(3))];
       arms.forEach(a => put(a.x, a.y, a.w, a.h, IN(6), armH, wood));               // wooden arms
     };
@@ -2242,15 +2358,21 @@ footer .team b { color: var(--ink); font-weight: 500; }
       const cx = b.x + b.w / 2, cz = b.y + b.h / 2, bw = horiz ? IN(26) : b.w * 0.7, bd = horiz ? b.h * 0.7 : IN(26);
       [-1, 1].forEach(sn => box(cx - bw / 2 + (horiz ? sn * IN(15) : 0), cz - bd / 2 + (horiz ? 0 : sn * IN(15)), bw, bd, 0, IN(11), M(pal.deep)));
       const top = DECK + IN(1) + MAT;
-      box(deck.x, deck.y, deck.w, deck.h, DECK + IN(1), MAT, M(pal.bed));
+      box(deck.x, deck.y, deck.w, deck.h, DECK + IN(1), MAT, bedding);
+      const piping = inset(deck, IN(.5));
+      ["t","b","l","r"].forEach(side => { const edge=band(piping,side,IN(.35));
+        box(edge.x,edge.y,edge.w,edge.h,top-IN(.6),IN(.4),linen,false); });
+      const fold = band(deck,b.head,IN(23));
+      const foldEdge = band(fold,OPP[b.head],IN(1.5));
+      box(foldEdge.x,foldEdge.y,foldEdge.w,foldEdge.h,top,IN(.6),linen,false);
       const pil = inset(band(deck, b.head, IN(20)), IN(2));
-      box(pil.x, pil.y, pil.w, pil.h, top, IN(5), M(pal.light));
+      puff(pil.x, pil.y, pil.w, pil.h, top, IN(5), linen);
       if (lvl >= 3) {
         const foot = band(deck, OPP[b.head], length * 0.28);
-        box(foot.x, foot.y, foot.w, foot.h, top, IN(1.5), M(pal.accent));
+        box(foot.x, foot.y, foot.w, foot.h, top, IN(1.5), throwFabric);
         const px = pil.x + pil.w / 2, pz = pil.y + pil.h / 2, dx = horiz ? 0 : pil.w * 0.24, dz = horiz ? pil.h * 0.24 : 0, s = IN(14);
-        box(px - dx - s / 2, pz - dz - s / 2, s, s, top + IN(5), IN(5), M(pal.deep));
-        box(px + dx - s / 2, pz + dz - s / 2, s, s, top + IN(5), IN(5), M(pal.accent));
+        puff(px - dx - s / 2, pz - dz - s / 2, s, s, top + IN(5), IN(5), fabric(pal.deep));
+        puff(px + dx - s / 2, pz + dz - s / 2, s, s, top + IN(5), IN(5), throwFabric);
       }
       if (lvl >= 2) {
         const [x1, y1, x2, y2, nx, ny] = b.art, hz = y1 === y2, inward = (hz ? ny : nx) > 0;
@@ -2260,8 +2382,15 @@ footer .team b { color: var(--ink); font-weight: 500; }
         const off = inward ? IN(4.2) : -IN(5);
         for (let k = 0; k < n; k++) {
           const a = lo + (k + 0.5) * slot - pl / 2;
-          if (hz) box(a, y1 + off, pl, IN(0.6), posterY - ph / 2, ph, M(colors[k]), false);
-          else box(x1 + off, a, IN(0.6), pl, posterY - ph / 2, ph, M(colors[k]), false);
+          const art=texMat(ctx=>{
+            ctx.fillStyle="#EFE9DC";ctx.fillRect(0,0,128,128);
+            ctx.fillStyle=colors[k];ctx.beginPath();ctx.arc(64,48,27,0,Math.PI*2);ctx.fill();
+            ctx.fillStyle=pal.deep;ctx.beginPath();ctx.moveTo(12,112);ctx.lineTo(52,65);ctx.lineTo(88,112);ctx.fill();
+            ctx.fillStyle=pal.accent;ctx.fillRect(85,84,25,28);
+            ctx.strokeStyle="#554738";ctx.lineWidth=7;ctx.strokeRect(0,0,128,128);
+          });
+          if (hz) box(a, y1 + off, pl, IN(0.6), posterY - ph / 2, ph, art, false);
+          else box(x1 + off, a, IN(0.6), pl, posterY - ph / 2, ph, art, false);
         }
         if (lvl >= 3) {
           const wp = texMat(ctx => {
@@ -2292,7 +2421,13 @@ footer .team b { color: var(--ink); font-weight: 500; }
       if (ws === "r") cx = d.x - s / 2 + IN(2);
       const [seatMat, frameMat] = colors;
       if (upgraded || L.taskChair) {
-        cyl(cx, cz, IN(11), 0, IN(1.5), metal);
+        // Five-spoke task chair base and individual casters.
+        for(let k=0;k<5;k++) {
+          const a=k*Math.PI*2/5, reach=IN(8), ex=cx+Math.cos(a)*reach, ez=cz+Math.sin(a)*reach;
+          slab(cx,cz,ex,ez,IN(.9),IN(1.5),IN(2.5),metal);
+          const wheel=mesh(new T.CylinderGeometry(IN(1),IN(1),IN(.8),12),metal,ex,IN(1),ez);
+          wheel.rotation.z=Math.PI/2;
+        }
         cyl(cx, cz, IN(1.2), IN(1.5), IN(16), metal);
       } else {
         legs({ x: cx - s / 2, y: cz - s / 2, w: s, h: s }, IN(17), frameMat);
@@ -2310,6 +2445,18 @@ footer .team b { color: var(--ink); font-weight: 500; }
       const ped = Math.min(IN(16), (along ? d.w : d.h) * 0.4);
       if (along) { box(d.x + d.w - ped, d.y + IN(0.5), ped, d.h - IN(1), 0, IN(29), wood); box(d.x, d.y + IN(0.5), IN(1.25), d.h - IN(1), 0, IN(29), wood); }
       else { box(d.x + IN(0.5), d.y + d.h - ped, d.w - IN(1), ped, 0, IN(29), wood); box(d.x + IN(0.5), d.y, d.w - IN(1), IN(1.25), 0, IN(29), wood); }
+      const pedestal = along ? {x:d.x+d.w-ped,y:d.y+IN(.5),w:ped,h:d.h-IN(1)}
+        : {x:d.x+IN(.5),y:d.y+d.h-ped,w:d.w-IN(1),h:ped};
+      const front = band(pedestal,OPP[ws],IN(.45));
+      for(let j=0;j<3;j++) {
+        const y=IN(1+j*9);
+        const panel=inset(front,0);
+        box(panel.x,panel.y,panel.w,panel.h,y,IN(8.4),wood);
+        const handle=band(panel,OPP[ws],IN(.45));
+        const hx=handle.x+handle.w/2,hz=handle.y+handle.h/2;
+        box(hx-IN(.3),hz-IN(.3),IN(.6),IN(.6),y+IN(3),IN(2),metal);
+        box(panel.x,panel.y,panel.w,panel.h,y+IN(8.5),IN(.35),dark,false);
+      }
       if (L.hutch && WH > IN(56)) {
         const back = band(d, ws, IN(11));
         box(back.x, back.y, back.w, back.h, IN(41.5), IN(1), wood);
@@ -2325,7 +2472,9 @@ footer .team b { color: var(--ink); font-weight: 500; }
         const lx = ws === "r" ? d.x + d.w - IN(5) : d.x + IN(5), lz = ws === "b" ? d.y + d.h - IN(5) : d.y + IN(5);
         cyl(lx, lz, IN(3), IN(30.25), IN(0.75), M(pal.deep));
         cyl(lx, lz, IN(0.4), IN(31), IN(15), M(pal.deep));
-        mesh(new T.SphereGeometry(IN(2.5), 16, 12), M("#FFD45E", { emissive: "#FFC83A", emissiveIntensity: 1 }), lx, IN(47), lz, false);
+        mesh(new T.CylinderGeometry(IN(1.8),IN(3.8),IN(4.5),24,1,true),
+          M(pal.deep,{side:T.DoubleSide,roughness:.5}),lx,IN(46),lz);
+        mesh(new T.SphereGeometry(IN(1.1),16,12),M("#FFE9BB",{emissive:"#FFD699",emissiveIntensity:.8}),lx,IN(44.8),lz,false);
         const lamp = new T.PointLight(0xffd27a, 0.5, IN(90), 2);
         lamp.position.set(lx, IN(46), lz);
         g.add(lamp);
@@ -2418,6 +2567,17 @@ footer .team b { color: var(--ink); font-weight: 500; }
               "One all-male and one all-female floor wing.", "Quiet floor 0S."],
       tour: TOUR("3QDhJKoWT3H"), tourName: "Residence hall double"
     },
+    triple: {
+      title: "Residence hall triple + single",
+      facts: [["Bedrooms", "Triple, about 300 sq ft (16′ × 18′); measured 16′4″ wide. The single beside it is 9′2″ wide."],
+              ["UMBC provides", "XL twin beds, desks and chairs, wardrobes, blinds"],
+              ["Floors", "Carpet, tile bathroom"], ["Who lives here", "Residence hall students. Residential meal plan required."],
+              ["Kitchen & laundry", "Shared community kitchens. Free laundry on the basement or ground floor."]],
+      rate: 6912, rateNote: "triple bedroom; the single in this suite is $9,654",
+      notes: ["Traced from UMBC's Triple & Single Bedroom 360° tour. Room sizes are measured; furniture positions are approximate.",
+              "UMBC charges triples the residence hall rate for triple and quad bedrooms."],
+      tour: TOUR("aY8NV7qnrdf"), tourName: "Triple & single"
+    },
     erickson: {
       title: "Erickson & Harbor Halls · double suites",
       facts: [["Bedroom", "Double, about 130 sq ft (10′ × 15′) plus a 5′ × 6′ walk-in closet"],
@@ -2440,6 +2600,18 @@ footer .team b { color: var(--ink); font-weight: 500; }
       notes: ["Four single bedrooms, a shared bath and two small entry areas.",
               "Half of Harbor stays open over breaks; those residents add a $50 January flex plan.", "Quiet floor 4S."],
       tour: TOUR("FnzeovJeARa"), tourName: "Suite singles"
+    },
+    harbormix: {
+      title: "Harbor Hall · two singles and a double",
+      facts: [["Bedrooms", "One double and two singles (singles about 88 sq ft, 8′ × 11′)"],
+              ["UMBC provides", "XL twin beds, desks and chairs, dressers, blinds"],
+              ["Floors", "Wood-look plank in UMBC's 360° tour, tile bathroom"],
+              ["Who lives here", "Students with 30+ credits or in a living-learning community. Meal plan required."],
+              ["Kitchen & laundry", "Shared community kitchens. Free laundry in the building."]],
+      rate: 9654, rateNote: "suite, 8-month (9-month wings are $10,174)",
+      notes: ["UMBC says Harbor has a few suites with two single bedrooms and one double, but hasn't published a plan or tour for them.",
+              "This layout is an approximation: the Harbor single suite with two singles joined into the double."],
+      tour: TOUR("FnzeovJeARa"), tourName: "Harbor singles (closest tour)"
     },
     terrace: {
       title: "Terrace & Hillside Apartments",
@@ -2743,7 +2915,8 @@ footer .team b { color: var(--ink); font-weight: 500; }
     $("#modeToggle").hidden = !is3d;
     $("#wallsBtn").hidden = !is3d;
     $("#wallsBtn").textContent = state.walls === "low" ? "Full-height walls" : "Cutaway walls";
-    $("#zRoom").textContent = L.bedRoom.filter(r => r === L.bedRoom[state.bed]).length > 1 ? "Room " + L.bedNames[state.bed].charAt(0) : "Bedroom " + L.bedNames[state.bed];
+    $("#zRoom").textContent = L.roomNames ? L.roomNames[L.bedRoom[state.bed]]
+      : L.bedRoom.filter(r => r === L.bedRoom[state.bed]).length > 1 ? "Room " + L.bedNames[state.bed].charAt(0) : "Bedroom " + L.bedNames[state.bed];
     updateHint();
     if (is3d && three) {
       build3D(state.hall, opts, false);

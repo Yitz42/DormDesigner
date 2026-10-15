@@ -17,10 +17,21 @@ Example website for DormDesigner, a dorm setup and decor rental service (ENTR 20
 
 Plans are drawn to scale: each one is stretched to the overall size measured with the measuring tool in UMBC's 360° tours (Walker Avenue uses the room sizes printed on its plan, and Potomac is scaled from its extra-long twin beds). Beds use UMBC's real frame size (about 40" × 84"), and the 3D view uses real heights: 8 ft ceilings, 80" doors, 30" desks with hutches in the halls.
 
-The floor plans are redrawn from UMBC Residential Life's published plans: Susquehanna/Patapsco/Chesapeake, Potomac, Erickson/Harbor double suite, Harbor single suite, Terrace/Hillside, West Hill and Walker Avenue. DormDesigner isn't affiliated with UMBC.
+The floor plans are redrawn from UMBC Residential Life's published plans: Susquehanna/Patapsco/Chesapeake, Potomac, Erickson/Harbor double suite, Harbor single suite, Terrace/Hillside, West Hill and Walker Avenue. Two more layouts have no published plan:
+
+- **Residence hall triple + single** is traced from UMBC's Triple & Single Bedroom 360° tour. Room sizes are measured there (suite 25′8″ wide, triple 21′4″ deep, single 9′2″ × 19′2″); furniture positions are approximate.
+- **Harbor Hall two singles + double** is an approximation. UMBC says these suites exist but hasn't published a plan or tour, so it's drawn from the Harbor single-suite shell with two singles joined into the double.
+
+DormDesigner isn't affiliated with UMBC.
 
 ## Run it
 
 It's one static file with no build step. Open `index.html` in a browser, or publish the repo with GitHub Pages (Settings → Pages → deploy from the `main` branch, root folder).
+
+To check every layout for furniture that overlaps, crosses a wall or blocks a door, and that beds and wardrobes keep their real sizes, run:
+
+```bash
+node tests/layout-check.cjs index.html
+```
 
 The major add-on price ($75) is a placeholder; it isn't in the decks.
