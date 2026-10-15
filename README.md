@@ -9,9 +9,12 @@ Example website for DormDesigner, a dorm setup and decor rental service (ENTR 20
 - Hero and problem statement
 - How it works, in four steps
 - Packages: Essentials ($450/yr), Basic ($850/yr), Deluxe ($1,500/yr)
+  - Rugs, mini-fridges and bathroom sets are shared: when everyone in a bedroom (or using a bathroom) orders, they get one and split the cost, which comes off each person's price
+  - Posters are all 11" × 17": 3 with Basic, 5 with Deluxe
 - Room planner: pick a UMBC floor plan, a package, a color palette and a major add-on, and see the room decorated on the plan
   - **Just my bed** decorates only the bed you pick (tap a bed on the plan); roommates' beds stay as the university provides them. **Whole suite** decorates every bed plus shared rooms and shows the suite total.
   - **3D view** turns the same floor plan into a model you can rotate and zoom. It loads three.js from cdnjs the first time someone opens it.
+  - **Walkways** shows the routes people take from the front door to each bed, desk, closet, door and fixture. Rugs can sit on them, but the fridge, beanbag and add-on are kept off them wherever there's room.
 - Comparison with DIY retail and basic rental
 - Who it's for, our values, and a demo reservation form (nothing is sent)
 

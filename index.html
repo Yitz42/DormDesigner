@@ -27,6 +27,8 @@
   --plan-tileline: #CFC8DA;
   --plan-wood: #F6EFE6;
   --plan-woodline: #E2D4C1;
+  --plan-walk: #EADFC6;
+  --plan-walkline: #A8936A;
   --brand-1: #4B3BFF;
   --brand-2: #A93CFF;
   --brand-3: #F03CF5;
@@ -43,14 +45,14 @@
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
     --paper: #100C19; --surface: #1A1526; --ink: #EEEAF7; --muted: #A49CBA; --rule: #2F2843;
-    --plan-bg: #161120; --plan-floor: #1B1528; --plan-grid: #241D33; --plan-ink: #D9D2EC; --plan-furn: #251E35; --plan-label: #9C94B3; --plan-tile: #221C2F; --plan-tileline: #3A3250; --plan-wood: #241D2A; --plan-woodline: #3B3140;
+    --plan-bg: #161120; --plan-floor: #1B1528; --plan-grid: #241D33; --plan-ink: #D9D2EC; --plan-furn: #251E35; --plan-label: #9C94B3; --plan-tile: #221C2F; --plan-tileline: #3A3250; --plan-wood: #241D2A; --plan-woodline: #3B3140; --plan-walk: #33291C; --plan-walkline: #8C7A55;
     --accent: #FF6FAE; --accent-ink: #1A0D16; --accent-soft: #3A1830; --ok: #5FD39E;
     color-scheme: dark;
   }
 }
 :root[data-theme="dark"] {
   --paper: #100C19; --surface: #1A1526; --ink: #EEEAF7; --muted: #A49CBA; --rule: #2F2843;
-  --plan-bg: #161120; --plan-floor: #1B1528; --plan-grid: #241D33; --plan-ink: #D9D2EC; --plan-furn: #251E35; --plan-label: #9C94B3; --plan-tile: #221C2F; --plan-tileline: #3A3250; --plan-wood: #241D2A; --plan-woodline: #3B3140;
+  --plan-bg: #161120; --plan-floor: #1B1528; --plan-grid: #241D33; --plan-ink: #D9D2EC; --plan-furn: #251E35; --plan-label: #9C94B3; --plan-tile: #221C2F; --plan-tileline: #3A3250; --plan-wood: #241D2A; --plan-woodline: #3B3140; --plan-walk: #33291C; --plan-walkline: #8C7A55;
   --accent: #FF6FAE; --accent-ink: #1A0D16; --accent-soft: #3A1830; --ok: #5FD39E;
   color-scheme: dark;
 }
@@ -234,6 +236,19 @@ p { margin: 0; }
   linear-gradient(var(--surface), var(--surface)) padding-box,
   linear-gradient(160deg, var(--brand-1), var(--brand-2), var(--brand-4)) border-box;
   border: 2px solid transparent; }
+.share {
+  font: 500 0.66rem/1 var(--font-mono); text-transform: uppercase; letter-spacing: .08em;
+  color: var(--accent); border: 1px solid currentColor; border-radius: 999px; padding: 3px 6px; white-space: nowrap;
+}
+.sharing { margin-top: 24px; padding: 22px 24px; border: 1px solid var(--rule); border-radius: 16px; background: var(--surface); display: grid; gap: 12px; }
+.sharing h3 { font-size: 1.15rem; text-wrap: balance; }
+.sharing p { color: var(--muted); max-width: 68ch; }
+.share-table { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
+.share-table div { border-top: 1px dashed var(--rule); padding-top: 10px; min-width: 0; }
+.share-table dt { font-weight: 600; }
+.share-table dd { margin: 2px 0 0; color: var(--muted); font-size: 0.9rem; }
+.share-eg { font: 400 0.85rem var(--font-mono); color: var(--ink) !important; }
+@media (max-width: 720px) { .share-table { grid-template-columns: 1fr; } }
 .tiers-note { margin-top: 18px; color: var(--muted); font-size: 0.92rem; display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
 @media (max-width: 960px) { .tiers { grid-template-columns: 1fr; max-width: 560px; } }
 
@@ -305,6 +320,9 @@ legend { padding: 0; margin-bottom: 10px; font: 500 0.75rem var(--font-mono); te
 .p-tile { fill: var(--plan-tile); }
 .p-tileline { stroke: var(--plan-tileline); stroke-width: .7; fill: none; }
 .p-carpet { fill: var(--plan-grid); }
+.p-walk { fill: none; stroke: var(--plan-walk); stroke-linecap: round; stroke-linejoin: round; opacity: .5; }
+.p-walkline { fill: none; stroke: var(--plan-walkline); stroke-width: .9; stroke-dasharray: 1.5 5; stroke-linecap: round; stroke-linejoin: round; }
+.v-btn[aria-pressed="true"] { background: var(--accent-soft); border-color: var(--accent); }
 .p-focusmask { fill: var(--plan-bg); fill-opacity: .68; pointer-events: none; }
 .p-focusring { fill: none; stroke: var(--accent); stroke-width: 1; stroke-dasharray: 6 4; opacity: .7; pointer-events: none; }
 .p-seatback { fill: var(--plan-ink); fill-opacity: .2; }
@@ -495,15 +513,18 @@ footer .team b { color: var(--ink); font-weight: 500; }
             <div class="price num">$450</div>
             <div class="per">per student / year · about $50 a month</div>
           </div>
-          <div class="includes">Includes</div>
+          <div class="includes">Sleep, wash and store</div>
           <ul>
-            <li>Twin XL cotton sheets <span class="keep">Keep</span></li>
+            <li>Twin XL cotton sheets, 2 sets <span class="keep">Keep</span></li>
+            <li>Comforter &amp; 2 pillows</li>
+            <li>Mattress topper</li>
             <li>Cotton towels <span class="keep">Keep</span></li>
-            <li>Pillows</li>
+            <li>Shower caddy <span class="keep">Keep</span></li>
             <li>Laundry hamper</li>
-            <li>Hangers &amp; trash cans</li>
+            <li>Hangers &amp; trash can</li>
             <li>Surge protector</li>
-            <li>Storage boxes</li>
+            <li>Under-bed storage boxes</li>
+            <li>Bathroom set <span class="share">Shared</span></li>
           </ul>
           <div class="includes">Welcome kit</div>
           <ul class="kit">
@@ -520,17 +541,16 @@ footer .team b { color: var(--ink); font-weight: 500; }
           <div class="includes">Everything in Essentials, plus</div>
           <ul>
             <li>Blackout blinds</li>
-            <li>Mattress topper</li>
             <li>Desk lamp with wireless charging</li>
             <li>Bed fan &amp; shoe rack</li>
-            <li>Mirror &amp; whiteboard</li>
-            <li>Calendar <span class="keep">Keep</span></li>
-            <li>3 wall posters <span class="keep">Keep</span></li>
+            <li>Full-length mirror</li>
+            <li>Whiteboard &amp; calendar <span class="keep">Keep</span></li>
+            <li>3 posters, 11″ × 17″ <span class="keep">Keep</span></li>
           </ul>
           <div class="custom">
-            <p><b>Color palette.</b> Choose your room's accent colors.</p>
-            <p><b>Posters.</b> Pick 3 poster themes.</p>
-            <p><b>Desk and storage.</b> Set your lamp and charging layout, and choose a shoe rack and organizer finish.</p>
+            <p><b>Color palette.</b> Bedding and blinds in your room's accent colors.</p>
+            <p><b>Posters.</b> Pick 3 designs, all printed at 11″ × 17″ so they hang as a set.</p>
+            <p><b>Desk.</b> Set your lamp and charging layout, and choose a shoe rack finish.</p>
           </div>
           <button class="btn btn-ghost" type="button" data-pick="basic">Plan with Basic</button>
         </article>
@@ -542,21 +562,32 @@ footer .team b { color: var(--ink); font-weight: 500; }
           </div>
           <div class="includes">Everything in Basic, plus</div>
           <ul>
-            <li>Neon lights</li>
-            <li>5 wall posters <span class="keep">Keep</span></li>
-            <li>Wallpaper</li>
-            <li>Mini-fridge</li>
+            <li>5 posters instead of 3 <span class="keep">Keep</span></li>
+            <li>Neon light strip</li>
+            <li>Peel-and-stick wallpaper wall</li>
             <li>Chair upgrade</li>
             <li>Beanbag</li>
+            <li>Throw, accent pillows &amp; desk mat</li>
+            <li>Area rug <span class="share">Shared</span></li>
+            <li>Mini-fridge <span class="share">Shared</span></li>
           </ul>
           <div class="custom">
             <p><b>Color and lighting.</b> A custom palette with synced neon lights.</p>
             <p><b>Walls.</b> Pick 5 posters and a wallpaper.</p>
             <p><b>Comfort.</b> Choose beanbag and chair styles, plus a rug, throw pillows and a nameplate.</p>
-            <p><b>Desk.</b> Oversized desk mat and layout options.</p>
           </div>
           <button class="btn btn-primary" type="button" data-pick="deluxe">Plan with Deluxe</button>
         </article>
+      </div>
+      <div class="sharing">
+        <h3>Order with your roommates and pay less</h3>
+        <p>Some pieces only need one per room. When everyone in a bedroom orders, the room gets one area rug and one mini-fridge, and each bathroom gets one bathroom set. The cost is split between you, so it comes off each person's price.</p>
+        <dl class="share-table">
+          <div><dt>Bathroom set</dt><dd>$60 a year, split by everyone using the bathroom</dd></div>
+          <div><dt>Area rug</dt><dd>$90 a year, split by everyone in the bedroom</dd></div>
+          <div><dt>Mini-fridge</dt><dd>$150 a year, split by everyone in the bedroom</dd></div>
+        </dl>
+        <p class="share-eg">Two Deluxe roommates in a four-person suite each save $165 a year: $45 on the rug, $75 on the fridge and $45 on the bathroom set.</p>
       </div>
       <p class="tiers-note">Monthly figures spread the yearly price over a 9-month school year. Add-ons for your major are extra.</p>
     </div>
@@ -629,6 +660,7 @@ footer .team b { color: var(--ink); font-weight: 500; }
                 <button type="button" class="v-btn" id="zRoom">My room</button>
                 <button type="button" class="v-btn" id="zAll">Whole plan</button>
                 <button type="button" class="v-btn" id="wallsBtn" hidden>Cutaway walls</button>
+                <button type="button" class="v-btn" id="walkBtn" aria-pressed="true" title="Show where people walk; decor is kept off it">Walkways</button>
               </div>
             </div>
             <svg class="plan" id="plan" aria-label="Floor plan"></svg>
@@ -644,6 +676,7 @@ footer .team b { color: var(--ink); font-weight: 500; }
             <div class="quote" aria-live="polite">
               <div class="eyebrow" id="qPkg">Package</div>
               <div><span class="big num" id="qPrice">$0</span> <span class="per" style="color:var(--muted);font:400 .8rem var(--font-mono)">per student / year</span></div>
+              <div class="row" id="qShareRow"><span id="qShareLabel">Shared with roommates</span><b id="qShare">$0</b></div>
               <div class="row"><span>Monthly, over 9 months</span><b id="qMonth">$0</b></div>
               <div class="row"><span id="qSuiteLabel">Whole suite</span><b id="qSuite">$0</b></div>
               <a class="btn btn-primary" href="#reserve" id="toReserve">Request this setup</a>
@@ -778,30 +811,47 @@ footer .team b { color: var(--ink); font-weight: 500; }
     eng:   { name: "Engineering", item: "Dual-monitor arm & desk mat",    price: 75 },
     music: { name: "Music",       item: "Keyboard stand & headphone hook", price: 75 }
   };
+  // share: "room" items are one per bedroom and "bath" items one per bathroom when everyone there orders;
+  // value is the yearly cost that gets split.
   const ITEMS = [
-    { lvl: 1, name: "Twin XL cotton sheets", keep: true, plan: true },
+    { lvl: 1, name: "Twin XL cotton sheets, 2 sets", keep: true, plan: true },
+    { lvl: 1, name: "Comforter & 2 pillows", plan: true },
+    { lvl: 1, name: "Mattress topper", plan: true },
     { lvl: 1, name: "Cotton towels", keep: true },
-    { lvl: 1, name: "Pillows", plan: true },
+    { lvl: 1, name: "Shower caddy", keep: true },
     { lvl: 1, name: "Laundry hamper" },
-    { lvl: 1, name: "Hangers & trash cans" },
+    { lvl: 1, name: "Hangers & trash can" },
     { lvl: 1, name: "Surge protector" },
-    { lvl: 1, name: "Under-bed storage boxes", plan: true },
+    { lvl: 1, name: "Under-bed storage boxes", plan: true, noDrawers: true },
+    { lvl: 1, name: "Bathroom set: shower curtain, bath mat, cleaning caddy", share: "bath", value: 60 },
     { lvl: 1, name: "Welcome kit" },
     { lvl: 2, name: "Blackout blinds", plan: true },
-    { lvl: 2, name: "Mattress topper", plan: true },
     { lvl: 2, name: "Desk lamp with wireless charging", plan: true },
     { lvl: 2, name: "Bed fan & shoe rack" },
-    { lvl: 2, name: "Mirror & whiteboard" },
-    { lvl: 2, name: "Calendar", keep: true },
-    { lvl: 2, name: "3 wall posters", keep: true, plan: true, max: 2 },
-    { lvl: 3, name: "5 wall posters", keep: true, plan: true },
-    { lvl: 3, name: "Neon lights", plan: true },
-    { lvl: 3, name: "Wallpaper accent wall", plan: true },
-    { lvl: 3, name: "Mini-fridge", plan: true },
+    { lvl: 2, name: "Full-length mirror" },
+    { lvl: 2, name: "Whiteboard & calendar", keep: true },
+    { lvl: 2, name: "3 posters, 11″ × 17″", keep: true, plan: true, max: 2 },
+    { lvl: 3, name: "5 posters, 11″ × 17″", keep: true, plan: true },
+    { lvl: 3, name: "Neon light strip", plan: true },
+    { lvl: 3, name: "Peel-and-stick wallpaper wall", plan: true },
     { lvl: 3, name: "Chair upgrade", plan: true },
     { lvl: 3, name: "Beanbag", plan: true },
-    { lvl: 3, name: "Rug & throw pillows", plan: true }
+    { lvl: 3, name: "Throw, accent pillows & desk mat", plan: true },
+    { lvl: 3, name: "Area rug", plan: true, share: "room", value: 90 },
+    { lvl: 3, name: "Mini-fridge", plan: true, share: "room", value: 150 }
   ];
+  // How many people split a shared item for this bed: roommates for a bedroom item, suitemates per bathroom.
+  function shareCount(L, bed, share) {
+    if (share === "room") return L.bedRoom.filter(r => r === L.bedRoom[bed]).length;
+    const baths = Math.max(1, L.labels.filter(l => /^bath/i.test(l[2] || "")).length);
+    return Math.max(1, Math.round(L.residents / baths));
+  }
+  // What one student saves a year when everyone sharing with them orders the same package.
+  function shareSavings(L, bed, level) {
+    return ITEMS.filter(it => it.share && it.lvl <= level)
+      .reduce((sum, it) => sum + Math.round(it.value * (1 - 1 / shareCount(L, bed, it.share))), 0);
+  }
+
 
   /* Floor plans traced from UMBC Residential Life's published drawings.
      Coordinates are pixels on a 4x render of each drawing (one unit on the plan = 2 px).
@@ -1107,6 +1157,18 @@ footer .team b { color: var(--ink); font-weight: 500; }
     L.walls = raw.walls.map(w => seg(w).concat([w[4] || 0]));
     L.windows = raw.windows.map(seg);
     L.doors = raw.doors.map(d => ({ gap: d.gap ? seg(d.gap) : null, leaf: d.leaf ? seg(d.leaf) : null, arc: !!d.arc }));
+    // The doorway itself. Doors drawn with only a leaf open off the end of the wall at their hinge.
+    L.doors.forEach(d => {
+      d.opening = d.gap;
+      if (d.gap || !d.leaf) return;
+      const [hx, hy, ex, ey] = d.leaf, len = Math.hypot(ex - hx, ey - hy);
+      const edges = L.outline.map((q, i) => q.concat(L.outline[(i + 1) % L.outline.length]));
+      L.walls.map(w => w.slice(0, 4)).concat(edges).forEach(([x1, y1, x2, y2]) => [[x1, y1, x2, y2], [x2, y2, x1, y1]].forEach(([ax, ay, bx, by]) => {
+        if (d.opening || Math.hypot(bx - hx, by - hy) > 1.5) return;
+        const l = Math.hypot(bx - ax, by - ay) || 1;
+        d.opening = [hx, hy, hx + (bx - ax) / l * len, hy + (by - ay) / l * len];
+      }));
+    });
     L.furn = raw.furn.map(f => {
       const t = f[0];
       if (t === "toilet") return { t, cx: sx(f[1]), cy: sy(f[2]), rx: f[3] / 2, ry: f[4] * k / 2, tank: box(f[5]) };
@@ -1340,7 +1402,7 @@ footer .team b { color: var(--ink); font-weight: 500; }
   // Posters and wallpaper hang on the wall beside the bed, never across a window or doorway. Start with
   // the traced wall; if less than 30" of it is clear, use whichever wall beside the bed has the most.
   function chooseArt(L, b) {
-    const blockers = L.windows.concat(L.doors.filter(d => d.gap).map(d => d.gap));
+    const blockers = L.windows.concat(L.doors.filter(d => d.opening).map(d => d.opening));
     const freeRuns = c => {
       const hz = c[1] === c[3], line = hz ? c[1] : c[0];
       let free = [[hz ? Math.min(c[0], c[2]) : Math.min(c[1], c[3]), hz ? Math.max(c[0], c[2]) : Math.max(c[1], c[3])]];
@@ -1409,6 +1471,153 @@ footer .team b { color: var(--ink); font-weight: 500; }
   // Move each mini-fridge, beanbag and add-on spot to the nearest open floor in its room.
   const DECOR_IN = { fridge: [21, 21], bean: [32, 32], extra: [38, 20] };
   const RUG_IN = [[48, 72], [36, 60], [30, 48]];
+  // Where people walk: shortest routes from the front door to every other door, each bedside, desk chair,
+  // closet front and kitchen or bath fixture, kept about 6" clear of furniture and walls. Routes run on a
+  // 3" grid; the walkway is the band about 21" wide around them. Decor stays off it where it can.
+  function walkways(L) {
+    const c = 3 * L.U, nx = Math.ceil(L.w / c) + 1, ny = Math.ceil(L.h / c) + 1, N = nx * ny;
+    const cx = i => L.x0 + (i + 0.5) * c, cy = j => L.y0 + (j + 0.5) * c;
+    const open = new Uint8Array(N), free = new Uint8Array(N);
+    for (let j = 0; j < ny; j++) for (let i = 0; i < nx; i++) if (insidePlan(L, { x: cx(i), y: cy(j) })) { open[j * nx + i] = 1; free[j * nx + i] = 1; }
+    // Clear cells near a rect or a wall line; "hard" also closes them to the walkway band.
+    const clearRect = (r, pad, grid) => {
+      const i0 = Math.max(0, Math.floor((r.x - pad - L.x0) / c)), i1 = Math.min(nx - 1, Math.floor((r.x + r.w + pad - L.x0) / c));
+      const j0 = Math.max(0, Math.floor((r.y - pad - L.y0) / c)), j1 = Math.min(ny - 1, Math.floor((r.y + r.h + pad - L.y0) / c));
+      for (let j = j0; j <= j1; j++) for (let i = i0; i <= i1; i++) {
+        const dx = Math.max(r.x - cx(i), 0, cx(i) - r.x - r.w), dy = Math.max(r.y - cy(j), 0, cy(j) - r.y - r.h);
+        if (Math.hypot(dx, dy) <= pad) grid[j * nx + i] = 0;
+      }
+    };
+    const clearLine = ([x1, y1, x2, y2], pad, grid) => {
+      const i0 = Math.max(0, Math.floor((Math.min(x1, x2) - pad - L.x0) / c)), i1 = Math.min(nx - 1, Math.floor((Math.max(x1, x2) + pad - L.x0) / c));
+      const j0 = Math.max(0, Math.floor((Math.min(y1, y2) - pad - L.y0) / c)), j1 = Math.min(ny - 1, Math.floor((Math.max(y1, y2) + pad - L.y0) / c));
+      const vx = x2 - x1, vy = y2 - y1, len2 = vx * vx + vy * vy || 1;
+      for (let j = j0; j <= j1; j++) for (let i = i0; i <= i1; i++) {
+        const t = Math.max(0, Math.min(1, ((cx(i) - x1) * vx + (cy(j) - y1) * vy) / len2));
+        if (Math.hypot(cx(i) - x1 - t * vx, cy(j) - y1 - t * vy) <= pad) grid[j * nx + i] = 0;
+      }
+    };
+    const things = solids(L).filter(o => !/desk chair/.test(o.what)).map(o => o.r);
+    things.forEach(r => { clearRect(r, 6 * L.U, free); clearRect(r, 0, open); });
+    wallLines(L).forEach(w => { clearLine(w, 5 * L.U, free); clearLine(w, c * 0.55, open); });
+
+    const cellOf = (x, y) => [Math.floor((x - L.x0) / c), Math.floor((y - L.y0) / c)];
+    // Nearest walkable cell to a point, searched outward a ring at a time (up to 2').
+    const snap = (x, y) => {
+      const [i0, j0] = cellOf(x, y);
+      for (let rad = 0; rad <= 8; rad++) {
+        let best = -1, bd = Infinity;
+        for (let j = j0 - rad; j <= j0 + rad; j++) for (let i = i0 - rad; i <= i0 + rad; i++) {
+          if (i < 0 || j < 0 || i >= nx || j >= ny || Math.max(Math.abs(i - i0), Math.abs(j - j0)) !== rad || !free[j * nx + i]) continue;
+          const d = Math.hypot(cx(i) - x, cy(j) - y);
+          if (d < bd) { bd = d; best = j * nx + i; }
+        }
+        if (best >= 0) return best;
+      }
+      return -1;
+    };
+
+    // Places people go.
+    const goals = [], out = (r, side, d) => {
+      const m = { t: [r.x + r.w / 2, r.y, 0, -1], b: [r.x + r.w / 2, r.y + r.h, 0, 1], l: [r.x, r.y + r.h / 2, -1, 0], r: [r.x + r.w, r.y + r.h / 2, 1, 0] }[side];
+      return [m[0] + m[2] * d, m[1] + m[3] * d];
+    };
+    const openSide = (r, sides) => sides.reduce((a, b) => (wallGap(L, r, b) > wallGap(L, r, a) ? b : a));
+    L.doors.forEach(d => {
+      if (!d.opening) return;
+      const [x1, y1, x2, y2] = d.opening, mx = (x1 + x2) / 2, my = (y1 + y2) / 2, len = Math.hypot(x2 - x1, y2 - y1) || 1;
+      const n = [-(y2 - y1) / len, (x2 - x1) / len], k = 18 * L.U;
+      goals.push([mx, my], [mx + n[0] * k, my + n[1] * k], [mx - n[0] * k, my - n[1] * k]);
+    });
+    L.beds.forEach(b => { const horiz = b.head === "l" || b.head === "r"; goals.push(out(b, openSide(b, horiz ? ["t", "b"] : ["l", "r"]), 14 * L.U)); });
+    L.desks.forEach(d => { const ch = chairSpot(L, d); goals.push([ch.x, ch.y]); });
+    L.furn.forEach(f => {
+      if (f.rot) return;
+      const r = furnRect(f);
+      if (STORAGE[f.t] && f.front) goals.push(out(r, f.front, 15 * L.U));
+      else if (/^(counter|range|ksink|sink|toilet|tub|washer|dryer|appl)$/.test(f.t)) goals.push(out(r, openSide(r, ["t", "b", "l", "r"]), 15 * L.U));
+    });
+
+    // Start at the front doors: every doorway on the outside wall (or the first door if none is).
+    const edges = L.outline.map((p, i) => [p[0], p[1], L.outline[(i + 1) % L.outline.length][0], L.outline[(i + 1) % L.outline.length][1]]);
+    const onOutline = d => { const mx = (d.opening[0] + d.opening[2]) / 2, my = (d.opening[1] + d.opening[3]) / 2;
+      return edges.some(([x1, y1, x2, y2]) => { const vx = x2 - x1, vy = y2 - y1, t = Math.max(0, Math.min(1, ((mx - x1) * vx + (my - y1) * vy) / (vx * vx + vy * vy || 1))); return Math.hypot(mx - x1 - t * vx, my - y1 - t * vy) < 2 * L.U; }); };
+    let fronts = L.doors.filter(d => d.opening && onOutline(d));
+    if (!fronts.length) fronts = L.doors.filter(d => d.opening).slice(0, 1);
+    const roots = fronts.map(front => {
+      const fg = front.opening, fl = Math.hypot(fg[2] - fg[0], fg[3] - fg[1]) || 1, fn = [-(fg[3] - fg[1]) / fl, (fg[2] - fg[0]) / fl];
+      const fm = [(fg[0] + fg[2]) / 2, (fg[1] + fg[3]) / 2], inPt = insidePlan(L, { x: fm[0] + fn[0] * 12 * L.U, y: fm[1] + fn[1] * 12 * L.U }) ? 1 : -1;
+      return snap(fm[0] + inPt * fn[0] * 9 * L.U, fm[1] + inPt * fn[1] * 9 * L.U);
+    }).filter(k => k >= 0);
+    if (!roots.length) return null;
+
+    // Dijkstra over walkable cells, eight ways (no cutting corners).
+    const dist = new Float64Array(N).fill(Infinity), prev = new Int32Array(N).fill(-1), heap = [];
+    const push = (k, d) => { heap.push([d, k]); let i = heap.length - 1; while (i) { const pi = (i - 1) >> 1; if (heap[pi][0] <= heap[i][0]) break; [heap[pi], heap[i]] = [heap[i], heap[pi]]; i = pi; } };
+    const pop = () => { const top = heap[0], last = heap.pop(); if (heap.length) { heap[0] = last; let i = 0; for (;;) { const l = 2 * i + 1, r = l + 1; let m = i; if (l < heap.length && heap[l][0] < heap[m][0]) m = l; if (r < heap.length && heap[r][0] < heap[m][0]) m = r; if (m === i) break; [heap[m], heap[i]] = [heap[i], heap[m]]; i = m; } } return top; };
+    roots.forEach(k => { dist[k] = 0; push(k, 0); });
+    const STEPS = [[1, 0, 1], [-1, 0, 1], [0, 1, 1], [0, -1, 1], [1, 1, Math.SQRT2], [1, -1, Math.SQRT2], [-1, 1, Math.SQRT2], [-1, -1, Math.SQRT2]];
+    while (heap.length) {
+      const [d, k] = pop();
+      if (d > dist[k]) continue;
+      const i = k % nx, j = (k - i) / nx;
+      for (const [di, dj, w] of STEPS) {
+        const a = i + di, b = j + dj;
+        if (a < 0 || b < 0 || a >= nx || b >= ny) continue;
+        const q = b * nx + a;
+        if (!free[q] || (di && dj && (!free[j * nx + a] || !free[b * nx + i]))) continue;
+        if (d + w < dist[q]) { dist[q] = d + w; prev[q] = k; push(q, d + w); }
+      }
+    }
+
+    // Trace each goal home, then widen the routes into a band about 21" wide that stops at walls and furniture.
+    const band = new Uint8Array(N), core = new Uint8Array(N), onRoute = new Uint8Array(N), lines = [], queue = [];
+    const seenGoal = new Set();
+    goals.forEach(([x, y]) => {
+      const k0 = snap(x, y);
+      if (k0 < 0 || !isFinite(dist[k0]) || seenGoal.has(k0)) return;
+      seenGoal.add(k0);
+      const pts = [];
+      for (let k = k0; k >= 0; k = prev[k]) {
+        const i = k % nx, j = (k - i) / nx;
+        pts.push([cx(i), cy(j)]);
+        if (onRoute[k]) break;   // joined a route already traced
+        onRoute[k] = 1;
+        if (!band[k]) { band[k] = 1; queue.push([k, 0]); }
+        if (prev[k] < 0) break;   // reached a front door
+      }
+      if (pts.length < 2) return;
+      // keep only the corners
+      const simple = pts.filter((pt, n) => n === 0 || n === pts.length - 1 ||
+        (pt[0] - pts[n - 1][0]) * (pts[n + 1][1] - pt[1]) - (pt[1] - pts[n - 1][1]) * (pts[n + 1][0] - pt[0]) !== 0);
+      lines.push(simple);
+    });
+    const R = 3;   // cells either side of the route: about 9", so the walkway is about 21" wide
+    while (queue.length) {
+      const [k, d] = queue.shift();
+      if (d <= 1) core[k] = 1;   // the middle 9" or so: where feet actually go
+      if (d >= R) continue;
+      const i = k % nx, j = (k - i) / nx;
+      for (const [di, dj] of STEPS) {
+        const a = i + di, b = j + dj, q = b * nx + a;
+        if (a < 0 || b < 0 || a >= nx || b >= ny || band[q] || !open[q]) continue;
+        band[q] = 1; queue.push([q, d + 1]);
+      }
+    }
+    // How much a rect gets in the way: 0 clear, 1 on the edge of a walkway, 2 across the middle of one.
+    const hits = r => {
+      const i0 = Math.max(0, Math.ceil((r.x - L.x0) / c - 0.5)), i1 = Math.min(nx - 1, Math.floor((r.x + r.w - L.x0) / c - 0.5));
+      const j0 = Math.max(0, Math.ceil((r.y - L.y0) / c - 0.5)), j1 = Math.min(ny - 1, Math.floor((r.y + r.h - L.y0) / c - 0.5));
+      let worst = 0;
+      for (let j = j0; j <= j1; j++) for (let i = i0; i <= i1; i++) {
+        if (core[j * nx + i]) return 2;
+        if (band[j * nx + i]) worst = 1;
+      }
+      return worst;
+    };
+    return { lines, hits, width: 2 * R * c + c };
+  }
+
   // Place each mini-fridge, beanbag, rug and add-on on open floor. In a shared bedroom every student gets
   // their own set, kept in the part of the room nearest their own bed and desk, so nothing lands on a
   // roommate's side. The keyboard or easel goes against a wall whenever one is free.
@@ -1427,8 +1636,8 @@ footer .team b { color: var(--ink); font-weight: 500; }
     });
     // Points in the bedroom. A piece must be in plain view of one of them with every doorway shut, so it
     // can't end up through a door in the bathroom or the hall.
-    let seen = null, zoneId = "";
-    const shut = wallLines(L).concat(L.doors.filter(d => d.gap).map(d => d.gap));
+    let seen = null, zoneId = "", walkAware = true;
+    const shut = wallLines(L).concat(L.doors.filter(d => d.opening).map(d => d.opening));
     const inView = (ax, ay, bx, by) => !shut.some(([x1, y1, x2, y2]) => {
       const d = (bx - ax) * (y2 - y1) - (by - ay) * (x2 - x1);
       if (Math.abs(d) < 1e-9) return false;
@@ -1456,21 +1665,23 @@ footer .team b { color: var(--ink); font-weight: 500; }
             if (!rectInside(L, r) || crossesWall(L, r, 0.2)) return;
             if (seen && !seen.some(([px, py]) => inView(x, y, px, py))) return;
             const wall = opts.preferWall ? (rot ? ["l", "r"] : ["t", "b"]).find(sd => wallAlong(L, r, sd) >= 0.6) || null : null;
-            ok.push({ x, y, w, h, rot, wall, r });
+            ok.push({ x, y, w, h, rot, wall, r, walk: !opts.rug && L.walk ? L.walk.hits(r) : 0 });
           }));
         });
         fixedSpots.set(fixedKey, ok);
       }
       if (!fixedSpots.has(key)) fixedSpots.set(key, fixedSpots.get(fixedKey).slice().sort((p, q) => Math.hypot(p.x - start[0], p.y - start[1]) - Math.hypot(q.x - start[0], q.y - start[1])));
+      // Best spot: off the walkway first, then against a wall (for the add-on), then nearest.
+      const rank = c => (walkAware ? c.walk * 2 : 0) + (opts.preferWall && !c.wall ? 1 : 0);
       let best = null;
       for (const c of fixedSpots.get(key)) {
-        if (best && !c.wall) continue;   // already have a fallback; only a wall spot can beat it now
+        if (best && rank(c) >= rank(best)) continue;
         if (!opts.rug && placed.some(o => overlaps(c.r, o, 0))) continue;
         best = c;
-        if (c.wall || !opts.preferWall) break;
+        if (rank(c) === 0) break;
       }
       if (best && !opts.rug) placed.push({ x: best.x - best.w / 2 - L.U, y: best.y - best.h / 2 - L.U, w: best.w + 2 * L.U, h: best.h + 2 * L.U });
-      return best && { x: best.x, y: best.y, w: best.w, h: best.h, rot: best.rot, wall: best.wall };
+      return best && { x: best.x, y: best.y, w: best.w, h: best.h, rot: best.rot, wall: best.wall, walk: best.walk };
     };
     // How much of one side of a rect has a wall running right behind it (0 to 1).
     const wallAlong = (L, r, side) => {
@@ -1507,14 +1718,21 @@ footer .team b { color: var(--ink); font-weight: 500; }
       return { x0: pick(wallBox.x0, Math.min, b.x0), y0: pick(wallBox.y0, Math.min, b.y0), x1: pick(wallBox.x1, Math.max, b.x1), y1: pick(wallBox.y1, Math.max, b.y1) };
     };
     const putExtra = (target, start, b, region, compact) => {
+      // Full size unless the compact one gets a better spot: off the walkway, then against a wall.
+      const rank = h => (walkAware ? h.walk * 2 : 0) + (h.wall ? 0 : 1);
       let pick = null;
       for (const size of compact ? [[24, 18]] : [DECOR_IN.extra, [24, 18]]) {
         const mark = placed.length, hit = find(start, size, b, region, { preferWall: true });
         if (!hit) continue;
-        if (hit.wall || !pick) { if (pick) placed.splice(pick.mark, 1); pick = { hit, size, mark }; } else placed.splice(mark, 1);
-        if (hit.wall) break;
+        if (!pick || rank(hit) < rank(pick.hit)) { if (pick) placed.splice(pick.mark, 1); pick = { hit, size, mark: placed.length - 1 }; } else placed.splice(mark, 1);
+        if (rank(hit) === 0) break;
       }
-      if (pick) { const { hit, size } = pick; Object.assign(target, { extra: [hit.x, hit.y], extraW: size[0], extraRot: hit.rot, extraWall: hit.wall }); return; }
+      if (pick) {
+        const { hit, size } = pick;
+        Object.assign(target, { extra: [hit.x, hit.y], extraW: size[0], extraRot: hit.rot, extraWall: hit.wall });
+        target.onWalk = (target.onWalk || 0) + hit.walk;
+        return;
+      }
       target.extra = null;   // no room for it here
     };
     // Fridge, beanbag and add-on for one room or one student. Try them in every order and keep the one
@@ -1524,8 +1742,11 @@ footer .team b { color: var(--ink); font-weight: 500; }
     const putSet = (target, src, startOf, b, region) => {
       let best = null;
       // compact: start from the smaller beanbag and add-on, for corners too tight for all three at full size
-      [false, true].forEach(compact => ORDERS.forEach(order => {
-        if (best && best.miss === 0) return;
+      // Last resort: ignore the walkways, for corners where keeping clear of them leaves no room for everything.
+      [[false, true], [true, true], [false, false], [true, false]].forEach(([compact, aware]) => ORDERS.forEach(order => {
+        if (best && best.miss === 0) return;   // nothing left to improve
+        if (!aware && best && best.miss < 100) return;
+        walkAware = aware;
         const mark = placed.length, t = {};
         order.forEach(k => {
           if (!src[k]) return;
@@ -1533,16 +1754,18 @@ footer .team b { color: var(--ink); font-weight: 500; }
           t[k] = null;
           for (const size of k === "bean" ? (compact ? [[26, 26]] : [DECOR_IN.bean, [26, 26]]) : [DECOR_IN[k]]) {   // a smaller beanbag where space is tight
             const hit = find(startOf(k), size, b, region);
-            if (hit) { t[k] = [hit.x, hit.y]; if (k === "bean") t.beanD = size[0]; break; }
+            if (hit) { t[k] = [hit.x, hit.y]; if (k === "bean") t.beanD = size[0]; t.onWalk = (t.onWalk || 0) + hit.walk; break; }
           }
         });
-        const miss = ["extra", "fridge", "bean"].filter(k => src[k] && !t[k]).length * 10 + (t.extra && !t.extraWall ? 3 : 0)
+        const miss = ["extra", "fridge", "bean"].filter(k => src[k] && !t[k]).length * 100 + (t.onWalk || 0) * 4 + (t.extra && !t.extraWall ? 3 : 0)
           + (t.extra && t.extraW < DECOR_IN.extra[0] ? 2 : 0) + (t.beanD && t.beanD < DECOR_IN.bean[0] ? 2 : 0);
         const added = placed.splice(mark);
         if (!best || miss < best.miss) best = { miss, t, added };
       }));
+      walkAware = true;
       placed.push.apply(placed, best.added);
       Object.assign(target, best.t);
+      return best.miss;
     };
     L.rooms.forEach((room, ri) => {
       if (bedsIn(ri).length > 1) return;
@@ -1557,29 +1780,71 @@ footer .team b { color: var(--ink); font-weight: 500; }
       if (beds.length < 2) return;
       const b = boundsOf(room, ri);
       const zone = beds.map(i => { const p = centerOf(L.beds[i]), d = centerOf(L.desks[i]); return { x: (p.x + d.x) / 2, y: (p.y + d.y) / 2 }; });
-      beds.forEach((i, n) => {
-        const mine = (x, y) => zone.every((z, m) => m === n || Math.hypot(x - zone[n].x, y - zone[n].y) <= Math.hypot(x - z.x, y - z.y) + 0.01);
-        const start = [zone[n].x, zone[n].y], spot = {}, bc = centerOf(L.beds[i]), dc = centerOf(L.desks[i]);
-        seen = [start, [bc.x, bc.y], [dc.x, dc.y]];
-        zoneId = "bed" + i;
-        if (room.rug) {
-          for (const size of RUG_IN) {
-            const hit = find(start, size, b, mine, { rug: true });
-            if (hit) { spot.rug = [hit.x - hit.w / 2, hit.y - hit.h / 2, hit.w, hit.h]; break; }
+      // Roommates who all order share one big rug (anywhere in the room) and one mini-fridge.
+      const mid = [zone.reduce((a, z) => a + z.x, 0) / zone.length, zone.reduce((a, z) => a + z.y, 0) / zone.length];
+      seen = beds.map(i => centerOf(L.beds[i])).concat(beds.map(i => centerOf(L.desks[i]))).map(p => [p.x, p.y]);
+      zoneId = "shared" + ri;
+      room.shared = {};
+      if (room.rug) for (const size of [[60, 96], [48, 72]]) {
+        const hit = find(mid, size, b, null, { rug: true });
+        if (hit) { room.shared.rug = [hit.x - hit.w / 2, hit.y - hit.h / 2, hit.w, hit.h]; break; }
+      }
+      // Each student's own set, in their part of the room. Students are placed one after another, so try
+      // each order and keep the one that fits the most.
+      const orders = beds.length === 2 ? [[0, 1], [1, 0]] : [[0, 1, 2], [0, 2, 1], [1, 0, 2], [1, 2, 0], [2, 0, 1], [2, 1, 0]];
+      let bestRun = null;
+      orders.forEach(order => {
+        if (bestRun && bestRun.score === 0) return;
+        const mark = placed.length, spots = {};
+        let score = 0;
+        order.forEach(n => {
+          const i = beds[n];
+          const mine = (x, y) => zone.every((z, m) => m === n || Math.hypot(x - zone[n].x, y - zone[n].y) <= Math.hypot(x - z.x, y - z.y) + 0.01);
+          const start = [zone[n].x, zone[n].y], spot = {}, bc = centerOf(L.beds[i]), dc = centerOf(L.desks[i]);
+          seen = [start, [bc.x, bc.y], [dc.x, dc.y]];
+          zoneId = "bed" + i;
+          if (room.rug) {
+            for (const size of RUG_IN) {
+              const hit = find(start, size, b, mine, { rug: true });
+              if (hit) { spot.rug = [hit.x - hit.w / 2, hit.y - hit.h / 2, hit.w, hit.h]; break; }
+            }
           }
-        }
-        putSet(spot, room, () => start, b, mine);
-        L.bedSpots[i] = spot;
+          score += putSet(spot, room, () => start, b, mine);
+          spots[i] = spot;
+        });
+        const added = placed.splice(mark);
+        if (!bestRun || score < bestRun.score) bestRun = { score, spots, added };
       });
+      placed.push.apply(placed, bestRun.added);
+      beds.forEach(i => { L.bedSpots[i] = bestRun.spots[i]; });
+      // The shared fridge takes the students' fridge spot nearest the middle; it already clears everyone's things.
+      if (room.fridge) room.shared.fridge = beds.map(i => L.bedSpots[i].fridge).filter(Boolean)
+        .sort((p, q) => Math.hypot(p[0] - mid[0], p[1] - mid[1]) - Math.hypot(q[0] - mid[0], q[1] - mid[1]))[0] || null;
     });
   }
-  // The decor sets to draw: one per ordered student in a shared bedroom, one per room otherwise.
+  // Posters are all the standard 11" x 17" size, hung portrait in centered rows along the bed's poster wall:
+  // five fit side by side beside a bed, two or three rows stack on the short wall at its head.
+  const POSTER = { w: 11, h: 17, gap: 3, rowGap: 2.5 };
+  function posterGrid(runIn, n) {
+    const perRow = Math.max(1, Math.min(n, Math.floor((runIn + POSTER.gap) / (POSTER.w + POSTER.gap)))), rows = Math.ceil(n / perRow);
+    return Array.from({ length: n }, (_, k) => {
+      const row = Math.floor(k / perRow), inRow = Math.min(perRow, n - row * perRow), col = k - row * perRow;
+      const rowW = inRow * POSTER.w + (inRow - 1) * POSTER.gap;
+      return { along: (runIn - rowW) / 2 + col * (POSTER.w + POSTER.gap) + POSTER.w / 2, up: ((rows - 1) / 2 - row) * (POSTER.h + POSTER.rowGap) };
+    });
+  }
+  // The decor sets to draw: one per ordered student in a shared bedroom (with a shared rug and fridge when the
+  // whole room orders), one per room otherwise.
   function decorSets(L, bedOn, roomOn) {
     const sets = [];
     L.rooms.forEach((r, ri) => {
       if (!roomOn[ri]) return;
       const beds = L.bedRoom.map((x, i) => (x === ri ? i : -1)).filter(i => i >= 0);
-      if (beds.length > 1 && L.bedSpots) beds.forEach(i => { if (bedOn[i] && L.bedSpots[i]) sets.push(L.bedSpots[i]); });
+      if (beds.length > 1 && L.bedSpots && beds.every(i => bedOn[i]) && r.shared) {
+        // everyone in the room ordered: one shared rug and fridge, plus each student's own beanbag and add-on
+        sets.push({ rug: r.shared.rug, fridge: r.shared.fridge });
+        beds.forEach(i => { const sp = L.bedSpots[i]; if (sp) sets.push(Object.assign({}, sp, { rug: null, fridge: null })); });
+      } else if (beds.length > 1 && L.bedSpots) beds.forEach(i => { if (bedOn[i] && L.bedSpots[i]) sets.push(L.bedSpots[i]); });
       else sets.push(r);
     });
     return sets;
@@ -1602,6 +1867,7 @@ footer .team b { color: var(--ink); font-weight: 500; }
     });
     L.rooms.forEach((r, ri) => Object.keys(DECOR_IN).forEach(k => { if (r[k] === null) issues.push(k + " in room " + ri + " has no free spot"); }));
     (L.bedSpots || []).forEach((sp, i) => sp && Object.keys(DECOR_IN).forEach(k => { if (sp[k] === null) issues.push(k + " for bed " + L.bedNames[i] + " has no free spot"); }));
+    L.rooms.forEach((r, ri) => { if (r.shared && r.shared.fridge === null) issues.push("shared fridge in room " + ri + " has no free spot"); });
     return issues;
   }
 
@@ -1638,6 +1904,7 @@ footer .team b { color: var(--ink); font-weight: 500; }
       f.back = wallBack(L, f);
     });
     L.furn.forEach(f => { if (STORAGE[f.t]) f.front = frontSide(L, f); });
+    L.walk = walkways(L);
     placeDecor(L);
   }
 
@@ -1781,6 +2048,12 @@ footer .team b { color: var(--ink); font-weight: 500; }
       el("polygon", { points: pts, fill: "url(#" + id + "-grid)" }, svg);
     }
 
+    // Walkways sit on the floor, under everything else.
+    if (opt.walk && L.walk) {
+      const d = L.walk.lines.map(l => "M" + l.map(p => p[0].toFixed(1) + " " + p[1].toFixed(1)).join(" L")).join(" ");
+      el("path", { d, class: "p-walk", "stroke-width": L.walk.width }, svg);
+      el("path", { d, class: "p-walkline" }, svg);
+    }
     const under = el("g", { class: "decor" }, svg);
     const furnG = el("g", {}, svg);
     const wallsG = el("g", {}, svg);
@@ -1917,17 +2190,15 @@ footer .team b { color: var(--ink); font-weight: 500; }
           const [x1, y1, x2, y2, nx, ny] = b.art;
           const horizWall = y1 === y2;
           const runLen = Math.abs(horizWall ? x2 - x1 : y2 - y1);
-          const n = lvl >= 3 ? 5 : 3;
-          const slot = runLen / n;
-          const pl = Math.min(slot * .8, IN(18));
+          const pl = IN(POSTER.w), lo = horizWall ? Math.min(x1, x2) : Math.min(y1, y2);
           const colors = [pal.accent, pal.deep, pal.bed, pal.accent, pal.deep];
-          for (let k = 0; k < n; k++) {
-            const along = (horizWall ? Math.min(x1, x2) : Math.min(y1, y2)) + (k + .5) * slot;
+          posterGrid(runLen / L.U, lvl >= 3 ? 5 : 3).forEach((ps, k) => {
+            const along = lo + IN(ps.along);
             const r = horizWall
               ? { x: along - pl / 2, y: ny > 0 ? y1 + 2.4 : y1 - 7.4, w: pl, h: 5 }
               : { x: nx > 0 ? x1 + 2.4 : x1 - 7.4, y: along - pl / 2, w: 5, h: pl };
             rect(g, r, { fill: colors[k], stroke: "#FFFFFF", "stroke-width": .6 });
-          }
+          });
           if (lvl >= 3) {
             const o = 10;
             const lp = horizWall
@@ -2376,6 +2647,18 @@ footer .team b { color: var(--ink); font-weight: 500; }
     const WH = IN(state.walls === "low" ? 40 : 96);
     const posterY = Math.min(IN(56), WH - IN(16));
 
+    // Walkways: a dotted line on the floor along each route.
+    if (opt.walk && L.walk) {
+      const walkMat = M("#A8936A", { transparent: true, opacity: 0.55, depthWrite: false }), dot = new T.CylinderGeometry(IN(1.2), IN(1.2), IN(0.2), 10);
+      L.walk.lines.forEach(l => l.slice(1).forEach((q, n) => {
+        const p = l[n], len = Math.hypot(q[0] - p[0], q[1] - p[1]);
+        for (let t = IN(2); t < len; t += IN(7)) {
+          const m = mesh(dot, walkMat, p[0] + (q[0] - p[0]) * t / len, IN(0.4), p[1] + (q[1] - p[1]) * t / len, false);
+          m.userData.floor = true;
+        }
+      }));
+    }
+
     // Walls, cut for door gaps and windows. The top face is dark like the ink on the plan.
     const wallMat = [M(C3.wall), M(C3.wall), M(C3.ink), M(C3.wall), M(C3.wall), M(C3.wall)];
     const segs = [];
@@ -2723,11 +3006,12 @@ footer .team b { color: var(--ink); font-weight: 500; }
       if (lvl >= 2 && b.art) {
         const [x1, y1, x2, y2, nx, ny] = b.art, hz = y1 === y2, inward = (hz ? ny : nx) > 0, face = artFace(L, b.art);
         const lo = hz ? Math.min(x1, x2) : Math.min(y1, y2), run = Math.abs(hz ? x2 - x1 : y2 - y1);
-        const n = lvl >= 3 ? 5 : 3, slot = run / n, pl = Math.min(slot * 0.8, IN(18)), ph = Math.min(IN(24), WH * 0.35);
+        const pl = IN(POSTER.w), ph = IN(POSTER.h);
         const colors = [pal.accent, pal.deep, pal.bed, pal.accent, pal.deep];
         const off = inward ? face + IN(0.3) : -(face + IN(0.9));
-        for (let k = 0; k < n; k++) {
-          const a = lo + (k + 0.5) * slot - pl / 2;
+        posterGrid(run / L.U, lvl >= 3 ? 5 : 3).forEach((ps, k) => {
+          const a = lo + IN(ps.along) - pl / 2, y0 = posterY + IN(ps.up) - ph / 2;
+          if (y0 + ph > WH - IN(1)) return;   // cutaway walls: no wall to hang it on
           const art=texMat(ctx=>{
             ctx.fillStyle="#EFE9DC";ctx.fillRect(0,0,128,128);
             ctx.fillStyle=colors[k];ctx.beginPath();ctx.arc(64,48,27,0,Math.PI*2);ctx.fill();
@@ -2735,9 +3019,9 @@ footer .team b { color: var(--ink); font-weight: 500; }
             ctx.fillStyle=pal.accent;ctx.fillRect(85,84,25,28);
             ctx.strokeStyle="#554738";ctx.lineWidth=7;ctx.strokeRect(0,0,128,128);
           });
-          if (hz) box(a, y1 + off, pl, IN(0.6), posterY - ph / 2, ph, art, false);
-          else box(x1 + off, a, IN(0.6), pl, posterY - ph / 2, ph, art, false);
-        }
+          if (hz) box(a, y1 + off, pl, IN(0.6), y0, ph, art, false);
+          else box(x1 + off, a, IN(0.6), pl, y0, ph, art, false);
+        });
         if (lvl >= 3) {
           const wp = texMat(ctx => {
             ctx.fillStyle = pal.light; ctx.fillRect(0, 0, 128, 128);
@@ -3189,7 +3473,7 @@ footer .team b { color: var(--ink); font-weight: 500; }
 
   /* ---------- Planner state ---------- */
   const STORE_KEY = "dormdesigner.planner";
-  const state = { hall: "susq", pkg: "basic", palette: "berry", major: "none", designed: true, scope: "me", bed: 0, view: "2d", walls: "full", focus: "room" };
+  const state = { hall: "susq", pkg: "basic", palette: "berry", major: "none", designed: true, scope: "me", bed: 0, view: "2d", walls: "full", focus: "room", walk: true };
   try {
     const saved = JSON.parse(localStorage.getItem(STORE_KEY) || "null");
     if (saved) {
@@ -3198,6 +3482,7 @@ footer .team b { color: var(--ink); font-weight: 500; }
       if (PALETTES[saved.palette]) state.palette = saved.palette;
       if (MAJORS[saved.major]) state.major = saved.major;
       if (saved.scope === "me" || saved.scope === "suite") state.scope = saved.scope;
+      if (typeof saved.walk === "boolean") state.walk = saved.walk;
       if (LAYOUTS[state.hall].beds[saved.bed]) state.bed = saved.bed;
     }
   } catch (e) { /* storage unavailable; use defaults */ }
@@ -3263,6 +3548,7 @@ footer .team b { color: var(--ink); font-weight: 500; }
     $("#zAll").addEventListener("click", () => { state.focus = "all"; focusView(null, true); update(); });
     $("#mRotate").addEventListener("click", () => setMode("rotate"));
     $("#mMove").addEventListener("click", () => setMode("move"));
+    $("#walkBtn").addEventListener("click", () => { state.walk = !state.walk; update(); });
     $("#wallsBtn").addEventListener("click", () => { state.walls = state.walls === "low" ? "full" : "low"; update(); if (three && three.L) focus3D(state.scope === "me" ? roomBox(three.L, three.L.bedRoom[state.bed]) : null, true); });
     document.querySelectorAll("[data-pick]").forEach(b => b.addEventListener("click", () => {
       state.pkg = b.dataset.pick; state.designed = true; update();
@@ -3279,7 +3565,7 @@ footer .team b { color: var(--ink); font-weight: 500; }
   function planOptions() {
     const mine = state.scope === "me";
     return {
-      pkg: state.pkg, palette: state.palette, major: state.major, designed: state.designed,
+      pkg: state.pkg, palette: state.palette, major: state.major, designed: state.designed, walk: state.walk,
       owned: mine ? [state.bed] : null,
       you: mine ? state.bed : null,
       onBed: i => { state.bed = i; state.scope = "me"; update(); }
@@ -3329,6 +3615,7 @@ footer .team b { color: var(--ink); font-weight: 500; }
     $("#view3d").setAttribute("aria-pressed", String(is3d));
     $("#modeToggle").hidden = !is3d;
     $("#wallsBtn").hidden = !is3d;
+    $("#walkBtn").setAttribute("aria-pressed", String(state.walk));
     $("#wallsBtn").textContent = state.walls === "low" ? "Full-height walls" : "Cutaway walls";
     $("#zRoom").textContent = L.roomNames ? L.roomNames[L.bedRoom[state.bed]]
       : L.bedRoom.filter(r => r === L.bedRoom[state.bed]).length > 1 ? "Room " + L.bedNames[state.bed].charAt(0) : "Bedroom " + L.bedNames[state.bed];
@@ -3357,27 +3644,41 @@ footer .team b { color: var(--ink); font-weight: 500; }
       const sw = { carpet: "var(--plan-floor)", wood: "var(--plan-wood)", tile: "var(--plan-tile)", vinyl: "var(--plan-tile)" };
       kinds.forEach(k => leg.push([sw[k], FLOOR_NAMES[k] + " floor"]));
     }
+    if (state.walk && L.walk) leg.push(["var(--plan-walk)", "Walkway, kept clear"]);
     $("#legend").innerHTML = leg.map(l => '<span><i style="background:' + l[0] + ';border:1px solid var(--rule)"></i>' + l[1] + '</span>').join("") +
       (state.scope === "me" ? '<span><i style="border:1.5px dashed var(--accent)"></i>Your bed · roommates shown as provided</span>' : "");
 
     // Price summary
-    const per = P.price + M.price;
+    // Shared pieces (rug, fridge, bathroom set) are split when everyone sharing them orders: that's the whole
+    // suite here, so "Just my bed" shows what you'd save if they did.
+    const base = P.price + M.price, saving = shareSavings(L, state.bed, P.level), suite = state.scope !== "me";
+    const per = suite ? base - saving : base;
     $("#qPkg").textContent = P.name + (M.price ? " + " + M.name + " setup" : "") + " · " + pal.name;
     $("#qPrice").textContent = money(per);
     $("#qMonth").textContent = money(Math.round(per / 9));
-    if (state.scope === "me") {
+    $("#qShareRow").hidden = !saving;
+    $("#qShareLabel").textContent = suite ? "Shared with roommates, bed " + L.bedNames[state.bed] : "If your roommates order too";
+    $("#qShare").textContent = (suite ? "−" : "save ") + money(saving);
+    if (!suite) {
       $("#qSuiteLabel").textContent = "Your bed · roommates order on their own";
       $("#qSuite").textContent = L.bedNames[state.bed];
     } else {
+      const total = L.beds.reduce((sum, b, i) => sum + base - shareSavings(L, i, P.level), 0);
       $("#qSuiteLabel").textContent = "Whole " + (L.group === "Apartments" ? "apartment" : "suite") + " (" + L.residents + " students)";
-      $("#qSuite").textContent = money(per * L.residents);
+      $("#qSuite").textContent = money(total);
     }
 
     // Item list
-    const list = ITEMS.filter(it => it.lvl <= P.level && !(it.max && P.level > it.max));
+    const list = ITEMS.filter(it => it.lvl <= P.level && !(it.max && P.level > it.max) && !(it.noDrawers && L.underBedDrawers));
+    const shareTag = it => {
+      const n = shareCount(L, state.bed, it.share);
+      if (n < 2) return "";
+      return ' <span class="share">' + (suite ? "Split " + n + " ways" : "Shared") + '</span>';
+    };
     let html = list.map(it =>
       '<li class="' + (it.lvl === P.level && P.level > 1 ? "new" : "") + '">' + it.name.replace(/&/g, "&amp;") +
-      (it.keep ? ' <span class="keep">Keep</span>' : "") + (it.plan && state.designed ? ' <span class="tag">on plan</span>' : "") + '</li>').join("");
+      (it.keep ? ' <span class="keep">Keep</span>' : "") + (it.share ? shareTag(it) : "") +
+      (it.plan && state.designed ? ' <span class="tag">on plan</span>' : "") + '</li>').join("");
     if (M.item) html += '<li class="new">' + M.item.replace(/&/g, "&amp;") + ' <span class="tag">' + M.name + ' add-on</span></li>';
     $("#items").innerHTML = html;
     $("#itemsHead").textContent = "Per student · " + (list.length + (M.item ? 1 : 0)) + " items";
