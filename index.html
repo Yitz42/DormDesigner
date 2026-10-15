@@ -1301,8 +1301,73 @@ footer .team b { color: var(--ink); font-weight: 500; }
       });
     });
   }
+  // Interior walls are drawn 3.5" thick (or as traced) centred on their line. Pieces traced flush to the
+  // line would sit inside the wall, so move them out to the wall's face.
+  const wallHalf = (L, w) => (w[4] ? w[4] : 3.5 * L.U) / 2;
+  function clearInteriorWalls(L) {
+    // Built-in closets fill the space between walls, so they stay where they're drawn.
+    const pieces = L.beds.concat(L.desks, L.furn.filter(f => (STORAGE[f.t] || SEATS[f.t]) && f.t !== "closet" && !f.rot));
+    pieces.forEach(p => {
+      L.walls.forEach(w => {
+        const h = wallHalf(L, w);
+        if (w[1] === w[3]) {
+          if (Math.max(w[0], w[2]) <= p.x + 0.5 || Math.min(w[0], w[2]) >= p.x + p.w - 0.5) return;
+          const y = w[1];
+          if (p.y < y + h - 0.01 && p.y > y - h - 0.3 && p.y + p.h > y + h) p.y = y + h;
+          else if (p.y + p.h > y - h + 0.01 && p.y + p.h < y + h + 0.3 && p.y < y - h) p.y = y - h - p.h;
+        } else if (w[0] === w[2]) {
+          if (Math.max(w[1], w[3]) <= p.y + 0.5 || Math.min(w[1], w[3]) >= p.y + p.h - 0.5) return;
+          const x = w[0];
+          if (p.x < x + h - 0.01 && p.x > x - h - 0.3 && p.x + p.w > x + h) p.x = x + h;
+          else if (p.x + p.w > x - h + 0.01 && p.x + p.w < x + h + 0.3 && p.x < x - h) p.x = x - h - p.w;
+        }
+      });
+    });
+    L.beds.forEach(fitArt);
+  }
+  // Posters and wallpaper hang on the wall beside the bed, never across a window or doorway. Start with
+  // the traced wall; if less than 30" of it is clear, use whichever wall beside the bed has the most.
+  function chooseArt(L, b) {
+    const blockers = L.windows.concat(L.doors.filter(d => d.gap).map(d => d.gap));
+    const freeRuns = c => {
+      const hz = c[1] === c[3], line = hz ? c[1] : c[0];
+      let free = [[hz ? Math.min(c[0], c[2]) : Math.min(c[1], c[3]), hz ? Math.max(c[0], c[2]) : Math.max(c[1], c[3])]];
+      blockers.forEach(w => {
+        if ((w[1] === w[3]) !== hz || Math.abs((hz ? w[1] : w[0]) - line) > 3 * L.U) return;
+        const a = (hz ? Math.min(w[0], w[2]) : Math.min(w[1], w[3])) - 3 * L.U, z = (hz ? Math.max(w[0], w[2]) : Math.max(w[1], w[3])) + 3 * L.U;
+        free = free.reduce((out, [u, v]) => out.concat(z <= u || a >= v ? [[u, v]] : [[u, Math.min(v, a)], [Math.max(u, z), v]].filter(([m, n]) => n - m > 0.5)), []);
+      });
+      return free.map(([u, v]) => (hz ? [u, line, v, line, c[4], c[5]] : [line, u, line, v, c[4], c[5]]));
+    };
+    const runLen = a => Math.abs(a[1] === a[3] ? a[2] - a[0] : a[3] - a[1]);
+    const longest = list => list.reduce((best, a) => (!best || runLen(a) > runLen(best) ? a : best), null);
+    const traced = longest(freeRuns(b.art));
+    if (traced && runLen(traced) >= 30 * L.U) { b.art = traced; return; }
+    const cands = [];
+    ["t", "b", "l", "r"].forEach(side => {
+      const g = wallGap(L, b, side);
+      if (g > 14 * L.U) return;
+      if (side === "t") cands.push([b.x + 3, b.y - g, b.x + b.w - 3, b.y - g, 0, 1]);
+      if (side === "b") cands.push([b.x + 3, b.y + b.h + g, b.x + b.w - 3, b.y + b.h + g, 0, -1]);
+      if (side === "l") cands.push([b.x - g, b.y + 3, b.x - g, b.y + b.h - 3, 1, 0]);
+      if (side === "r") cands.push([b.x + b.w + g, b.y + 3, b.x + b.w + g, b.y + b.h - 3, -1, 0]);
+    });
+    const best = longest(cands.map(c => longest(freeRuns(c))).filter(Boolean).concat(traced ? [traced] : []));
+    b.art = best && runLen(best) >= 18 * L.U ? best : null;
+  }
+  // How far a wall's face sits from its line: outside walls are built outward, interior walls are centred.
+  function artFace(L, a) {
+    const hz = a[1] === a[3], line = hz ? a[1] : a[0], lo = hz ? Math.min(a[0], a[2]) : Math.min(a[1], a[3]), hi = hz ? Math.max(a[0], a[2]) : Math.max(a[1], a[3]);
+    const on = (x1, y1, x2, y2) => (hz ? y1 === y2 && Math.abs(y1 - line) < 1 && Math.max(x1, x2) > lo && Math.min(x1, x2) < hi
+      : x1 === x2 && Math.abs(x1 - line) < 1 && Math.max(y1, y2) > lo && Math.min(y1, y2) < hi);
+    const edges = L.outline.map((p, i) => { const q = L.outline[(i + 1) % L.outline.length]; return [p[0], p[1], q[0], q[1]]; });
+    if (edges.some(e => on.apply(null, e))) return 0;
+    const w = L.walls.find(w => on(w[0], w[1], w[2], w[3]));
+    return w ? wallHalf(L, w) : 0;
+  }
   function fitArt(b) {
     const a = b.art, inner = 3;
+    if (!a) return;
     if (a[1] === a[3]) { a[0] = b.x + inner; a[2] = b.x + b.w - inner; }
     else { a[1] = b.y + inner; a[3] = b.y + b.h - inner; }
   }
@@ -1402,6 +1467,8 @@ footer .team b { color: var(--ink); font-weight: 500; }
       f.y = old.y + old.h / 2 - h / 2; f.w = w; f.h = h;
     });
     separate(L);
+    clearInteriorWalls(L);
+    L.beds.forEach(b => chooseArt(L, b));
     const tables = L.furn.filter(f => f.t === "table" || f.t === "round");
     const lounge = L.furn.filter(f => f.t === "coffee" || f.t === "couch" || f.t === "sofa" || f.t === "loveseat");
     L.furn.forEach(f => {
@@ -1566,7 +1633,7 @@ footer .team b { color: var(--ink); font-weight: 500; }
         rect(g, inset({ x, y, w, h }, 5), { rx: 3, fill: "none", stroke: pal.accent, "stroke-width": .7, "stroke-dasharray": "3 2.5" });
       });
       L.beds.forEach((b, i) => {
-        if (!bedOn[i]) return;
+        if (!bedOn[i] || !b.art) return;
         const [x1, y1, x2, y2, nx, ny] = b.art;
         const g = el("g", {}, under);
         if (y1 === y2) rect(g, { x: Math.min(x1, x2), y: ny > 0 ? y1 + 1.5 : y1 - 15.5, w: Math.abs(x2 - x1), h: 14 }, { fill: "url(#" + id + "-wp)", opacity: .9 });
@@ -1678,7 +1745,7 @@ footer .team b { color: var(--ink); font-weight: 500; }
           el("circle", { cx: cx + dx, cy: cy + dy, r: 3.6, fill: pal.accent }, g);
         }
         // posters & neon along the wall run
-        if (lvl >= 2) {
+        if (lvl >= 2 && b.art) {
           const [x1, y1, x2, y2, nx, ny] = b.art;
           const horizWall = y1 === y2;
           const runLen = Math.abs(horizWall ? x2 - x1 : y2 - y1);
@@ -1802,7 +1869,15 @@ footer .team b { color: var(--ink); font-weight: 500; }
       const beds = L.bedRoom.map((r2, i) => (r2 === ri ? i : -1)).filter(i => i >= 0);
       return lvl > 0 && (beds.length ? beds.some(i => bedOn[i]) : bedOn.every(Boolean));
     });
-    const winOn = L.windows.map(w => bedOn[nearestBed(L, (w[0] + w[2]) / 2, (w[1] + w[3]) / 2)]);
+    // Blinds go on a window only when it's inside a bedroom on the order; never in a lounge, kitchen or living room.
+    const winOn = L.windows.map(w => {
+      const mx = (w[0] + w[2]) / 2, my = (w[1] + w[3]) / 2, pad = 18 * L.U;
+      return L.rooms.some((r, ri) => {
+        if (!roomOn[ri] || L.bedRoom.indexOf(ri) < 0) return false;
+        const rb = roomBox(L, ri);
+        return mx >= rb.x - pad && mx <= rb.x + rb.w + pad && my >= rb.y - pad && my <= rb.y + rb.h + pad;
+      });
+    });
     return { bedOn, roomOn, winOn };
   }
 
@@ -2126,23 +2201,30 @@ footer .team b { color: var(--ink); font-weight: 500; }
     // Walls, cut for door gaps and windows. The top face is dark like the ink on the plan.
     const wallMat = [M(C3.wall), M(C3.wall), M(C3.ink), M(C3.wall), M(C3.wall), M(C3.wall)];
     const segs = [];
-    L.outline.forEach((p, i) => { const q = L.outline[(i + 1) % L.outline.length]; segs.push([p[0], p[1], q[0], q[1], IN(8)]); });
-    L.walls.forEach(w => segs.push([w[0], w[1], w[2], w[3], w[4] ? w[4] : IN(4.5)]));
+    L.outline.forEach((p, i) => { const q = L.outline[(i + 1) % L.outline.length]; segs.push([p[0], p[1], q[0], q[1], IN(8), true]); });
+    L.walls.forEach(w => segs.push([w[0], w[1], w[2], w[3], w[4] ? w[4] : IN(3.5), false]));
     const cuts = L.doors.filter(d => d.gap).map(d => ({ p: d.gap }))
       .concat(L.windows.map((w, wi) => ({ p: w, win: wi })));
     const glass = M(C3.glass, { transparent: true, opacity: 0.35, roughness: 0.1 });
     const sill = Math.min(IN(30), WH * 0.4), head = Math.min(IN(84), WH);
-    segs.forEach(([x1, y1, x2, y2, t]) => {
+    segs.forEach(([x1, y1, x2, y2, t, outer]) => {
       const len = Math.hypot(x2 - x1, y2 - y1);
       if (len < 0.5) return;
       const ux = (x2 - x1) / len, uy = (y2 - y1) / len;
+      // An outside wall sits entirely outside the plan line, so furniture traced against the line meets its face.
+      let sh = [0, 0];
+      if (outer) {
+        const mx = (x1 + x2) / 2, my = (y1 + y2) / 2, n = [-uy, ux];
+        const into = insidePlan(L, { x: mx + n[0] * 2, y: my + n[1] * 2 });
+        sh = into ? [-n[0] * t / 2, -n[1] * t / 2] : [n[0] * t / 2, n[1] * t / 2];
+      }
       const along = (x, y) => (x - x1) * ux + (y - y1) * uy;
       const off = (x, y) => Math.abs((x - x1) * -uy + (y - y1) * ux);
       const at = s => [x1 + ux * s, y1 + uy * s];
       const piece = (a, b, lo, hi, mat) => {
         if (b - a < 0.3 || hi - lo < 0.3) return;
         const p = at(a), q = at(b);
-        slab(p[0], p[1], q[0], q[1], t, lo, hi, mat || wallMat);
+        slab(p[0] + sh[0], p[1] + sh[1], q[0] + sh[0], q[1] + sh[1], t, lo, hi, mat || wallMat);
       };
       const s0 = -t / 2, s1 = len + t / 2;
       const mine = cuts.map(c => {
@@ -2159,7 +2241,7 @@ footer .team b { color: var(--ink); font-weight: 500; }
           piece(k.a, k.b, head, WH);
           const p = at(k.a), q = at(k.b);
           const gm = lvl >= 2 && winOn[k.win] ? M(pal.deep, { transparent: true, opacity: 0.92 }) : glass;
-          slab(p[0], p[1], q[0], q[1], IN(1.5), sill, head, gm, false);
+          slab(p[0] + sh[0], p[1] + sh[1], q[0] + sh[0], q[1] + sh[1], IN(1.5), sill, head, gm, false);
         } else if (WH > IN(80)) {
           piece(k.a, k.b, IN(80), WH);          // header over the door
         }
@@ -2374,12 +2456,12 @@ footer .team b { color: var(--ink); font-weight: 500; }
         puff(px - dx - s / 2, pz - dz - s / 2, s, s, top + IN(5), IN(5), fabric(pal.deep));
         puff(px + dx - s / 2, pz + dz - s / 2, s, s, top + IN(5), IN(5), throwFabric);
       }
-      if (lvl >= 2) {
-        const [x1, y1, x2, y2, nx, ny] = b.art, hz = y1 === y2, inward = (hz ? ny : nx) > 0;
+      if (lvl >= 2 && b.art) {
+        const [x1, y1, x2, y2, nx, ny] = b.art, hz = y1 === y2, inward = (hz ? ny : nx) > 0, face = artFace(L, b.art);
         const lo = hz ? Math.min(x1, x2) : Math.min(y1, y2), run = Math.abs(hz ? x2 - x1 : y2 - y1);
         const n = lvl >= 3 ? 5 : 3, slot = run / n, pl = Math.min(slot * 0.8, IN(18)), ph = Math.min(IN(24), WH * 0.35);
         const colors = [pal.accent, pal.deep, pal.bed, pal.accent, pal.deep];
-        const off = inward ? IN(4.2) : -IN(5);
+        const off = inward ? face + IN(0.3) : -(face + IN(0.9));
         for (let k = 0; k < n; k++) {
           const a = lo + (k + 0.5) * slot - pl / 2;
           const art=texMat(ctx=>{
@@ -2400,11 +2482,11 @@ footer .team b { color: var(--ink); font-weight: 500; }
               ctx.beginPath(); ctx.moveTo(sx, 0); ctx.lineTo(sx + 14, 0); ctx.lineTo(sx + 14 - 128, 128); ctx.lineTo(sx - 128, 128); ctx.closePath(); ctx.fill();
             }
           }, run / IN(24), WH / IN(24));
-          const wo = inward ? IN(4) : -IN(4.3);
+          const wo = inward ? face + IN(0.05) : -(face + IN(0.25));
           if (hz) box(lo, y1 + wo, run, IN(0.2), 0, WH, wp, false);
           else box(x1 + wo, lo, IN(0.2), run, 0, WH, wp, false);
           const neon = M(pal.accent, { emissive: pal.accent, emissiveIntensity: 1.1 });
-          const no = inward ? IN(4.8) : -IN(6.4), ny0 = Math.min(IN(86), WH - IN(4));
+          const no = inward ? face + IN(1) : -(face + IN(2.5)), ny0 = Math.min(IN(86), WH - IN(4));
           if (hz) box(lo + IN(3), y1 + no, run - IN(6), IN(1.5), ny0, IN(1.5), neon, false);
           else box(x1 + no, lo + IN(3), IN(1.5), run - IN(6), ny0, IN(1.5), neon, false);
         }
