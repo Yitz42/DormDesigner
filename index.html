@@ -305,6 +305,8 @@ legend { padding: 0; margin-bottom: 10px; font: 500 0.75rem var(--font-mono); te
 .p-tile { fill: var(--plan-tile); }
 .p-tileline { stroke: var(--plan-tileline); stroke-width: .7; fill: none; }
 .p-carpet { fill: var(--plan-grid); }
+.p-seatback { fill: var(--plan-ink); fill-opacity: .2; }
+.p-swing2 { stroke: var(--plan-label); stroke-width: .6; stroke-dasharray: 2 2; fill: none; }
 .p-chair { fill: var(--plan-bg); stroke: var(--plan-label); stroke-width: .8; }
 .p-scale { stroke: var(--plan-ink); stroke-width: 1.2; fill: none; }
 .p-wood { fill: var(--plan-wood); }
@@ -808,7 +810,7 @@ footer .team b { color: var(--ink); font-weight: 500; }
      shared rooms. */
   const RAW_LAYOUTS = {
     susq: {
-      real: { w: 282, h: 220, src: "measured in UMBC's 360° tour" }, bedIn: [40, 84], hutch: true, taskChair: true,
+      real: { w: 282, h: 220, src: "measured in UMBC's 360° tour" }, bedIn: [40, 84], deskIn: [42, 24], hutch: true, taskChair: true,
       floorBase: "carpetGray", floors: [{ type: "tile", poly: [[424, 17], [625, 17], [625, 303], [424, 303]] }],
       bedRoom: [0, 0, 1, 1], bedNames: ["A1", "A2", "B1", "B2"],
       name: "Susquehanna · Patapsco · Chesapeake", short: "Susquehanna / Patapsco / Chesapeake", group: "Residence halls",
@@ -832,7 +834,7 @@ footer .team b { color: var(--ink); font-weight: 500; }
       labels: [[250, 640, "Room A"], [800, 640, "Room B"], [524, 160, "Bath"]]
     },
     potomac: {
-      real: { w: 306, h: 221, src: "scaled from its extra-long twin beds" }, bedIn: [40, 84], hutch: true, taskChair: true,
+      real: { w: 306, h: 221, src: "scaled from its extra-long twin beds" }, bedIn: [40, 84], deskIn: [42, 24], hutch: true, taskChair: true,
       floorBase: "carpetGray", floors: [{ type: "tile", poly: [[399, 465], [741, 465], [741, 560], [680.5, 661], [680.5, 760.5], [460.5, 760.5], [460.5, 661], [399, 560]] }],
       bedRoom: [0, 0, 1, 1], bedNames: ["A1", "A2", "B1", "B2"],
       name: "Potomac Hall", short: "Potomac Hall", group: "Residence halls",
@@ -857,7 +859,7 @@ footer .team b { color: var(--ink); font-weight: 500; }
       labels: [[290, 640, "Room A"], [852, 640, "Room B"], [570, 612, "Bath"]]
     },
     erickson: {
-      real: { w: 386, h: 245, src: "measured in UMBC's 360° tour" }, bedIn: [40, 84], taskChair: true, upholstery: "#55657A",
+      real: { w: 386, h: 245, src: "measured in UMBC's 360° tour" }, bedIn: [40, 84], deskIn: [42, 24], taskChair: true, upholstery: "#55657A",
       floorBase: "wood", floors: [{ type: "tile", poly: [[277, 548], [501, 548], [501, 720], [277, 720]] }],
       bedRoom: [0, 0, 1, 1], bedNames: ["A1", "A2", "B1", "B2"],
       name: "Erickson & Harbor Halls", short: "Erickson / Harbor double suite", group: "Residence halls",
@@ -885,7 +887,7 @@ footer .team b { color: var(--ink); font-weight: 500; }
       labels: [[198, 255, "Room A"], [835, 255, "Room B"], [525, 330, "Common"], [389, 692, "Bath"]]
     },
     harbor: {
-      real: { w: 401, h: 240, src: "measured in UMBC's 360° tour" }, bedIn: [40, 84], taskChair: true, upholstery: "#55657A",
+      real: { w: 401, h: 240, src: "measured in UMBC's 360° tour" }, bedIn: [40, 84], deskIn: [42, 24], taskChair: true, upholstery: "#55657A",
       floorBase: "wood", floors: [{ type: "tile", poly: [[437.5, 566], [699.5, 566], [699.5, 714], [437.5, 714]] }],
       bedRoom: [0, 1, 2, 3], bedNames: ["A", "B", "C", "D"],
       name: "Harbor Hall", short: "Harbor Hall single suite", group: "Residence halls",
@@ -917,7 +919,7 @@ footer .team b { color: var(--ink); font-weight: 500; }
       labels: [[195, 260, "A"], [370, 260, "B"], [765, 260, "C"], [945, 260, "D"], [520, 692, "Bath"], [200, 560, "Lounge"]]
     },
     terrace: {
-      real: { w: 394, h: 329, src: "measured in UMBC's 360° tour" }, bedIn: [40, 84], upholstery: "#2F3B5C",
+      real: { w: 394, h: 329, src: "measured in UMBC's 360° tour" }, bedIn: [40, 84], deskIn: [42, 24], upholstery: "#2F3B5C",
       floorBase: "carpetBrown", floors: [{ type: "tile", poly: [[333, 12], [604.5, 12], [604.5, 140], [333, 140]] }, { type: "tile", poly: [[548, 275], [740.5, 275], [740.5, 404], [548, 404]] }, { type: "vinyl", poly: [[604.5, 12], [988.5, 12], [988.5, 280], [604.5, 280]] }],
       bedRoom: [0, 1, 2, 3], bedNames: ["1", "2", "3", "4"],
       name: "Terrace & Hillside Apartments", short: "Terrace / Hillside apartment", group: "Apartments",
@@ -951,7 +953,7 @@ footer .team b { color: var(--ink); font-weight: 500; }
       labels: [[215, 130, "1"], [215, 390, "2"], [380, 650, "3"], [560, 650, "4"], [445, 172, "Bath"], [790, 160, "Kitchen"]]
     },
     westhill: {
-      real: { w: 461, h: 271, src: "measured in UMBC's 360° tour" }, bedIn: [40, 84], upholstery: "#A88F68",
+      real: { w: 461, h: 271, src: "measured in UMBC's 360° tour" }, bedIn: [40, 84], deskIn: [42, 24], upholstery: "#A88F68",
       floorBase: "carpetBrown", floors: [{ type: "tile", poly: [[529, 400], [775, 400], [775, 717], [529, 717]] }, { type: "vinyl", poly: [[775, 16], [1040, 16], [1040, 293], [775, 293]] }],
       bedRoom: [0, 1, 2, 3], bedNames: ["1", "2", "3", "4"],
       name: "West Hill Apartments", short: "West Hill apartment", group: "Apartments",
@@ -1067,7 +1069,7 @@ footer .team b { color: var(--ink); font-weight: 500; }
     L.desks = raw.desks.map(d => Object.assign(box(d.r), { wall: d.wall }));
     L.rooms = raw.rooms.map(r => {
       const rug = r.rug ? box(r.rug) : null;
-      return { rug: rug ? [rug.x, rug.y, rug.w, rug.h] : null, fridge: r.fridge ? pt(r.fridge) : null, bean: r.bean ? pt(r.bean) : null, extra: r.extra ? pt(r.extra) : null };
+      return { rug: rug ? [rug.x, rug.y, rug.w, rug.h] : null, fridge: r.fridge ? pt(r.fridge) : undefined, bean: r.bean ? pt(r.bean) : undefined, extra: r.extra ? pt(r.extra) : undefined };
     });
     L.labels = raw.labels.map(l => pt(l).concat([l[2], l[3]]));
     const pts = L.outline.concat(L.shell || []);
@@ -1077,6 +1079,7 @@ footer .team b { color: var(--ink); font-weight: 500; }
     L.cx = L.x0 + L.w / 2; L.cy = L.y0 + L.h / 2;
     L.wallT = raw.shell ? 6 : 4;
     if (raw.bedIn) L.beds.forEach(b => snapBed(L, b, raw.bedIn[0] * L.U, raw.bedIn[1] * L.U));
+    fitFurniture(L, raw);
     return L;
   }
 
@@ -1105,8 +1108,277 @@ footer .team b { color: var(--ink); font-weight: 500; }
     if (a[1] === a[3]) { a[0] = b.x + inner; a[2] = b.x + b.w - inner; }
     else { a[1] = b.y + inner; a[3] = b.y + b.h - inner; }
   }
+  /* ---------- Real furniture sizes, facing, and collision checks ---------- */
+  // Inches, measured in UMBC's 360° tours: desks 42" × 24" (a pair spans 6′10″), wardrobes 48" × 24" × 70",
+  // dining chairs 18" square. Beds are set in snapBed.
+  const SIZE_IN = { desk: [42, 24], diningChair: 18, wardrobeH: 70 };
+  const STORAGE = { wardrobe: 1, closet: 1, dresser: 1 };
+  const SEATS = { couch: 1, sofa: 1, loveseat: 1, chair: 1 };
+
+  const centerOf = r => (r.r != null ? { x: r.cx, y: r.cy } : { x: r.x + r.w / 2, y: r.y + r.h / 2 });
+  function furnRect(f) {
+    if (f.t === "toilet") {
+      const b = { x: f.cx - f.rx, y: f.cy - f.ry, w: 2 * f.rx, h: 2 * f.ry }, t = f.tank;
+      const x = Math.min(b.x, t.x), y = Math.min(b.y, t.y);
+      return { x, y, w: Math.max(b.x + b.w, t.x + t.w) - x, h: Math.max(b.y + b.h, t.y + t.h) - y };
+    }
+    if (f.r != null) return { x: f.cx - f.r, y: f.cy - f.r, w: 2 * f.r, h: 2 * f.r };
+    if (!f.rot) return { x: f.x, y: f.y, w: f.w, h: f.h };
+    const a = f.rot * Math.PI / 180, c = Math.abs(Math.cos(a)), s = Math.abs(Math.sin(a));
+    const w = f.w * c + f.h * s, h = f.w * s + f.h * c;
+    return { x: f.x + f.w / 2 - w / 2, y: f.y + f.h / 2 - h / 2, w, h };
+  }
+  const overlaps = (a, b, tol) => a.x < b.x + b.w - tol && b.x < a.x + a.w - tol && a.y < b.y + b.h - tol && b.y < a.y + a.h - tol;
+  const rectDist = (r, p) => Math.hypot(Math.max(r.x - p.x, 0, p.x - r.x - r.w), Math.max(r.y - p.y, 0, p.y - r.y - r.h));
+
+  function wallLines(L) {
+    if (!L._lines) {
+      L._lines = L.outline.map((p, i) => { const q = L.outline[(i + 1) % L.outline.length]; return [p[0], p[1], q[0], q[1]]; })
+        .concat(L.walls.map(w => w.slice(0, 4)));
+    }
+    return L._lines;
+  }
+  // Distance from one side of a rect out to the nearest wall running alongside it.
+  function wallGap(L, r, side) {
+    let best = Infinity;
+    wallLines(L).forEach(([x1, y1, x2, y2]) => {
+      if ((side === "t" || side === "b") && y1 === y2 && Math.max(x1, x2) > r.x + 1 && Math.min(x1, x2) < r.x + r.w - 1) {
+        const d = side === "t" ? r.y - y1 : y1 - (r.y + r.h);
+        if (d > -1) best = Math.min(best, Math.max(d, 0));
+      }
+      if ((side === "l" || side === "r") && x1 === x2 && Math.max(y1, y2) > r.y + 1 && Math.min(y1, y2) < r.y + r.h - 1) {
+        const d = side === "l" ? r.x - x1 : x1 - (r.x + r.w);
+        if (d > -1) best = Math.min(best, Math.max(d, 0));
+      }
+    });
+    return best;
+  }
+  // Does any wall pass through the inside of a rect?
+  function crossesWall(L, r, tol) {
+    return wallLines(L).some(([x1, y1, x2, y2]) => {
+      if (y1 === y2) return y1 > r.y + tol && y1 < r.y + r.h - tol && Math.max(x1, x2) > r.x + tol && Math.min(x1, x2) < r.x + r.w - tol;
+      if (x1 === x2) return x1 > r.x + tol && x1 < r.x + r.w - tol && Math.max(y1, y2) > r.y + tol && Math.min(y1, y2) < r.y + r.h - tol;
+      return false;
+    });
+  }
+  // All four corners inside the plan, tested a hair inside so pieces flush with an outside wall count.
+  function rectInside(L, r) {
+    const e = 0.5;
+    return [[r.x + e, r.y + e], [r.x + r.w - e, r.y + e], [r.x + e, r.y + r.h - e], [r.x + r.w - e, r.y + r.h - e]].every(([x, y]) => insidePlan(L, { x, y }));
+  }
+  function insidePlan(L, p) {
+    let inside = false;
+    const o = L.outline;
+    for (let i = 0, j = o.length - 1; i < o.length; j = i++) {
+      if ((o[i][1] > p.y) !== (o[j][1] > p.y) && p.x < (o[j][0] - o[i][0]) * (p.y - o[i][1]) / (o[j][1] - o[i][1]) + o[i][0]) inside = !inside;
+    }
+    return inside;
+  }
+  // The floor a door sweeps: the box around its hinge, leaf and the far end of its opening.
+  function swingRect(d) {
+    const pts = [[d.leaf[0], d.leaf[1]], [d.leaf[2], d.leaf[3]]];
+    if (d.gap) pts.push([d.gap[0], d.gap[1]], [d.gap[2], d.gap[3]]);
+    const xs = pts.map(p => p[0]), ys = pts.map(p => p[1]);
+    const x = Math.min.apply(null, xs), y = Math.min.apply(null, ys);
+    return { x, y, w: Math.max.apply(null, xs) - x, h: Math.max.apply(null, ys) - y };
+  }
+
+  // Which side of a piece faces away from point p, in the piece's own unrotated frame.
+  function sideAway(f, p) {
+    const c = centerOf(f), a = -(f.rot || 0) * Math.PI / 180;
+    const dx = (p.x - c.x) * Math.cos(a) - (p.y - c.y) * Math.sin(a), dy = (p.x - c.x) * Math.sin(a) + (p.y - c.y) * Math.cos(a);
+    return Math.abs(dx) > Math.abs(dy) ? (dx > 0 ? "l" : "r") : (dy > 0 ? "t" : "b");
+  }
+  // The long side of a sofa that sits closest to a wall.
+  function wallBack(L, f) {
+    const sides = f.w >= f.h ? ["t", "b"] : ["l", "r"];
+    return wallGap(L, f, sides[0]) <= wallGap(L, f, sides[1]) ? sides[0] : sides[1];
+  }
+  // Pull a dining chair up to the table edge it belongs to, at real size.
+  function tuckChair(L, f, table) {
+    const t = furnRect(table), c = centerOf(f), s = SIZE_IN.diningChair * L.U, gap = L.U;
+    let x, y;
+    if (c.y < t.y) { x = c.x - s / 2; y = t.y - s - gap; }
+    else if (c.y > t.y + t.h) { x = c.x - s / 2; y = t.y + t.h + gap; }
+    else if (c.x < t.x) { x = t.x - s - gap; y = c.y - s / 2; }
+    else { x = t.x + t.w + gap; y = c.y - s / 2; }
+    Object.assign(f, { x, y, w: s, h: s, rot: 0 });
+  }
+  // Storage opens on the side with the most open floor in front of it.
+  function frontSide(L, f) {
+    const others = L.furn.filter(g => g !== f).map(furnRect).concat(L.beds, L.desks);
+    let best = "t", score = -Infinity;
+    ["t", "b", "l", "r"].forEach(side => {
+      const long = (side === "t" || side === "b") === (f.w >= f.h);
+      let free = Math.min(wallGap(L, f, side), 60 * L.U);
+      const strip = side === "t" ? { x: f.x, y: f.y - 6 * L.U, w: f.w, h: 6 * L.U } : side === "b" ? { x: f.x, y: f.y + f.h, w: f.w, h: 6 * L.U }
+        : side === "l" ? { x: f.x - 6 * L.U, y: f.y, w: 6 * L.U, h: f.h } : { x: f.x + f.w, y: f.y, w: 6 * L.U, h: f.h };
+      if (others.some(o => overlaps(strip, o, L.U * 0.5))) free = 0;
+      const sc = free * (long ? 1 : 0.5);
+      if (sc > score) { score = sc; best = side; }
+    });
+    return best;
+  }
+  // Real-size beds can run an inch or two into a desk drawn beside them. Move the bed into open
+  // floor if it can go; otherwise slide the desk along its wall.
+  function separate(L) {
+    // r is where `self` would move to; it must stay inside, off the walls, and clear of everything but `self`.
+    const clear = (r, self) => rectInside(L, r)
+      && !crossesWall(L, r, 0.2) && !L.beds.concat(L.desks, L.furn.map(furnRect)).some(o => o !== self && overlaps(r, o, 0.2));
+    L.beds.forEach(b => {
+      L.desks.concat(L.furn.filter(f => !f.r).map(furnRect)).forEach(o => {
+        if (!overlaps(b, o, 0.2)) return;
+        const px = Math.min(b.x + b.w - o.x, o.x + o.w - b.x), py = Math.min(b.y + b.h - o.y, o.y + o.h - b.y);
+        const dx = px < py ? (b.x + b.w / 2 < o.x + o.w / 2 ? -px : px) : 0, dy = px < py ? 0 : (b.y + b.h / 2 < o.y + o.h / 2 ? -py : py);
+        const moved = { x: b.x + dx, y: b.y + dy, w: b.w, h: b.h };
+        if (clear(moved, b)) { Object.assign(b, moved); fitArt(b); return; }
+        if (L.desks.indexOf(o) >= 0) {
+          const alongWall = o.wall === "l" || o.wall === "r" ? { x: o.x, y: o.y - dy, w: o.w, h: o.h } : { x: o.x - dx, y: o.y, w: o.w, h: o.h };
+          if (clear(alongWall, o)) { Object.assign(o, alongWall); return; }
+        }
+        // Preserve physical dimensions. Search nearby positions for the desk along its wall.
+        if (L.desks.includes(o)) {
+          let found = false;
+          for (let radius = 1; radius <= 24 && !found; radius++) {
+            const candidates = [];
+            for (let dx = -radius; dx <= radius; dx++) for (let dy = -radius; dy <= radius; dy++) {
+              if (Math.max(Math.abs(dx), Math.abs(dy)) === radius) candidates.push([dx, dy]);
+            }
+            candidates.sort((a,b) => Math.hypot(...a) - Math.hypot(...b));
+            for (const [dx,dy] of candidates) {
+              const candidate = { x: o.x + dx * L.U, y: o.y + dy * L.U, w: o.w, h: o.h };
+              if (clear(candidate, o)) { Object.assign(o, candidate); found = true; break; }
+            }
+          }
+        }
+      });
+    });
+  }
+  function fitArt(b) {
+    const a = b.art, inner = 3;
+    if (a[1] === a[3]) { a[0] = b.x + inner; a[2] = b.x + b.w - inner; }
+    else { a[1] = b.y + inner; a[3] = b.y + b.h - inner; }
+  }
+  function resizeDesk(d, len, dep) {
+    if (d.wall === "l" || d.wall === "r") {
+      const cy = d.y + d.h / 2, x = d.wall === "l" ? d.x : d.x + d.w - dep;
+      Object.assign(d, { x, y: cy - len / 2, w: dep, h: len });
+    } else {
+      const cx = d.x + d.w / 2, y = d.wall === "t" ? d.y : d.y + d.h - dep;
+      Object.assign(d, { x: cx - len / 2, y, w: len, h: dep });
+    }
+  }
+
+  // Everything that takes up floor: beds, desks, the desk chairs UMBC provides, and the drawn furniture.
+  function solids(L) {
+    const list = [];
+    L.beds.forEach((b, i) => list.push({ r: b, src: b, what: "bed " + L.bedNames[i] }));
+    L.desks.forEach((d, i) => {
+      list.push({ r: d, src: d, what: "desk " + L.bedNames[i] });
+      const c = chairSpot(L, d);
+      list.push({ r: { x: c.x - c.s / 2, y: c.y - c.s / 2, w: c.s, h: c.s }, what: "desk chair " + L.bedNames[i], with: d });
+    });
+    L.furn.forEach(f => list.push({ r: furnRect(f), src: f, what: f.t + (f.dining ? " (dining)" : ""), with: f.table }));
+    return list;
+  }
+
+  // Move each mini-fridge, beanbag and add-on spot to the nearest open floor in its room.
+  const DECOR_IN = { fridge: [21, 21], bean: [32, 32], extra: [38, 20] };
+  function placeDecor(L) {
+    const solid = solids(L).map(s => s.r), swings = L.doors.filter(d => d.leaf).map(swingRect), placed = [];
+    L.rooms.forEach((room, ri) => {
+      const beds = L.beds.map((b, i) => (L.bedRoom[i] === ri ? i : -1)).filter(i => i >= 0);
+      const parts = beds.length ? beds.map(i => L.beds[i]).concat(beds.map(i => L.desks[i])) : [];
+      if (room.rug) parts.push({ x: room.rug[0], y: room.rug[1], w: room.rug[2], h: room.rug[3] });
+      Object.keys(DECOR_IN).forEach(k => { if (room[k]) parts.push({ x: room[k][0], y: room[k][1], w: 0, h: 0 }); });
+      let bx0 = Math.min.apply(null, parts.map(p => p.x)), by0 = Math.min.apply(null, parts.map(p => p.y));
+      let bx1 = Math.max.apply(null, parts.map(p => p.x + p.w)), by1 = Math.max.apply(null, parts.map(p => p.y + p.h));
+      if (!beds.length) { const m = 30 * L.U; bx0 -= m; by0 -= m; bx1 += m; by1 += m; }
+      Object.keys(DECOR_IN).forEach(k => {
+        if (!room[k]) return;
+        const sizes = k === "extra" ? [DECOR_IN.extra, [24, 18]] : [DECOR_IN[k]];
+        const [ox, oy] = room[k];
+        for (const size of sizes) {
+          if (fit(size)) { if (k === "extra") room.extraW = size[0]; return; }
+        }
+        room[k] = null;   // no room for it here
+        function fit(size) {
+        const w = size[0] * L.U, h = size[1] * L.U;
+        const ok = (cx, cy) => {
+          const r = { x: cx - w / 2, y: cy - h / 2, w, h };
+          if (r.x < bx0 || r.y < by0 || r.x + w > bx1 || r.y + h > by1) return false;
+          if (!rectInside(L, r)) return false;
+          if (crossesWall(L, r, 0.2)) return false;
+          return !solid.concat(swings, placed).some(o => overlaps(r, o, 0));
+        };
+        const step = 3 * L.U;
+        for (let ring = 0; ring < 50; ring++) {
+          const cands = [];
+          for (let i = -ring; i <= ring; i++) for (let j = -ring; j <= ring; j++) if (Math.max(Math.abs(i), Math.abs(j)) === ring) cands.push([ox + i * step, oy + j * step]);
+          cands.sort((a, b) => Math.hypot(a[0] - ox, a[1] - oy) - Math.hypot(b[0] - ox, b[1] - oy));
+          const hitSpot = cands.find(([x, y]) => ok(x, y));
+          if (hitSpot) { room[k] = hitSpot; placed.push({ x: hitSpot[0] - w / 2 - L.U, y: hitSpot[1] - h / 2 - L.U, w: w + 2 * L.U, h: h + 2 * L.U }); return true; }
+        }
+        return false;
+        }
+      });
+    });
+  }
+
+  // Report anything that overlaps something else, a wall, or a door's swing.
+  function layoutIssues(L) {
+    const items = solids(L), swings = L.doors.filter(d => d.leaf).map(d => ({ r: swingRect(d) })), issues = [];
+    const tol = 0.75 * L.U;
+    items.forEach((a, i) => {
+      items.slice(i + 1).forEach(b => {
+        if ((a.with && a.with === b.src) || (b.with && b.with === a.src)) return;
+        if (/^counter/.test(a.what) && /^(range|ksink|appl)/.test(b.what) || /^counter/.test(b.what) && /^(range|ksink|appl)/.test(a.what)) return;
+        if (overlaps(a.r, b.r, tol)) issues.push(a.what + " overlaps " + b.what);
+      });
+      if (crossesWall(L, a.r, tol)) issues.push(a.what + " crosses a wall");
+      if (/chair|bed|desk|couch|sofa|loveseat|table|coffee|end/.test(a.what) && swings.some(s => overlaps(a.r, s.r, tol))) issues.push(a.what + " is in a door's swing");
+    });
+    L.rooms.forEach((r, ri) => Object.keys(DECOR_IN).forEach(k => { if (r[k] === null) issues.push(k + " in room " + ri + " has no free spot"); }));
+    return issues;
+  }
+
+  // Applied once per layout after scaling: real desk sizes, seating that faces the right way,
+  // storage fronts, and decor moved clear of everything else.
+  function fitFurniture(L, raw) {
+    if (raw.deskIn) L.desks.forEach(d => resizeDesk(d, raw.deskIn[0] * L.U, raw.deskIn[1] * L.U));
+    // Freestanding wardrobes: 48-inch front, 24-inch depth. Built-in closets retain their plan footprint.
+    L.furn.filter(f => f.t === "wardrobe").forEach(f => {
+      const vertical = f.h >= f.w, old = { ...f };
+      const w = (vertical ? 24 : 48) * L.U, h = (vertical ? 48 : 24) * L.U;
+      const side = wallGap(L, old, "l") <= wallGap(L, old, "r") ? "l" : "r";
+      f.x = side === "l" ? old.x : old.x + old.w - w;
+      f.y = old.y + old.h / 2 - h / 2; f.w = w; f.h = h;
+    });
+    separate(L);
+    const tables = L.furn.filter(f => f.t === "table" || f.t === "round");
+    const lounge = L.furn.filter(f => f.t === "coffee" || f.t === "couch" || f.t === "sofa" || f.t === "loveseat");
+    L.furn.forEach(f => {
+      if (!SEATS[f.t]) return;
+      if (f.t === "chair") {
+        const near = tables.map(t => ({ t, d: rectDist(furnRect(t), centerOf(f)) })).sort((a, b) => a.d - b.d)[0];
+        if (near && near.d < 30 * L.U && Math.max(f.w, f.h) < 26 * L.U) {
+          tuckChair(L, f, near.t);
+          f.dining = true; f.table = near.t;
+          f.back = sideAway(f, centerOf(near.t));
+          return;
+        }
+        const focus = lounge.map(t => ({ t, d: rectDist(furnRect(t), centerOf(f)) })).sort((a, b) => a.d - b.d)[0];
+        if (focus && focus.d < 110 * L.U) { f.back = sideAway(f, centerOf(focus.t)); return; }
+      }
+      f.back = wallBack(L, f);
+    });
+    L.furn.forEach(f => { if (STORAGE[f.t]) f.front = frontSide(L, f); });
+    placeDecor(L);
+  }
+
   const LAYOUTS = {};
   Object.keys(RAW_LAYOUTS).forEach(k => { LAYOUTS[k] = prepLayout(RAW_LAYOUTS[k]); });
+  Object.keys(LAYOUTS).forEach(k => { const issues = layoutIssues(LAYOUTS[k]); if (issues.length) console.warn("Layout check · " + k + ": " + issues.join("; ")); });
 
   const FURN_LABEL = { wardrobe: "Wardrobe", closet: "Closet", couch: "Couch", sofa: "Sofa", end: "End table", coffee: "Coffee table",
     loveseat: "Love seat", table: "Table", tv: "TV", washer: "W", dryer: "D", dresser: "Dresser", pantry: "P" };
@@ -1160,6 +1432,24 @@ footer .team b { color: var(--ink); font-weight: 500; }
     if (ws === "l") x = d.x + d.w + s / 2 - 2 * L.U;
     if (ws === "r") x = d.x - s / 2 + 2 * L.U;
     return { x, y, s };
+  }
+  // Storage doors on the plan: swing arcs for wardrobe doors, a sliding track for wide closets.
+  function storageDoors2D(g, f, IN) {
+    const fs = f.front, along = fs === "t" || fs === "b";
+    const p0 = fs === "t" ? [f.x, f.y] : fs === "b" ? [f.x, f.y + f.h] : fs === "l" ? [f.x, f.y] : [f.x + f.w, f.y];
+    const p1 = along ? [p0[0] + f.w, p0[1]] : [p0[0], p0[1] + f.h];
+    const n = { t: [0, -1], b: [0, 1], l: [-1, 0], r: [1, 0] }[fs], len = along ? f.w : f.h;
+    if (f.t === "closet" && len > IN(60)) {
+      const off = IN(2.5), q0 = [p0[0] - n[0] * off, p0[1] - n[1] * off], q1 = [p1[0] - n[0] * off, p1[1] - n[1] * off];
+      el("line", { x1: q0[0], y1: q0[1], x2: q1[0], y2: q1[1], class: "p-swing2" }, g);
+      return;
+    }
+    const doors = f.t === "dresser" ? 0 : 2, half = len / doors;
+    [[p0, [(p1[0] - p0[0]) / len, (p1[1] - p0[1]) / len]], [p1, [(p0[0] - p1[0]) / len, (p0[1] - p1[1]) / len]]].slice(0, doors).forEach(([hp, u]) => {
+      const a = [hp[0] + u[0] * half, hp[1] + u[1] * half], e = [hp[0] + n[0] * half, hp[1] + n[1] * half];
+      const sweep = u[0] * n[1] - u[1] * n[0] > 0 ? 1 : 0;
+      el("path", { d: "M" + hp[0] + " " + hp[1] + " L" + e[0] + " " + e[1] + " M" + a[0] + " " + a[1] + " A" + half + " " + half + " 0 0 " + sweep + " " + e[0] + " " + e[1], class: "p-swing2" }, g);
+    });
   }
   function baseFloor(L) { return /^carpet/.test(L.floorBase || "") ? "carpet" : L.floorBase; }
 
@@ -1272,7 +1562,9 @@ footer .team b { color: var(--ink); font-weight: 500; }
         rect(g, f, { class: "p-fix" });
         rectLabel(g, x, y, w, h, f.label || FURN_LABEL[t]);
       } else {
-        rect(g, f, { class: "p-furn", rx: t === "chair" || t === "couch" || t === "sofa" || t === "loveseat" ? 3 : 0 });
+        rect(g, f, { class: "p-furn", rx: SEATS[t] ? 3 : 0 });
+        if (SEATS[t] && f.back) rect(g, band(f, f.back, f.dining ? IN(3) : Math.min(IN(8), Math.min(w, h) * .3)), { class: "p-seatback" });
+        if (STORAGE[t] && f.front) storageDoors2D(g, f, IN);
         rectLabel(g, x, y, w, h, f.label || FURN_LABEL[t]);
       }
     });
@@ -1415,7 +1707,7 @@ footer .team b { color: var(--ink); font-weight: 500; }
             el("path", { d: "M" + (x - 9 * e) + " " + (y + 9 * e) + " L" + x + " " + (y - 10 * e) + " L" + (x + 9 * e) + " " + (y + 9 * e) + " M" + x + " " + (y - 10 * e) + " L" + x + " " + (y + 9 * e), stroke: pal.deep, "stroke-width": 1.6, fill: "none", "stroke-linecap": "round" }, g);
             rect(g, { x: x - IN(9), y: y - IN(5), w: IN(18), h: IN(9) }, { fill: "#FFFFFF", stroke: pal.accent, "stroke-width": 1.2 });
           } else {
-            const kw = IN(48), kh = IN(12);
+            const kw = IN(Math.min(36, (r.extraW || 38) - 2)), kh = IN(12);
             rect(g, { x: x - kw / 2, y: y - kh / 2, w: kw, h: kh }, { fill: "#FFFFFF", stroke: pal.deep, "stroke-width": 1.1, rx: 1 });
             for (let k = 1; k < 14; k++) if (k % 7 !== 3 && k % 7 !== 0) el("line", { x1: x - kw / 2 + k * kw / 14, y1: y - kh / 2, x2: x - kw / 2 + k * kw / 14, y2: y, stroke: pal.deep, "stroke-width": 1.2 }, g);
           }
@@ -1796,7 +2088,7 @@ footer .team b { color: var(--ink); font-weight: 500; }
       });
       piece(cur, s1, 0, WH);
     });
-    L.doors.forEach(d => { if (d.leaf) slab(d.leaf[0], d.leaf[1], d.leaf[2], d.leaf[3], IN(1.75), 0, Math.min(IN(80), WH), M(C3.door)); });
+    L.doors.forEach(d => { if (d.leaf) slab(d.leaf[0], d.leaf[1], d.leaf[2], d.leaf[3], IN(1.75), 0, Math.min(IN(80), WH), M(C3.door, { transparent: true, opacity: 0.35, depthWrite: false }), false); });
 
     const wood = M(C3.wood), dark = M(C3.woodDark), fix = M(C3.fix), water = M(C3.water), metal = M(C3.metal);
     const uph = M(L.upholstery || C3.furn);
@@ -1804,23 +2096,63 @@ footer .team b { color: var(--ink); font-weight: 500; }
       const s = Math.min(IN(1.75), r.w / 4, r.h / 4);
       [[0, 0], [1, 0], [0, 1], [1, 1]].forEach(([u, v]) => box(r.x + u * (r.w - s), r.y + v * (r.h - s), s, s, 0, h, mat || wood));
     };
-    // Which long side of a piece faces the wall: the side farther from the middle of the plan.
-    const backSide = r => (r.w >= r.h
-      ? (r.y + r.h / 2 < L.cy ? "t" : "b")
-      : (r.x + r.w / 2 < L.cx ? "l" : "r"));
-    const seat = (r, armH) => {
-      const back = backSide(r), bd = Math.min(IN(7), (r.w >= r.h ? r.h : r.w) * 0.3);
-      legs(inset(r, IN(1)), IN(6), wood);
-      box(r.x, r.y, r.w, r.h, IN(6), IN(4), wood);                               // frame
+    // Seats are built around their own centre so a rotated chair turns as one piece. Their backs come from fitFurniture.
+    const seat = (f, armH) => {
+      const c = centerOf(f), sub = new T.Group();
+      sub.position.set(c.x, 0, c.y);
+      sub.rotation.y = -(f.rot || 0) * Math.PI / 180;
+      g.add(sub);
+      const put = (x, z, w, d, y0, h, mat) => {
+        const geo = new T.BoxGeometry(Math.max(w, 0.2), Math.max(h, 0.2), Math.max(d, 0.2));
+        geos.push(geo);
+        const m = new T.Mesh(geo, mat);
+        m.position.set(x - c.x + w / 2, y0 + h / 2, z - c.y + d / 2);
+        m.castShadow = true; m.receiveShadow = true;
+        sub.add(m);
+      };
+      const r = { x: f.x, y: f.y, w: f.w, h: f.h }, back = f.back || "t", leg = IN(1.5);
+      const fourLegs = (q, h) => [[0, 0], [1, 0], [0, 1], [1, 1]].forEach(([u, v]) => put(q.x + u * (q.w - leg), q.y + v * (q.h - leg), leg, leg, 0, h, wood));
+      if (f.dining) {                                   // maple dining chair
+        const q = inset(r, IN(0.5));
+        fourLegs(q, IN(17));
+        put(q.x, q.y, q.w, q.h, IN(17), IN(1.5), wood);
+        const bk = band(q, back, IN(1.5));
+        put(bk.x, bk.y, bk.w, bk.h, IN(18.5), IN(15), wood);
+        return;
+      }
+      const bd = Math.min(IN(8), Math.min(r.w, r.h) * 0.3);
+      fourLegs(inset(r, IN(1)), IN(6));
+      put(r.x, r.y, r.w, r.h, IN(6), IN(4), wood);                                 // maple frame
       const cush = inset(r, IN(2));
-      box(cush.x, cush.y, cush.w, cush.h, IN(10), IN(7), uph);                    // seat cushion
+      put(cush.x, cush.y, cush.w, cush.h, IN(10), IN(7), uph);                     // seat cushion
       const bk = band(r, back, bd);
-      box(bk.x, bk.y, bk.w, bk.h, IN(10), IN(22), uph);                           // back cushion
-      const along = r.w >= r.h;
-      [0, 1].forEach(k => {                                                       // wooden arms
-        const a = along ? { x: k ? r.x + r.w - IN(3) : r.x, y: r.y, w: IN(3), h: r.h } : { x: r.x, y: k ? r.y + r.h - IN(3) : r.y, w: r.w, h: IN(3) };
-        box(a.x, a.y, a.w, a.h, IN(6), armH, wood);
-      });
+      put(bk.x, bk.y, bk.w, bk.h, IN(10), IN(22), uph);                            // back cushion
+      const arms = back === "t" || back === "b" ? [band(r, "l", IN(3)), band(r, "r", IN(3))] : [band(r, "t", IN(3)), band(r, "b", IN(3))];
+      arms.forEach(a => put(a.x, a.y, a.w, a.h, IN(6), armH, wood));               // wooden arms
+    };
+    // Wardrobes and closets: an open maple carcass with a shelf and hanging rod behind see-through doors.
+    const doorGlass = M(C3.wood, { transparent: true, opacity: 0.28, depthWrite: false });
+    const storage = (f, H, doors) => {
+      const fs = f.front || "t", t = IN(0.75), along = fs === "t" || fs === "b";
+      const bk = band(f, OPP[fs], t);
+      box(bk.x, bk.y, bk.w, bk.h, 0, H, wood);
+      (along ? ["l", "r"] : ["t", "b"]).forEach(sd => { const q = band(f, sd, t); box(q.x, q.y, q.w, q.h, 0, H, wood); });
+      box(f.x, f.y, f.w, f.h, H - IN(1), IN(1), [wood, wood, M(C3.ink), wood, wood, wood]);
+      box(f.x, f.y, f.w, f.h, 0, IN(3), dark);
+      const inner = inset(f, t);
+      if (H > IN(66)) box(inner.x, inner.y, inner.w, inner.h, IN(64), IN(0.75), wood, false);
+      const rod = along ? { x: f.x + t, y: f.y + f.h / 2 - IN(0.5), w: f.w - 2 * t, h: IN(1) } : { x: f.x + f.w / 2 - IN(0.5), y: f.y + t, w: IN(1), h: f.h - 2 * t };
+      box(rod.x, rod.y, rod.w, rod.h, IN(60), IN(1), metal, false);
+      const front = band(f, fs, t), len = along ? front.w : front.h, n = doors || Math.max(1, Math.round(len / IN(30))), gap = IN(0.25);
+      for (let k = 0; k < n; k++) {
+        const sg = len / n;
+        const d = along ? { x: front.x + k * sg + gap, y: front.y, w: sg - 2 * gap, h: front.h } : { x: front.x, y: front.y + k * sg + gap, w: front.w, h: sg - 2 * gap };
+        box(d.x, d.y, d.w, d.h, IN(3), H - IN(4), doorGlass, false);
+        const near = k % 2 === 0 ? 1 : 0;           // pulls sit by the seam between a pair of doors
+        const hd = along ? { x: near ? d.x + d.w - IN(2) : d.x + IN(1.5), y: d.y - IN(0.3), w: IN(0.5), h: d.h + IN(0.6) }
+          : { x: d.x - IN(0.3), y: near ? d.y + d.h - IN(2) : d.y + IN(1.5), w: d.w + IN(0.6), h: IN(0.5) };
+        box(hd.x, hd.y, hd.w, hd.h, IN(34), IN(7), metal, false);
+      }
     };
 
     // University furniture and fixtures, at the sizes measured in UMBC's tours
@@ -1835,9 +2167,15 @@ footer .team b { color: var(--ink); font-weight: 500; }
       if (t === "heater") { cyl(f.cx, f.cy, f.r, 0, IN(60), fix); return; }
       const inner = inset(f, IN(2));
       switch (t) {
-        case "closet": case "pantry": fbox(f, 0, WH, [wood, wood, M(C3.ink), wood, wood, wood]); break;
-        case "wardrobe": fbox(f, 0, Math.min(IN(78), WH), wood); fbox(inset(f, -IN(0.5)), Math.min(IN(78), WH - IN(2)), IN(2), dark); break;
-        case "dresser": fbox(f, 0, IN(30), wood); fbox(inset(f, -IN(0.5)), IN(30), IN(1.25), dark); break;
+        case "closet": storage(f, WH, 0); break;
+        case "pantry": fbox(f, 0, WH, [wood, wood, M(C3.ink), wood, wood, wood]); break;
+        case "wardrobe": storage(f, Math.min(IN(SIZE_IN.wardrobeH), WH), 2); break;
+        case "dresser": {
+          fbox(f, 0, IN(30), wood); fbox(inset(f, -IN(0.5)), IN(30), IN(1.25), dark);
+          const fr = band(inset(f, -IN(0.3)), f.front || "t", IN(0.3));
+          [IN(10), IN(20)].forEach(y => box(fr.x, fr.y, fr.w, fr.h, y, IN(0.6), dark, false));
+          break;
+        }
         case "utility": fbox(f, 0, WH, [fix, fix, M(C3.ink), fix, fix, fix]); break;
         case "counter": fbox(f, 0, IN(34.5), M("#D6D0DE")); fbox(f, IN(34.5), IN(1.5), M("#8D86A0")); break;
         case "range": fbox(f, 0, IN(35), fix); fbox(inner, IN(35), IN(1), M(C3.screen)); break;
@@ -1860,7 +2198,7 @@ footer .team b { color: var(--ink); font-weight: 500; }
     });
 
     // UMBC beds: raised maple frames with slatted head and foot ends; decor on the ones in the order.
-    const DECK = IN(22), MAT = IN(lvl >= 2 ? 9 : 7);
+    const DECK = IN(24), MAT = IN(lvl >= 2 ? 10 : 8);
     L.beds.forEach((b, i) => {
       const on = bedOn[i];
       const horiz = b.head === "l" || b.head === "r", length = horiz ? b.w : b.h;
@@ -1870,18 +2208,18 @@ footer .team b { color: var(--ink); font-weight: 500; }
       corners.forEach(([u, v]) => {
         const px = b.x + u * (b.w - post), pz = b.y + v * (b.h - post);
         const atHead = (b.head === "l" && u === 0) || (b.head === "r" && u === 1) || (b.head === "t" && v === 0) || (b.head === "b" && v === 1);
-        box(px, pz, post, post, 0, atHead ? IN(42) : IN(34), wood);
+        box(px, pz, post, post, 0, atHead ? IN(42) : IN(32), wood);
       });
       // three rails on each end, like the slatted ends in the tours
-      [[headEnd, IN(42)], [footEnd, IN(34)]].forEach(([e, top]) => {
-        [top - IN(3), top - IN(9), DECK].forEach(y => box(e.x, e.y, e.w, e.h, y, IN(2.5), wood));
+      [[headEnd, IN(42)], [footEnd, IN(32)]].forEach(([e, top]) => {
+        [top - IN(3), top - IN(9), DECK].filter((y, k, a) => k === 2 || y > DECK + IN(3)).forEach(y => box(e.x, e.y, e.w, e.h, y, IN(2.5), wood));
       });
       // side rails carry the deck
       const sides = horiz ? [band(b, "t", post), band(b, "b", post)] : [band(b, "l", post), band(b, "r", post)];
       sides.forEach(s => box(s.x, s.y, s.w, s.h, DECK - IN(3), IN(4), wood));
       const deck = inset(b, post);
       box(deck.x, deck.y, deck.w, deck.h, DECK, IN(1), dark);
-      if (!on) { box(deck.x, deck.y, deck.w, deck.h, DECK + IN(1), IN(7), M(C3.mattress)); return; }
+      if (!on) { box(deck.x, deck.y, deck.w, deck.h, DECK + IN(1), MAT, M(C3.mattress)); return; }
       // storage bins under the bed
       const cx = b.x + b.w / 2, cz = b.y + b.h / 2, bw = horiz ? IN(26) : b.w * 0.7, bd = horiz ? b.h * 0.7 : IN(26);
       [-1, 1].forEach(sn => box(cx - bw / 2 + (horiz ? sn * IN(15) : 0), cz - bd / 2 + (horiz ? 0 : sn * IN(15)), bw, bd, 0, IN(11), M(pal.deep)));
@@ -1954,12 +2292,12 @@ footer .team b { color: var(--ink); font-weight: 500; }
       const ped = Math.min(IN(16), (along ? d.w : d.h) * 0.4);
       if (along) { box(d.x + d.w - ped, d.y + IN(0.5), ped, d.h - IN(1), 0, IN(29), wood); box(d.x, d.y + IN(0.5), IN(1.25), d.h - IN(1), 0, IN(29), wood); }
       else { box(d.x + IN(0.5), d.y + d.h - ped, d.w - IN(1), ped, 0, IN(29), wood); box(d.x + IN(0.5), d.y, d.w - IN(1), IN(1.25), 0, IN(29), wood); }
-      if (L.hutch && WH > IN(62)) {
+      if (L.hutch && WH > IN(56)) {
         const back = band(d, ws, IN(11));
-        box(back.x, back.y, back.w, back.h, IN(45), IN(1), wood);
-        box(back.x, back.y, back.w, back.h, IN(60), IN(1), wood);
+        box(back.x, back.y, back.w, back.h, IN(41.5), IN(1), wood);
+        box(back.x, back.y, back.w, back.h, IN(52.5), IN(1), wood);
         const ends = along ? [band(back, "l", IN(1)), band(back, "r", IN(1))] : [band(back, "t", IN(1)), band(back, "b", IN(1))];
-        ends.forEach(e => box(e.x, e.y, e.w, e.h, IN(30.25), IN(30.75), wood));
+        ends.forEach(e => box(e.x, e.y, e.w, e.h, IN(30.25), IN(23.25), wood));
       }
       const on = bedOn[i];
       const provided = L.taskChair ? [M("#4A4E57"), metal] : [wood, wood];
@@ -2013,10 +2351,11 @@ footer .team b { color: var(--ink); font-weight: 500; }
       }
       if (r.extra && opt.major === "music") {
         const [x, y] = r.extra;
-        box(x - IN(18), y - IN(1), IN(2), IN(2), 0, IN(28), metal);
-        box(x + IN(16), y - IN(1), IN(2), IN(2), 0, IN(28), metal);
-        box(x - IN(24), y - IN(6), IN(48), IN(12), IN(28), IN(3), M("#FFFFFF"));
-        box(x - IN(24), y - IN(6), IN(48), IN(4), IN(31), IN(0.6), M(C3.screen));
+        const half = IN(Math.min(36, (r.extraW || 38) - 2) / 2);
+        box(x - half + IN(4), y - IN(1), IN(2), IN(2), 0, IN(28), metal);
+        box(x + half - IN(6), y - IN(1), IN(2), IN(2), 0, IN(28), metal);
+        box(x - half, y - IN(6), half * 2, IN(12), IN(28), IN(3), M("#FFFFFF"));
+        box(x - half, y - IN(6), half * 2, IN(4), IN(31), IN(0.6), M(C3.screen));
       }
     });
 
@@ -2362,7 +2701,7 @@ footer .team b { color: var(--ink); font-weight: 500; }
     $("#viewDesigned").setAttribute("aria-pressed", String(state.designed));
     $("#planTitle").textContent = L.name;
     $("#planType").textContent = L.type;
-    $("#planSrc").textContent = "To scale · size " + L.real.src;
+    $("#planSrc").textContent = "Approximate scale · size " + L.real.src;
     const svg = $("#plan");
     const opts = planOptions();
     const focusBox = state.scope === "me" ? roomBox(L, L.bedRoom[state.bed]) : null;
