@@ -27,8 +27,6 @@
   --plan-tileline: #CFC8DA;
   --plan-wood: #F6EFE6;
   --plan-woodline: #E2D4C1;
-  --plan-walk: #EADFC6;
-  --plan-walkline: #A8936A;
   --brand-1: #4B3BFF;
   --brand-2: #A93CFF;
   --brand-3: #F03CF5;
@@ -45,14 +43,14 @@
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
     --paper: #100C19; --surface: #1A1526; --ink: #EEEAF7; --muted: #A49CBA; --rule: #2F2843;
-    --plan-bg: #161120; --plan-floor: #1B1528; --plan-grid: #241D33; --plan-ink: #D9D2EC; --plan-furn: #251E35; --plan-label: #9C94B3; --plan-tile: #221C2F; --plan-tileline: #3A3250; --plan-wood: #241D2A; --plan-woodline: #3B3140; --plan-walk: #33291C; --plan-walkline: #8C7A55;
+    --plan-bg: #161120; --plan-floor: #1B1528; --plan-grid: #241D33; --plan-ink: #D9D2EC; --plan-furn: #251E35; --plan-label: #9C94B3; --plan-tile: #221C2F; --plan-tileline: #3A3250; --plan-wood: #241D2A; --plan-woodline: #3B3140;
     --accent: #FF6FAE; --accent-ink: #1A0D16; --accent-soft: #3A1830; --ok: #5FD39E;
     color-scheme: dark;
   }
 }
 :root[data-theme="dark"] {
   --paper: #100C19; --surface: #1A1526; --ink: #EEEAF7; --muted: #A49CBA; --rule: #2F2843;
-  --plan-bg: #161120; --plan-floor: #1B1528; --plan-grid: #241D33; --plan-ink: #D9D2EC; --plan-furn: #251E35; --plan-label: #9C94B3; --plan-tile: #221C2F; --plan-tileline: #3A3250; --plan-wood: #241D2A; --plan-woodline: #3B3140; --plan-walk: #33291C; --plan-walkline: #8C7A55;
+  --plan-bg: #161120; --plan-floor: #1B1528; --plan-grid: #241D33; --plan-ink: #D9D2EC; --plan-furn: #251E35; --plan-label: #9C94B3; --plan-tile: #221C2F; --plan-tileline: #3A3250; --plan-wood: #241D2A; --plan-woodline: #3B3140;
   --accent: #FF6FAE; --accent-ink: #1A0D16; --accent-soft: #3A1830; --ok: #5FD39E;
   color-scheme: dark;
 }
@@ -320,9 +318,6 @@ legend { padding: 0; margin-bottom: 10px; font: 500 0.75rem var(--font-mono); te
 .p-tile { fill: var(--plan-tile); }
 .p-tileline { stroke: var(--plan-tileline); stroke-width: .7; fill: none; }
 .p-carpet { fill: var(--plan-grid); }
-.p-walk { fill: none; stroke: var(--plan-walk); stroke-linecap: round; stroke-linejoin: round; opacity: .5; }
-.p-walkline { fill: none; stroke: var(--plan-walkline); stroke-width: .9; stroke-dasharray: 1.5 5; stroke-linecap: round; stroke-linejoin: round; }
-.v-btn[aria-pressed="true"] { background: var(--accent-soft); border-color: var(--accent); }
 .p-focusmask { fill: var(--plan-bg); fill-opacity: .68; pointer-events: none; }
 .p-focusring { fill: none; stroke: var(--accent); stroke-width: 1; stroke-dasharray: 6 4; opacity: .7; pointer-events: none; }
 .p-seatback { fill: var(--plan-ink); fill-opacity: .2; }
@@ -660,7 +655,6 @@ footer .team b { color: var(--ink); font-weight: 500; }
                 <button type="button" class="v-btn" id="zRoom">My room</button>
                 <button type="button" class="v-btn" id="zAll">Whole plan</button>
                 <button type="button" class="v-btn" id="wallsBtn" hidden>Cutaway walls</button>
-                <button type="button" class="v-btn" id="walkBtn" aria-pressed="true" title="Show where people walk; decor is kept off it">Walkways</button>
               </div>
             </div>
             <svg class="plan" id="plan" aria-label="Floor plan"></svg>
@@ -1587,10 +1581,7 @@ footer .team b { color: var(--ink); font-weight: 500; }
         if (prev[k] < 0) break;   // reached a front door
       }
       if (pts.length < 2) return;
-      // keep only the corners
-      const simple = pts.filter((pt, n) => n === 0 || n === pts.length - 1 ||
-        (pt[0] - pts[n - 1][0]) * (pts[n + 1][1] - pt[1]) - (pt[1] - pts[n - 1][1]) * (pts[n + 1][0] - pt[0]) !== 0);
-      lines.push(simple);
+      lines.push(pts);
     });
     const R = 3;   // cells either side of the route: about 9", so the walkway is about 21" wide
     while (queue.length) {
@@ -1615,7 +1606,7 @@ footer .team b { color: var(--ink); font-weight: 500; }
       }
       return worst;
     };
-    return { lines, hits, width: 2 * R * c + c };
+    return { lines, hits };
   }
 
   // Place each mini-fridge, beanbag, rug and add-on on open floor. In a shared bedroom every student gets
@@ -2048,12 +2039,6 @@ footer .team b { color: var(--ink); font-weight: 500; }
       el("polygon", { points: pts, fill: "url(#" + id + "-grid)" }, svg);
     }
 
-    // Walkways sit on the floor, under everything else.
-    if (opt.walk && L.walk) {
-      const d = L.walk.lines.map(l => "M" + l.map(p => p[0].toFixed(1) + " " + p[1].toFixed(1)).join(" L")).join(" ");
-      el("path", { d, class: "p-walk", "stroke-width": L.walk.width }, svg);
-      el("path", { d, class: "p-walkline" }, svg);
-    }
     const under = el("g", { class: "decor" }, svg);
     const furnG = el("g", {}, svg);
     const wallsG = el("g", {}, svg);
@@ -2647,17 +2632,6 @@ footer .team b { color: var(--ink); font-weight: 500; }
     const WH = IN(state.walls === "low" ? 40 : 96);
     const posterY = Math.min(IN(56), WH - IN(16));
 
-    // Walkways: a dotted line on the floor along each route.
-    if (opt.walk && L.walk) {
-      const walkMat = M("#A8936A", { transparent: true, opacity: 0.55, depthWrite: false }), dot = new T.CylinderGeometry(IN(1.2), IN(1.2), IN(0.2), 10);
-      L.walk.lines.forEach(l => l.slice(1).forEach((q, n) => {
-        const p = l[n], len = Math.hypot(q[0] - p[0], q[1] - p[1]);
-        for (let t = IN(2); t < len; t += IN(7)) {
-          const m = mesh(dot, walkMat, p[0] + (q[0] - p[0]) * t / len, IN(0.4), p[1] + (q[1] - p[1]) * t / len, false);
-          m.userData.floor = true;
-        }
-      }));
-    }
 
     // Walls, cut for door gaps and windows. The top face is dark like the ink on the plan.
     const wallMat = [M(C3.wall), M(C3.wall), M(C3.ink), M(C3.wall), M(C3.wall), M(C3.wall)];
@@ -3473,7 +3447,7 @@ footer .team b { color: var(--ink); font-weight: 500; }
 
   /* ---------- Planner state ---------- */
   const STORE_KEY = "dormdesigner.planner";
-  const state = { hall: "susq", pkg: "basic", palette: "berry", major: "none", designed: true, scope: "me", bed: 0, view: "2d", walls: "full", focus: "room", walk: true };
+  const state = { hall: "susq", pkg: "basic", palette: "berry", major: "none", designed: true, scope: "me", bed: 0, view: "2d", walls: "full", focus: "room" };
   try {
     const saved = JSON.parse(localStorage.getItem(STORE_KEY) || "null");
     if (saved) {
@@ -3482,7 +3456,6 @@ footer .team b { color: var(--ink); font-weight: 500; }
       if (PALETTES[saved.palette]) state.palette = saved.palette;
       if (MAJORS[saved.major]) state.major = saved.major;
       if (saved.scope === "me" || saved.scope === "suite") state.scope = saved.scope;
-      if (typeof saved.walk === "boolean") state.walk = saved.walk;
       if (LAYOUTS[state.hall].beds[saved.bed]) state.bed = saved.bed;
     }
   } catch (e) { /* storage unavailable; use defaults */ }
@@ -3548,7 +3521,6 @@ footer .team b { color: var(--ink); font-weight: 500; }
     $("#zAll").addEventListener("click", () => { state.focus = "all"; focusView(null, true); update(); });
     $("#mRotate").addEventListener("click", () => setMode("rotate"));
     $("#mMove").addEventListener("click", () => setMode("move"));
-    $("#walkBtn").addEventListener("click", () => { state.walk = !state.walk; update(); });
     $("#wallsBtn").addEventListener("click", () => { state.walls = state.walls === "low" ? "full" : "low"; update(); if (three && three.L) focus3D(state.scope === "me" ? roomBox(three.L, three.L.bedRoom[state.bed]) : null, true); });
     document.querySelectorAll("[data-pick]").forEach(b => b.addEventListener("click", () => {
       state.pkg = b.dataset.pick; state.designed = true; update();
@@ -3565,7 +3537,7 @@ footer .team b { color: var(--ink); font-weight: 500; }
   function planOptions() {
     const mine = state.scope === "me";
     return {
-      pkg: state.pkg, palette: state.palette, major: state.major, designed: state.designed, walk: state.walk,
+      pkg: state.pkg, palette: state.palette, major: state.major, designed: state.designed,
       owned: mine ? [state.bed] : null,
       you: mine ? state.bed : null,
       onBed: i => { state.bed = i; state.scope = "me"; update(); }
@@ -3615,7 +3587,6 @@ footer .team b { color: var(--ink); font-weight: 500; }
     $("#view3d").setAttribute("aria-pressed", String(is3d));
     $("#modeToggle").hidden = !is3d;
     $("#wallsBtn").hidden = !is3d;
-    $("#walkBtn").setAttribute("aria-pressed", String(state.walk));
     $("#wallsBtn").textContent = state.walls === "low" ? "Full-height walls" : "Cutaway walls";
     $("#zRoom").textContent = L.roomNames ? L.roomNames[L.bedRoom[state.bed]]
       : L.bedRoom.filter(r => r === L.bedRoom[state.bed]).length > 1 ? "Room " + L.bedNames[state.bed].charAt(0) : "Bedroom " + L.bedNames[state.bed];
@@ -3644,7 +3615,6 @@ footer .team b { color: var(--ink); font-weight: 500; }
       const sw = { carpet: "var(--plan-floor)", wood: "var(--plan-wood)", tile: "var(--plan-tile)", vinyl: "var(--plan-tile)" };
       kinds.forEach(k => leg.push([sw[k], FLOOR_NAMES[k] + " floor"]));
     }
-    if (state.walk && L.walk) leg.push(["var(--plan-walk)", "Walkway, kept clear"]);
     $("#legend").innerHTML = leg.map(l => '<span><i style="background:' + l[0] + ';border:1px solid var(--rule)"></i>' + l[1] + '</span>').join("") +
       (state.scope === "me" ? '<span><i style="border:1.5px dashed var(--accent)"></i>Your bed · roommates shown as provided</span>' : "");
 
