@@ -2371,6 +2371,61 @@ footer .team b { color: var(--ink); font-weight: 500; }
       }
     };
 
+    // Kitchens: the counter stops on each side of a freestanding range; sinks are set into the countertop and
+    // a dishwasher sits under it, so nothing overlaps the stove or pokes through the top.
+    const counters = L.furn.filter(g => g.t === "counter");
+    const inCounter = f => counters.some(c => overlaps(furnRect(c), furnRect(f), 0.5));
+    const counterOf = f => counters.find(c => overlaps(furnRect(c), furnRect(f), 0.5));
+    const counterFront = f => { const c = counterOf(f) || f; return OPP[wallBack(L, c)]; };
+    const steel = M("#C9CED6", { metalness: 0.55, roughness: 0.3 }), cab = M("#D6D0DE"), slabTop = M("#8D86A0");
+    const counterRun = f => {
+      const along = f.w >= f.h, lo = along ? f.x : f.y, hi = along ? f.x + f.w : f.y + f.h;
+      const gaps = L.furn.filter(g => g.t === "range" && overlaps(furnRect(g), f, 0.5))
+        .map(g => (along ? [g.x, g.x + g.w] : [g.y, g.y + g.h])).sort((a, b) => a[0] - b[0]);
+      const pieces = [];
+      let cur = lo;
+      gaps.forEach(([a, z]) => { if (a - cur > 0.3) pieces.push([cur, a]); cur = Math.max(cur, z); });
+      if (hi - cur > 0.3) pieces.push([cur, hi]);
+      const front = OPP[wallBack(L, f)];
+      pieces.forEach(([a, z]) => {
+        const r = along ? { x: a, y: f.y, w: z - a, h: f.h } : { x: f.x, y: a, w: f.w, h: z - a };
+        box(r.x, r.y, r.w, r.h, IN(4), IN(30.5), cab);                              // cabinets
+        const kick = inset(r, 0), toe = band(kick, OPP[front], (along ? r.h : r.w) - IN(3));
+        box(toe.x, toe.y, toe.w, toe.h, 0, IN(4), M("#5E5868"));                    // recessed toe kick
+        box(r.x, r.y, r.w, r.h, IN(34.5), IN(1.5), slabTop);                        // countertop
+      });
+    };
+    const range = f => {
+      const back = wallBack(L, f), front = OPP[back], body = inset(f, IN(0.25));
+      box(body.x, body.y, body.w, body.h, 0, IN(35.5), steel);
+      box(body.x, body.y, body.w, body.h, IN(35.5), IN(0.75), M("#1F1D24", { roughness: 0.15 }));   // glass cooktop
+      const bg = band(body, back, IN(2));
+      box(bg.x, bg.y, bg.w, bg.h, IN(36.25), IN(5.5), steel);                     // backguard with the controls
+      const top = band(body, front, (front === "t" || front === "b" ? body.h : body.w) - IN(2.5));
+      [[0.27, 0.3], [0.73, 0.3], [0.27, 0.72], [0.73, 0.72]].forEach(([u, v], k) => {
+        const r = IN(k % 3 === 0 ? 4.2 : 3.2);
+        const ring = mesh(new T.TorusGeometry(r, IN(0.35), 6, 28), M("#7A3B2E", { roughness: 0.4 }), top.x + top.w * u, IN(36.35), top.y + top.h * v, false);
+        ring.rotation.x = Math.PI / 2;
+      });
+      const door = band(inset(body, -IN(0.3)), front, IN(0.3));
+      const dr = front === "t" || front === "b" ? { x: door.x + IN(1.5), y: door.y, w: door.w - IN(3), h: door.h } : { x: door.x, y: door.y + IN(1.5), w: door.w, h: door.h - IN(3) };
+      box(dr.x, dr.y, dr.w, dr.h, IN(6), IN(22), M("#2A2830", { roughness: 0.2 }), false);                 // oven door glass
+      const hb = band(inset(door, -IN(0.8)), front, IN(0.8));
+      const hr = front === "t" || front === "b" ? { x: hb.x + IN(3), y: hb.y, w: hb.w - IN(6), h: hb.h } : { x: hb.x, y: hb.y + IN(3), w: hb.w, h: hb.h - IN(6) };
+      box(hr.x, hr.y, hr.w, hr.h, IN(29.5), IN(1), metal, false);                                              // oven handle
+    };
+    const sinkInTop = f => {
+      const bowl = inset(f, IN(1.5)), front = counterFront(f), back = OPP[front];
+      box(bowl.x, bowl.y, bowl.w, bowl.h, IN(36), IN(0.12), steel, false);
+      const basin = inset(bowl, IN(1.2));
+      box(basin.x, basin.y, basin.w, basin.h, IN(36.02), IN(0.12), M("#8E959E", { metalness: 0.5, roughness: 0.35 }), false);
+      const tap = band(f, back, IN(2.5)), cx = tap.x + tap.w / 2, cz = tap.y + tap.h / 2;
+      cyl(cx, cz, IN(0.6), IN(36), IN(10), metal);
+      const toward = { t: [0, 1], b: [0, -1], l: [1, 0], r: [-1, 0] }[back];
+      box(cx - IN(0.5) + Math.min(0, toward[0]) * IN(6), cz - IN(0.5) + Math.min(0, toward[1]) * IN(6),
+        IN(1) + Math.abs(toward[0]) * IN(6), IN(1) + Math.abs(toward[1]) * IN(6), IN(45), IN(1), metal, false);
+    };
+
     // University furniture and fixtures, at the sizes measured in UMBC's tours
     L.furn.forEach(f => {
       const t = f.t;
@@ -2393,11 +2448,21 @@ footer .team b { color: var(--ink); font-weight: 500; }
           break;
         }
         case "utility": fbox(f, 0, WH, [fix, fix, M(C3.ink), fix, fix, fix]); break;
-        case "counter": fbox(f, 0, IN(34.5), M("#D6D0DE")); fbox(f, IN(34.5), IN(1.5), M("#8D86A0")); break;
-        case "range": fbox(f, 0, IN(35), fix); fbox(inner, IN(35), IN(1), M(C3.screen)); break;
-        case "ksink": fbox(f, 0, IN(35.5), fix); box(inner.x, inner.y, inner.w, inner.h, IN(35.5), IN(0.6), water, false); break;
+        case "counter": counterRun(f); break;
+        case "range": range(f); break;
+        case "ksink":
+          if (inCounter(f)) sinkInTop(f);
+          else { fbox(f, 0, IN(35.5), fix); sinkInTop(f); }
+          break;
         case "cabinet": fbox(f, 0, IN(34), fix); break;
-        case "appl": fbox(f, 0, f.label === "Fridge" ? IN(68) : IN(34), fix); break;
+        case "appl":
+          if (inCounter(f)) {                       // dishwasher under the countertop: just its stainless door
+            const fr = band(inset(f, -IN(0.4)), counterFront(f), IN(0.4));
+            box(fr.x, fr.y, fr.w, fr.h, IN(4), IN(30), steel, false);
+            const hd = band(inset(fr, IN(2)), counterFront(f), IN(0.4));
+            box(hd.x, hd.y, hd.w, hd.h, IN(30), IN(1), metal, false);
+          } else fbox(f, 0, f.label === "Fridge" ? IN(68) : IN(34), fix);
+          break;
         case "washer": case "dryer": fbox(inset(f, IN(0.5)), 0, IN(38), fix); break;
         case "couch": case "sofa": case "loveseat": seat(f, IN(24)); break;
         case "chair": seat(f, IN(24)); break;
