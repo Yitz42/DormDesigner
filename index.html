@@ -305,6 +305,8 @@ legend { padding: 0; margin-bottom: 10px; font: 500 0.75rem var(--font-mono); te
 .p-tile { fill: var(--plan-tile); }
 .p-tileline { stroke: var(--plan-tileline); stroke-width: .7; fill: none; }
 .p-carpet { fill: var(--plan-grid); }
+.p-focusmask { fill: var(--plan-bg); fill-opacity: .68; pointer-events: none; }
+.p-focusring { fill: none; stroke: var(--accent); stroke-width: 1; stroke-dasharray: 6 4; opacity: .7; pointer-events: none; }
 .p-seatback { fill: var(--plan-ink); fill-opacity: .2; }
 .p-swing2 { stroke: var(--plan-label); stroke-width: .6; stroke-dasharray: 2 2; fill: none; }
 .p-chair { fill: var(--plan-bg); stroke: var(--plan-label); stroke-width: .8; }
@@ -1034,7 +1036,7 @@ footer .team b { color: var(--ink); font-weight: 500; }
       labels: [[165, 45, "1"], [627, 45, "2"], [200, 520, "3"], [460, 520, "4"], [905, 120, "Kitchen"], [624, 520, "Bath"], [900, 340, "Living"]]
     },
     walker: {
-      real: { w: 674, h: 257, src: "from the room sizes printed on the floor plan" }, upholstery: "#6B6F7A",
+      real: { w: 674, h: 257, src: "from the room sizes printed on the floor plan" }, upholstery: "#6B6F7A", builtInClosets: true,
       bedRoom: [0, 1, 2, 3], bedNames: ["A", "B", "C", "D"],
       name: "Walker Avenue Apartments", short: "Walker Avenue apartment", group: "Apartments",
       type: "Apartment · 4 bedrooms · 2 baths", desc: "Four bedrooms, two baths, kitchen, laundry and living area", residents: 4,
@@ -1835,6 +1837,13 @@ footer .team b { color: var(--ink); font-weight: 500; }
       if (l[3]) text(labelsG, l[0], l[1] + 11, l[3], "p-dim");
     });
 
+    if (opt.focusRoom != null && L.rooms[opt.focusRoom]) {
+      const rb = roomBox(L, opt.focusRoom), pad = 6 * L.U, vb2 = planBox(L);
+      const hole = [rb.x - pad, rb.y - pad, rb.w + 2 * pad, rb.h + 2 * pad];
+      el("path", { d: "M" + vb2.x + " " + vb2.y + "h" + vb2.w + "v" + vb2.h + "h" + (-vb2.w) + "Z M" + hole[0] + " " + hole[1] + "v" + hole[3] + "h" + hole[2] + "v" + (-hole[3]) + "Z",
+        class: "p-focusmask", "fill-rule": "evenodd" }, labelsG);
+      rect(labelsG, { x: hole[0], y: hole[1], w: hole[2], h: hole[3] }, { rx: 6, class: "p-focusring" });
+    }
     // 5-foot scale bar
     const sbY = L.y0 + L.h + 12, sbL = IN(60);
     el("path", { d: "M" + L.x0 + " " + (sbY - 3) + " V" + sbY + " H" + (L.x0 + sbL) + " V" + (sbY - 3) + " M" + (L.x0 + sbL / 5 * 1) + " " + sbY + " V" + (sbY - 1.5), class: "p-scale" }, labelsG);
@@ -2180,6 +2189,7 @@ footer .team b { color: var(--ink); font-weight: 500; }
     const floor = new T.Mesh(fg, L.floorBase ? floorTex(L.floorBase) : M(C3.floor));
     floor.rotation.x = -Math.PI / 2;
     floor.receiveShadow = true;
+    floor.userData.floor = true;
     g.add(floor);
     (L.floors || []).forEach(f => {
       const sh = new T.Shape();
@@ -2190,6 +2200,7 @@ footer .team b { color: var(--ink); font-weight: 500; }
       m.rotation.x = -Math.PI / 2;
       m.position.y = 0.25;
       m.receiveShadow = true;
+      m.userData.floor = true;
       g.add(m);
     });
 
@@ -2224,7 +2235,8 @@ footer .team b { color: var(--ink); font-weight: 500; }
       const piece = (a, b, lo, hi, mat) => {
         if (b - a < 0.3 || hi - lo < 0.3) return;
         const p = at(a), q = at(b);
-        slab(p[0] + sh[0], p[1] + sh[1], q[0] + sh[0], q[1] + sh[1], t, lo, hi, mat || wallMat);
+        const w = slab(p[0] + sh[0], p[1] + sh[1], q[0] + sh[0], q[1] + sh[1], t, lo, hi, mat || wallMat);
+        if (w) w.userData.wall = true;
       };
       const s0 = -t / 2, s1 = len + t / 2;
       const mine = cuts.map(c => {
@@ -2334,14 +2346,19 @@ footer .team b { color: var(--ink); font-weight: 500; }
     const CLOTHES = ["#6D7FA3", "#C9A66B", "#A65D5D", "#5E8C7A", "#8B7BA8", "#D8D2C4"];
     const storage = (f, H, doors) => {
       const fs = f.front || "t", t = IN(0.75), along = fs === "t" || fs === "b";
+      // Walker Avenue's closets are built into the walls: painted drywall with white trim, not maple furniture.
+      const built = L.builtInClosets && f.t === "closet";
+      const shell = built ? M(C3.wall) : wood, trim = built ? M("#F7F5F0", { roughness: 0.6 }) : wood, base = built ? M("#D9D4CB") : dark;
+      // A built-in closet's shell is part of the wall, so it turns see-through with the walls in room view.
+      const asWall = m => { if (m && built) m.userData.wall = true; return m; };
       const bk = band(f, OPP[fs], t);
-      box(bk.x, bk.y, bk.w, bk.h, 0, H, wood);
-      (along ? ["l", "r"] : ["t", "b"]).forEach(sd => { const q = band(f, sd, t); box(q.x, q.y, q.w, q.h, 0, H, wood); });
+      asWall(box(bk.x, bk.y, bk.w, bk.h, 0, H, shell));
+      (along ? ["l", "r"] : ["t", "b"]).forEach(sd => { const q = band(f, sd, t); asWall(box(q.x, q.y, q.w, q.h, 0, H, shell)); });
       // built-in closets meet the ceiling, so their top reads like the walls; freestanding wardrobes get a maple top
-      box(f.x, f.y, f.w, f.h, H - IN(1), IN(1), H >= WH - 0.5 ? [wood, wood, M(C3.ink), wood, wood, wood] : wood);
-      box(f.x, f.y, f.w, f.h, 0, IN(3), dark);
+      asWall(box(f.x, f.y, f.w, f.h, H - IN(1), IN(1), H >= WH - 0.5 ? [shell, shell, M(C3.ink), shell, shell, shell] : wood));
+      box(f.x, f.y, f.w, f.h, 0, IN(3), base);
       const inner = inset(f, t);
-      if (H > IN(66)) box(inner.x, inner.y, inner.w, inner.h, IN(64), IN(0.75), wood, false);
+      if (H > IN(66)) box(inner.x, inner.y, inner.w, inner.h, IN(64), IN(0.75), built ? trim : wood, false);
       const rod = along ? { x: f.x + t, y: f.y + f.h / 2 - IN(0.5), w: f.w - 2 * t, h: IN(1) } : { x: f.x + f.w / 2 - IN(0.5), y: f.y + t, w: IN(1), h: f.h - 2 * t };
       box(rod.x, rod.y, rod.w, rod.h, IN(60), IN(1), metal, false);
       // a few things hanging on the rod
@@ -2359,11 +2376,11 @@ footer .team b { color: var(--ink); font-weight: 500; }
         const fw = IN(1.5), top = H - IN(1);
         box(d.x, d.y, d.w, d.h, IN(3), H - IN(4), doorGlass, false);
         if (along) {
-          box(d.x, d.y, fw, d.h, IN(3), top - IN(3), wood, false); box(d.x + d.w - fw, d.y, fw, d.h, IN(3), top - IN(3), wood, false);
+          box(d.x, d.y, fw, d.h, IN(3), top - IN(3), trim, false); box(d.x + d.w - fw, d.y, fw, d.h, IN(3), top - IN(3), trim, false);
         } else {
-          box(d.x, d.y, d.w, fw, IN(3), top - IN(3), wood, false); box(d.x, d.y + d.h - fw, d.w, fw, IN(3), top - IN(3), wood, false);
+          box(d.x, d.y, d.w, fw, IN(3), top - IN(3), trim, false); box(d.x, d.y + d.h - fw, d.w, fw, IN(3), top - IN(3), trim, false);
         }
-        box(d.x, d.y, d.w, d.h, IN(3), fw, wood, false); box(d.x, d.y, d.w, d.h, top - fw, fw, wood, false);
+        box(d.x, d.y, d.w, d.h, IN(3), fw, trim, false); box(d.x, d.y, d.w, d.h, top - fw, fw, trim, false);
         const near = k % 2 === 0 ? 1 : 0;           // pulls sit by the seam between a pair of doors
         const hd = along ? { x: near ? d.x + d.w - IN(2) : d.x + IN(1.5), y: d.y - IN(0.3), w: IN(0.5), h: d.h + IN(0.6) }
           : { x: d.x - IN(0.3), y: near ? d.y + d.h - IN(2) : d.y + IN(1.5), w: d.w + IN(0.6), h: IN(0.5) };
@@ -2673,6 +2690,32 @@ footer .team b { color: var(--ink); font-weight: 500; }
       }
     });
 
+    // Room view: the chosen room's furniture stays solid, its walls turn see-through so they don't block
+    // the camera, and everything outside the room fades almost away.
+    if (opt.focusRoom != null && L.rooms[opt.focusRoom]) {
+      const rb = roomBox(L, opt.focusRoom), pad = IN(8), ghosts = new Map();
+      const ghost = (mat, op) => {
+        const key = mat.uuid + ":" + op;
+        if (!ghosts.has(key)) {
+          const m = mat.clone();
+          m.transparent = true; m.opacity = Math.min(mat.opacity == null ? 1 : mat.opacity, op); m.depthWrite = false;
+          mats.push(m); ghosts.set(key, m);
+        }
+        return ghosts.get(key);
+      };
+      g.updateMatrixWorld(true);
+      const bb = new T.Box3(), c = new T.Vector3();
+      g.traverse(o => {
+        if (!o.isMesh || o.userData.floor) return;
+        bb.setFromObject(o); bb.getCenter(c);
+        const x = c.x + L.cx, y = c.z + L.cy;
+        const inside = x >= rb.x - pad && x <= rb.x + rb.w + pad && y >= rb.y - pad && y <= rb.y + rb.h + pad;
+        if (inside && !o.userData.wall) return;
+        const op = o.userData.wall ? (inside ? 0.3 : 0.12) : 0.12;
+        o.material = Array.isArray(o.material) ? o.material.map(mm => ghost(mm, op)) : ghost(o.material, op);
+        o.castShadow = false;
+      });
+    }
     three.scene.add(g);
     three.group = g;
     const span = Math.max(L.w, L.h);
@@ -2836,8 +2879,27 @@ footer .team b { color: var(--ink); font-weight: 500; }
       if (r.rug) add(r.rug[0], r.rug[1], r.rug[2], r.rug[3]);
       ["fridge", "bean", "extra"].forEach(k => { if (r[k]) add(r[k][0] - 14, r[k][1] - 14, 28, 28); });
     }
-    const x0 = Math.min.apply(null, xs), y0 = Math.min.apply(null, ys);
-    return { x: x0, y: y0, w: Math.max.apply(null, xs) - x0, h: Math.max.apply(null, ys) - y0 };
+    let x0 = Math.min.apply(null, xs), y0 = Math.min.apply(null, ys), x1 = Math.max.apply(null, xs), y1 = Math.max.apply(null, ys);
+    // The room's own closet, wardrobe or dresser: storage within 24" that no wall separates from the room.
+    const cx = (x0 + x1) / 2, cy = (y0 + y1) / 2, reach = 24 * L.U;
+    L.furn.forEach(f => {
+      if (!STORAGE[f.t]) return;
+      const fr = furnRect(f);
+      if (fr.x > x1 + reach || fr.x + fr.w < x0 - reach || fr.y > y1 + reach || fr.y + fr.h < y0 - reach) return;
+      const fx = fr.x + fr.w / 2, fy = fr.y + fr.h / 2;
+      if (wallBetween(L, cx, cy, fx, fy)) return;
+      x0 = Math.min(x0, fr.x); y0 = Math.min(y0, fr.y); x1 = Math.max(x1, fr.x + fr.w); y1 = Math.max(y1, fr.y + fr.h);
+    });
+    return { x: x0, y: y0, w: x1 - x0, h: y1 - y0 };
+  }
+  // Does a wall cross the straight line between two points?
+  function wallBetween(L, ax, ay, bx, by) {
+    return wallLines(L).some(([x1, y1, x2, y2]) => {
+      const d = (bx - ax) * (y2 - y1) - (by - ay) * (x2 - x1);
+      if (Math.abs(d) < 1e-9) return false;
+      const t = ((x1 - ax) * (y2 - y1) - (y1 - ay) * (x2 - x1)) / d, u = ((x1 - ax) * (by - ay) - (y1 - ay) * (bx - ax)) / d;
+      return t > 0.001 && t < 0.999 && u >= 0 && u <= 1;
+    });
   }
   function applyView2D() {
     const svg = $("#plan"), zoomed = pv.w < fullBox(LAYOUTS[state.hall]).w - 0.5;
@@ -2924,7 +2986,7 @@ footer .team b { color: var(--ink); font-weight: 500; }
 
   /* ---------- Planner state ---------- */
   const STORE_KEY = "dormdesigner.planner";
-  const state = { hall: "susq", pkg: "basic", palette: "berry", major: "none", designed: true, scope: "me", bed: 0, view: "2d", walls: "full" };
+  const state = { hall: "susq", pkg: "basic", palette: "berry", major: "none", designed: true, scope: "me", bed: 0, view: "2d", walls: "full", focus: "room" };
   try {
     const saved = JSON.parse(localStorage.getItem(STORE_KEY) || "null");
     if (saved) {
@@ -2994,8 +3056,8 @@ footer .team b { color: var(--ink); font-weight: 500; }
     const in3d = () => state.view === "3d" && three && three.L;
     $("#zIn").addEventListener("click", () => (in3d() ? zoom3D(0.8) : zoom2D(0.75)));
     $("#zOut").addEventListener("click", () => (in3d() ? zoom3D(1.25) : zoom2D(1.33)));
-    $("#zRoom").addEventListener("click", () => { const L = LAYOUTS[state.hall]; focusView(roomBox(L, L.bedRoom[state.bed]), true); });
-    $("#zAll").addEventListener("click", () => focusView(null, true));
+    $("#zRoom").addEventListener("click", () => { const L = LAYOUTS[state.hall]; state.focus = "room"; focusView(roomBox(L, L.bedRoom[state.bed]), true); update(); });
+    $("#zAll").addEventListener("click", () => { state.focus = "all"; focusView(null, true); update(); });
     $("#mRotate").addEventListener("click", () => setMode("rotate"));
     $("#mMove").addEventListener("click", () => setMode("move"));
     $("#wallsBtn").addEventListener("click", () => { state.walls = state.walls === "low" ? "full" : "low"; update(); if (three && three.L) focus3D(state.scope === "me" ? roomBox(three.L, three.L.bedRoom[state.bed]) : null, true); });
@@ -3048,7 +3110,10 @@ footer .team b { color: var(--ink); font-weight: 500; }
       focusKey = fKey;
       pv = focusBox ? fitView(L, focusBox) : fullBox(L);
       focus3dPending = sameHall ? "animate" : "jump";
+      state.focus = focusBox ? "room" : "all";
     }
+    // While one room is in view, everything outside it fades so the room is easy to see.
+    opts.focusRoom = state.focus === "room" ? L.bedRoom[state.bed] : null;
     renderPlan(svg, state.hall, opts);
     applyView2D();
     const whose = state.scope === "me" ? "bed " + L.bedNames[state.bed] : "every bed";
