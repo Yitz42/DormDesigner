@@ -1,0 +1,167 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Room planner · DormDesigner</title>
+<meta name="description" content="See a DormDesigner room on a real UMBC floor plan in 2D or 3D.">
+<link rel="icon" type="image/png" href="assets/mark.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,600;8..60,700&family=Figtree:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="assets/site.css">
+</head>
+<body data-page="planner">
+<a class="skip" href="#content">Skip to content</a>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="i-sleep" viewBox="0 0 24 24"><path d="M3 18V8M3 14h18v4M21 14v-2a3 3 0 0 0-3-3h-7v5"/><circle cx="7" cy="11" r="1.6"/></symbol>
+  <symbol id="i-desk" viewBox="0 0 24 24"><path d="M3 20h18M5 20V10h14v10M9 10l2-5 4 1"/><path d="M14 4.5l2.5 2"/></symbol>
+  <symbol id="i-truck" viewBox="0 0 24 24"><path d="M2 6h12v10H2zM14 9h4l3 3v4h-7"/><circle cx="6" cy="17.5" r="1.8"/><circle cx="17" cy="17.5" r="1.8"/></symbol>
+  <symbol id="i-photo" viewBox="0 0 24 24"><path d="M3 7h4l2-2.5h6L17 7h4v12H3z"/><circle cx="12" cy="13" r="3.5"/></symbol>
+  <symbol id="i-shield" viewBox="0 0 24 24"><path d="M12 3l8 3v6c0 4.5-3.3 8-8 9-4.7-1-8-4.5-8-9V6z"/><path d="M8.5 12l2.5 2.5 4.5-5"/></symbol>
+  <symbol id="i-price" viewBox="0 0 24 24"><path d="M5 3h14v18l-3-2-2 2-2-2-2 2-2-2-3 2z"/><path d="M9 8h6M9 12h6M9 16h3"/></symbol>
+  <symbol id="i-check" viewBox="0 0 24 24"><path d="M4 4h16v16H4z"/><path d="M8 12l3 3 5-6"/></symbol>
+  <symbol id="i-share" viewBox="0 0 24 24"><path d="M12 3v18M17 7H9.5a3 3 0 0 0 0 6h5a3 3 0 0 1 0 6H6"/></symbol>
+  <symbol id="i-grad" viewBox="0 0 24 24"><path d="M2 9l10-5 10 5-10 5z"/><path d="M6 11v5c3 2.5 9 2.5 12 0v-5M22 9v6"/></symbol>
+  <symbol id="i-access" viewBox="0 0 24 24"><circle cx="12" cy="4.5" r="1.8"/><path d="M5 8.5l7 1.5 7-1.5M12 10v5l-3 6M12 15l3 6"/></symbol>
+  <symbol id="i-calendar" viewBox="0 0 24 24"><path d="M3 5h18v16H3zM3 10h18M8 3v4M16 3v4"/><path d="M7.5 14h3v3h-3z"/></symbol>
+  <symbol id="i-recycle" viewBox="0 0 24 24"><path d="M7 19H4l3.5-6M17 19h3l-3.5-6M9 5l3-2 3 2M12 3v7M5 13l2-3 3 1.5M19 13l-2-3-3 1.5M8 19h8"/></symbol>
+</svg>
+<header class="top">
+  <div class="wrap">
+    <a class="brand" href="index.html" aria-label="DormDesigner home">
+      <img class="mark" src="assets/mark.png" alt="" width="34" height="34">
+      <span class="wordmark">DormDesigner</span>
+    </a>
+    <button class="menu-btn" type="button" aria-expanded="false" aria-controls="siteNav"><span class="sr-only">Menu</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg></button>
+    <nav class="nav" id="siteNav" aria-label="Main">
+      <a href="parents.html">For parents</a>
+      <a href="universities.html">For universities</a>
+      <a href="packages.html">Packages</a>
+      <a href="planner.html" aria-current="page">Room planner</a>
+      <a href="about.html">About</a>
+      <a class="btn btn-primary btn-sm nav-cta" href="parents.html#reserve">Order a room</a>
+    </nav>
+  </div>
+</header>
+<main id="content">
+  <section class="page-head">
+    <div class="wrap">
+      <nav class="crumbs" aria-label="Breadcrumb"><a href="index.html">Home</a><span aria-hidden="true">/</span><span aria-current="page">Room planner</span></nav>
+      <p class="eyebrow">Room planner</p>
+      <h1>See the room before move-in</h1>
+      <p class="lede">Choose a UMBC floor plan and a package to see the room in 2D or 3D. Your student picks the colors and a setup for their major, and can change them until move-in.</p>
+      
+    </div>
+  </section>
+  <section class="section planner-sec" id="planner">
+    <div class="wrap">
+      <div class="planner">
+        <form class="controls" id="plannerForm" onsubmit="return false">
+          <fieldset>
+            <legend>Hall &amp; room type</legend>
+            <div class="radio-list" id="hallList"></div>
+          </fieldset>
+          <div style="display:grid;gap:26px">
+            <fieldset>
+              <legend>Whose space</legend>
+              <div class="seg seg2">
+                <label class="opt"><input type="radio" name="scope" id="scope-me" value="me"><span class="box"><b>Just my bed</b><small>your order</small></span></label>
+                <label class="opt"><input type="radio" name="scope" id="scope-suite" value="suite"><span class="box"><b>Whole suite</b><small>every roommate</small></span></label>
+              </div>
+              <div class="bedpick" id="bedPick">
+                <span class="opt-group">Your bed · or tap one on the plan</span>
+                <div class="seg seg4" id="bedList"></div>
+              </div>
+            </fieldset>
+            <fieldset>
+              <legend>Package</legend>
+              <div class="seg" id="pkgList"></div>
+            </fieldset>
+            <fieldset>
+              <legend>Color palette</legend>
+              <div class="swatches" id="palList"></div>
+            </fieldset>
+            <fieldset>
+              <legend>Setup for your major</legend>
+              <div class="majors" id="majorList"></div>
+            </fieldset>
+          </div>
+        </form>
+
+        <div class="stage">
+          <div class="sheet">
+            <div class="sheet-head">
+              <strong id="planTitle">Hall</strong>
+              <div class="head-tools">
+                <div class="toggle" role="group" aria-label="Decor">
+                  <button type="button" id="viewEmpty" aria-pressed="false">Empty</button>
+                  <button type="button" id="viewDesigned" aria-pressed="true">Designed</button>
+                </div>
+                <div class="toggle" role="group" aria-label="View">
+                  <button type="button" id="view2d" aria-pressed="true">2D</button>
+                  <button type="button" id="view3d" aria-pressed="false">3D</button>
+                </div>
+              </div>
+            </div>
+            <div class="v-bar">
+              <p class="v-hint" id="vHint">Drag to move around · pinch or +/− to zoom</p>
+              <div class="v-ui" role="toolbar" aria-label="Plan view">
+                <div class="toggle" role="group" aria-label="3D drag mode" id="modeToggle" hidden>
+                  <button type="button" id="mRotate" aria-pressed="true">Rotate</button>
+                  <button type="button" id="mMove" aria-pressed="false">Move</button>
+                </div>
+                <button type="button" class="v-btn" id="zIn" aria-label="Zoom in">+</button>
+                <button type="button" class="v-btn" id="zOut" aria-label="Zoom out">−</button>
+                <button type="button" class="v-btn" id="zRoom">My room</button>
+                <button type="button" class="v-btn" id="zAll">Whole plan</button>
+                <button type="button" class="v-btn" id="wallsBtn" hidden>Cutaway walls</button>
+              </div>
+            </div>
+            <svg class="plan" id="plan" aria-label="Floor plan"></svg>
+            <div class="view3d" id="stage3d" hidden>
+              <canvas id="c3d" tabindex="0" aria-label="3D model of the room. Drag or use arrow keys to rotate, shift plus arrows to move, plus and minus to zoom."></canvas>
+              <p class="v3-msg" id="v3msg" hidden></p>
+            </div>
+            <div class="legend" id="legend"></div>
+            <div class="sheet-foot"><span id="planType">Type</span><span id="planSrc">Redrawn from UMBC Residential Life</span></div>
+          </div>
+
+          <div class="summary">
+            <div class="quote" aria-live="polite">
+              <div class="eyebrow" id="qPkg">Package</div>
+              <div><span class="big num" id="qPrice">$0</span> <span class="per" style="color:var(--muted);font:400 .8rem var(--font-mono)">per student / year</span></div>
+              <div class="row" id="qShareRow"><span id="qShareLabel">Shared with roommates</span><b id="qShare">$0</b></div>
+              <div class="row"><span>Monthly, over 9 months</span><b id="qMonth">$0</b></div>
+              <div class="row"><span id="qSuiteLabel">Whole suite</span><b id="qSuite">$0</b></div>
+              <a class="btn btn-primary" href="parents.html#reserve" id="toReserve">Order this setup</a>
+            </div>
+            <div class="itemlist">
+              <h4 id="itemsHead">What's in the room</h4>
+              <ul id="items"></ul>
+            </div>
+          </div>
+          <section class="building" id="building" aria-label="About this building"></section>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+<footer class="site-foot">
+  <div class="wrap">
+    <div class="foot-grid">
+      <div class="foot-brand">
+        <a class="brand" href="index.html" aria-label="DormDesigner home"><img class="mark" src="assets/mark.png" alt="" width="34" height="34"><span class="wordmark">DormDesigner</span></a>
+        <p>Dorm room setup and decor rental for UMBC students, working with families and university housing.</p>
+      </div>
+      <nav aria-label="Clients"><h2>Clients</h2><a href="parents.html">For parents</a><a href="parents.html#reserve">Order a room</a><a href="universities.html">For universities</a><a href="universities.html#inquiry">Partnership inquiry</a></nav>
+      <nav aria-label="Company"><h2>Company</h2><a href="packages.html">Packages</a><a href="planner.html">Room planner</a><a href="about.html">About us</a></nav>
+      <div><h2>ENTR 200 · Group A</h2><p class="names">Patrick Gray<br>Ayooluwatomi Akeju<br>Yitzchuk Rosenblat<br>Yuvan Vijayabaskar<br>De'Angelo Pierce</p></div>
+    </div>
+    <p class="legal">An example concept site for a student business. Floor plans are redrawn from UMBC Residential Life's published hall and apartment plans, and building details come from reslife.umbc.edu and UMBC's 360° tours. DormDesigner is not affiliated with or endorsed by UMBC.</p>
+  </div>
+</footer>
+<script src="assets/site.js"></script>
+<script src="assets/planner.js"></script>
+</body>
+</html>
