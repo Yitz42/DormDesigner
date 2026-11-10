@@ -6,17 +6,21 @@ Example website for DormDesigner, a dorm setup and decor rental service (ENTR 20
 
 ## What's on the site
 
+The site speaks mainly to parents and university housing, following the customer discovery work; students still choose their own colors, posters and major setup.
+
 - Hero and problem statement
 - How it works, in four steps
+- **For parents:** sleep and study setup, delivery and pickup, a photo before move-in, hall-safe items, one price
+- **For universities:** room checks before setup, revenue share, student success, accessible layouts, coordinated move-in, less waste, a one-semester pilot, and what UMBC residents said in our survey
 - Packages: Essentials ($450/yr), Basic ($850/yr), Deluxe ($1,500/yr)
   - Rugs, mini-fridges and bathroom sets are shared: when everyone in a bedroom (or using a bathroom) orders, they get one and split the cost, which comes off each person's price
   - Posters are all 11" × 17": 3 with Basic, 5 with Deluxe
 - Room planner: pick a UMBC floor plan, a package, a color palette and a major add-on, and see the room decorated on the plan
   - **Just my bed** decorates only the bed you pick (tap a bed on the plan); roommates' beds stay as the university provides them. **Whole suite** decorates every bed plus shared rooms and shows the suite total.
   - **3D view** turns the same floor plan into a model you can rotate and zoom. It loads three.js from cdnjs the first time someone opens it.
-  - Decor stays out of the way: the planner works out the routes people walk from the front door to each bed, desk, closet, door and fixture (not drawn), and keeps the fridge, beanbag and add-on off them wherever there's room.
+  - Decor stays out of the way: the planner works out the routes people walk from the front door to each bed, desk, closet, door and fixture (not drawn), keeps 30" clear in front of desks and a door's width in front of closets, and keeps the fridge, beanbag and add-on off the routes. If a beanbag or add-on can't fit without blocking something, it's left off the plan and the item list says so.
 - Comparison with DIY retail and basic rental
-- Who it's for, our values, and a demo reservation form (nothing is sent)
+- Our values, and a demo form for parents and students to reserve, or for housing staff to book a call (nothing is sent)
 
 Plans are drawn to scale: each one is stretched to the overall size measured with the measuring tool in UMBC's 360° tours (Walker Avenue uses the room sizes printed on its plan, and Potomac is scaled from its extra-long twin beds). Beds use UMBC's real frame size (about 40" × 84"), and the 3D view uses real heights: 8 ft ceilings, 80" doors, 30" desks with hutches in the halls.
 
