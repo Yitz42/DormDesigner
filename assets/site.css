@@ -446,6 +446,18 @@ footer .team b { color: var(--ink); font-weight: 500; }
 .crumbs a { color: var(--muted); text-decoration: none; }
 .crumbs a:hover { color: var(--accent); }
 
+/* Room renders */
+.shot { margin: 0; display: grid; gap: 8px; min-width: 0; }
+.shot img { display: block; width: 100%; height: auto; aspect-ratio: 1600 / 992; object-fit: cover; border-radius: var(--radius); border: 1px solid var(--rule); background: var(--plan-bg); }
+.shot figcaption { font-size: 0.85rem; color: var(--muted); }
+.page-head.with-media .wrap { grid-template-columns: minmax(0, 1fr) minmax(0, 1.05fr); align-items: center; gap: 28px 48px; }
+.head-copy { display: grid; gap: 14px; justify-items: start; min-width: 0; }
+@media (max-width: 900px) { .page-head.with-media .wrap { grid-template-columns: 1fr; } }
+.before-after { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+.before-after figcaption { font-weight: 600; color: var(--ink); }
+@media (max-width: 700px) { .before-after { grid-template-columns: 1fr; } }
+.tier .shot img { border-radius: 10px; }
+
 /* Home: clients, stats, package overview, call to action */
 .clients { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
 .client { display: grid; gap: 12px; align-content: start; padding: 28px; background: var(--surface); border: 1px solid var(--rule); border-radius: var(--radius); color: var(--ink); text-decoration: none; transition: border-color .15s, box-shadow .15s; min-width: 0; }

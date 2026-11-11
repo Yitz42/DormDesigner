@@ -377,6 +377,17 @@
         const l = Math.hypot(bx - ax, by - ay) || 1;
         d.opening = [hx, hy, hx + (bx - ax) / l * len, hy + (by - ay) / l * len];
       }));
+      if (d.opening) return;
+      // Otherwise the doorway runs along the wall the hinge sits on (or, with no wall there, the nearest
+      // straight line to the half-open leaf), on the side the leaf opens toward.
+      let dir = null;
+      L.walls.map(w => w.slice(0, 4)).concat(edges).forEach(([x1, y1, x2, y2]) => {
+        const vx = x2 - x1, vy = y2 - y1, l2 = vx * vx + vy * vy || 1, t = Math.max(0, Math.min(1, ((hx - x1) * vx + (hy - y1) * vy) / l2));
+        if (!dir && Math.hypot(hx - x1 - t * vx, hy - y1 - t * vy) <= 3) { const l = Math.sqrt(l2); dir = [vx / l, vy / l]; }
+      });
+      if (!dir) dir = Math.abs(ex - hx) >= Math.abs(ey - hy) ? [1, 0] : [0, 1];
+      if ((ex - hx) * dir[0] + (ey - hy) * dir[1] < 0) dir = [-dir[0], -dir[1]];
+      d.opening = [hx, hy, hx + dir[0] * len, hy + dir[1] * len];
     });
     L.furn = raw.furn.map(f => {
       const t = f[0];
@@ -494,9 +505,16 @@
     return inside;
   }
   // The floor a door sweeps: the box around its hinge, leaf and the far end of its opening.
+  // The floor a door sweeps when it opens all the way: the quarter circle from closed to fully open, which
+  // fills the square between the doorway and the door standing straight out from its hinge.
   function swingRect(d) {
-    const pts = [[d.leaf[0], d.leaf[1]], [d.leaf[2], d.leaf[3]]];
-    if (d.gap) pts.push([d.gap[0], d.gap[1]], [d.gap[2], d.gap[3]]);
+    const [hx, hy, ex, ey] = d.leaf, op = d.opening || d.gap;
+    let gx = ex, gy = ey;
+    if (op) [gx, gy] = Math.hypot(op[0] - hx, op[1] - hy) > Math.hypot(op[2] - hx, op[3] - hy) ? [op[0], op[1]] : [op[2], op[3]];
+    const len = Math.hypot(gx - hx, gy - hy) || 1;
+    let nx = -(gy - hy) / len, ny = (gx - hx) / len;
+    if ((ex - hx) * nx + (ey - hy) * ny < 0) { nx = -nx; ny = -ny; }   // the side the door opens to
+    const pts = [[hx, hy], [gx, gy], [hx + nx * len, hy + ny * len], [gx + nx * len, gy + ny * len]];
     const xs = pts.map(p => p[0]), ys = pts.map(p => p[1]);
     const x = Math.min.apply(null, xs), y = Math.min.apply(null, ys);
     return { x, y, w: Math.max.apply(null, xs) - x, h: Math.max.apply(null, ys) - y };
@@ -665,33 +683,68 @@
   }
 
   // Everything that takes up floor: beds, desks, the desk chairs UMBC provides, and the drawn furniture.
-  // How far a storage unit's doors reach into the room, in inches: freestanding wardrobes have two hinged doors,
-  // built-in closets have bi-fold doors up to 5' wide and sliding doors beyond, a pantry has one door.
+  // How far a storage unit's doors reach when they swing all the way open, in inches: two hinged doors on a
+  // freestanding wardrobe, one on a pantry; built-in closets have sliding doors, which need no swing room.
   function doorReach(f, len) {
     if (f.t === "dresser") return 18;
     if (f.t === "pantry") return len;
-    if (f.t === "closet") return len > 60 ? 0 : len < 36 ? len : len / 4;
+    if (f.t === "closet") return 0;
     return len / 2;
   }
-  // Slide a desk along its wall when closet doors would hit it or its chair, or its chair can't roll back.
+  // Give every desk room to work: its chair must roll back 36" clear of furniture and door swings, and it must
+  // stay out of other doors' and chairs' space. First slide it along its wall; if that can't work, move it to
+  // the nearest spot against another wall of the same bedroom.
   function clearUse(L) {
-    const tol = 0.75 * L.U, chairRect = d => { const c = chairSpot(L, d); return { x: c.x - c.s / 2, y: c.y - c.s / 2, w: c.s, h: c.s }; };
+    const tol = 0.75 * L.U, OPPS = { t: "b", b: "t", l: "r", r: "l" };
     const swings = L.doors.filter(x => x.leaf).map(swingRect);
-    const blocked = d => {
-      const zones = use(L), mine = zones.find(z => z.owner === d), cr = chairRect(d);
+    const shut = wallLines(L).concat(L.doors.filter(x => x.opening).map(x => x.opening));
+    const crosses = (ax, ay, bx, by) => shut.some(([x1, y1, x2, y2]) => {
+      const dd = (bx - ax) * (y2 - y1) - (by - ay) * (x2 - x1);
+      if (Math.abs(dd) < 1e-9) return false;
+      const t = ((x1 - ax) * (y2 - y1) - (y1 - ay) * (x2 - x1)) / dd, u = ((x1 - ax) * (by - ay) - (y1 - ay) * (bx - ax)) / dd;
+      return t > 0.001 && t < 0.999 && u >= 0 && u <= 1;
+    });
+    const chairRect = d => { const c = chairSpot(L, d); return { x: c.x - c.s / 2, y: c.y - c.s / 2, w: c.s, h: c.s }; };
+    const backup = d => use(L).find(z => z.owner === d).r;
+    L.desks.forEach((d, i) => {
+      if (!d.wall) return;
+      // everything this desk must stay clear of, and that must stay clear of it
       const others = solids(L).filter(o => o.src !== d && o.with !== d).map(o => o.r);
-      return zones.some(z => !z.chair && (overlaps(z.r, d, tol) || overlaps(z.r, cr, tol))) ||
-        (mine && (swings.concat(others).some(r => overlaps(mine.r, r, tol)))) ||
-        others.some(r => overlaps(r, d, tol) || overlaps(r, cr, tol));
-    };
-    L.desks.forEach(d => {
-      if (!d.wall || !blocked(d)) return;
-      const vertical = d.wall === "l" || d.wall === "r", o = { x: d.x, y: d.y };
+      const zones = use(L).filter(z => z.owner !== d).map(z => z.r);
+      const ok = () => {
+        const cr = chairRect(d), bz = backup(d);
+        return rectInside(L, d) && !crossesWall(L, d, 0.2) && !crossesWall(L, cr, 0.2) &&
+          !others.concat(zones, swings).some(r => overlaps(r, d, tol) || overlaps(r, cr, tol)) &&
+          !others.concat(swings).some(r => overlaps(bz, r, tol)) && rectInside(L, bz) && !crossesWall(L, bz, 0.2);
+      };
+      if (ok()) return;
+      const o = { x: d.x, y: d.y, w: d.w, h: d.h, wall: d.wall }, vertical = d.wall === "l" || d.wall === "r";
       for (let k = 1; k <= 36; k++) for (const sn of [1, -1]) {
         d.x = o.x + (vertical ? 0 : sn * k * L.U); d.y = o.y + (vertical ? sn * k * L.U : 0);
-        if (rectInside(L, d) && !crossesWall(L, d, 0.2) && !blocked(d)) return;
+        if (ok()) return;
       }
-      d.x = o.x; d.y = o.y;   // nowhere better: the layout check will say so
+      // Another wall of the same bedroom: in plain view of the bed with the doors shut.
+      const bed = centerOf(L.beds[i]), len = Math.max(o.w, o.h), dep = Math.min(o.w, o.h), step = 3 * L.U, reach = 150 * L.U;
+      let best = null;
+      ["t", "b", "l", "r"].forEach(wall => {
+        const along = wall === "t" || wall === "b", w = along ? len : dep, h = along ? dep : len;
+        // flush against each wall line that runs the right way, at 3" steps along it
+        wallLines(L).forEach(([x1, y1, x2, y2]) => {
+          if (along ? y1 !== y2 : x1 !== x2) return;
+          const at = along ? y1 : x1, lo = Math.max(along ? Math.min(x1, x2) : Math.min(y1, y2), (along ? o.x : o.y) - reach);
+          const hi = Math.min(along ? Math.max(x1, x2) : Math.max(y1, y2), (along ? o.x : o.y) + reach) - (along ? w : h);
+          const fix = wall === "t" ? at : wall === "b" ? at - h : wall === "l" ? at : at - w;
+          if (Math.abs(fix - (along ? o.y : o.x)) > reach) return;
+          for (let a = lo; a <= hi + 0.01; a += step) {
+            Object.assign(d, along ? { x: a, y: fix, w, h, wall } : { x: fix, y: a, w, h, wall });
+            const c = centerOf(d), dist = Math.hypot(c.x - (o.x + o.w / 2), c.y - (o.y + o.h / 2));
+            if (best && dist >= best.dist) continue;
+            if (crosses(c.x, c.y, bed.x, bed.y) || !ok()) continue;
+            best = { x: d.x, y: d.y, w, h, wall, dist };
+          }
+        });
+      });
+      Object.assign(d, best ? { x: best.x, y: best.y, w: best.w, h: best.h, wall: best.wall } : o);   // nowhere: the layout check says so
     });
   }
   // Space in front of a rect, out to a given reach.
@@ -931,7 +984,7 @@
     const fixedSpots = new Map();
     const find = (start, size, b, region, opts) => {
       opts = opts || {};
-      const fixedKey = [size[0], size[1], b.x0, b.y0, b.x1, b.y1, opts.rug ? 1 : 0, opts.preferWall ? 1 : 0, opts.optional ? 1 : 0, zoneId].join();
+      const fixedKey = [size[0], size[1], b.x0, b.y0, b.x1, b.y1, opts.rug ? 1 : 0, opts.preferWall ? 1 : 0, opts.optional ? 1 : 0, opts.foot ? 1 : 0, zoneId].join();
       const key = fixedKey + ":" + start.join();
       if (!fixedSpots.has(fixedKey)) {
         const blockers = opts.rug ? floorSolid.concat(swings) : solid.concat(swings, fronts), ok = [];
@@ -946,7 +999,7 @@
             if (seen && !seen.some(([px, py]) => inView(x, y, px, py))) return;
             const walk = !opts.rug && L.walk ? L.walk.hits(r) : 0;
             if (opts.optional && walk === 2) return;   // a beanbag or add-on never goes across the middle of a walkway
-            const wall = opts.preferWall ? (rot ? ["l", "r"] : ["t", "b"]).find(sd => wallAlong(L, r, sd) >= 0.6) || null : null;
+            const wall = opts.preferWall ? (rot ? ["l", "r"] : ["t", "b"]).find(sd => wallAlong(L, r, sd) >= 0.6) || (opts.foot && atFoot(r, opts.foot) ? "foot" : null) : null;
             ok.push({ x, y, w, h, rot, wall, r, walk, backed: opts.rug || opts.preferWall || backed(r) });
           }));
         });
@@ -965,6 +1018,16 @@
       }
       if (best && !opts.rug) placed.push({ x: best.x - best.w / 2 - L.U, y: best.y - best.h / 2 - L.U, w: best.w + 2 * L.U, h: best.h + 2 * L.U });
       return best && { x: best.x, y: best.y, w: best.w, h: best.h, rot: best.rot, wall: best.wall, walk: best.walk };
+    };
+    // Is a rect standing right against the foot of a bed (so a fridge can go there, like a footboard)?
+    const atFoot = (r, b) => {
+      const fs = OPP[b.head], g = 2 * L.U;
+      if (fs === "t" || fs === "b") {
+        const edge = fs === "b" ? b.y + b.h : b.y, near = fs === "b" ? r.y - edge : edge - (r.y + r.h);
+        return near >= -0.5 * L.U && near <= g && Math.min(r.x + r.w, b.x + b.w) - Math.max(r.x, b.x) >= 0.6 * r.w;
+      }
+      const edge = fs === "r" ? b.x + b.w : b.x, near = fs === "r" ? r.x - edge : edge - (r.x + r.w);
+      return near >= -0.5 * L.U && near <= g && Math.min(r.y + r.h, b.y + b.h) - Math.max(r.y, b.y) >= 0.6 * r.h;
     };
     // How much of one side of a rect has a wall running right behind it (0 to 1).
     const wallAlong = (L, r, side) => {
@@ -1022,7 +1085,7 @@
     // that places the most, with the add-on on a wall and everything at full size where it can be.
     const ORDERS = [["extra", "fridge", "bean"], ["extra", "bean", "fridge"], ["fridge", "extra", "bean"],
       ["bean", "extra", "fridge"], ["fridge", "bean", "extra"], ["bean", "fridge", "extra"]];
-    const putSet = (target, src, startOf, b, region) => {
+    const putSet = (target, src, startOf, b, region, bed) => {
       let best = null;
       // compact: start from the smaller beanbag and add-on, for corners too tight for all three at full size
       // Last resort: ignore the walkways, for corners where keeping clear of them leaves no room for everything.
@@ -1036,12 +1099,12 @@
           if (k === "extra") { putExtra(t, startOf(k), b, region, compact); return; }
           t[k] = null;
           for (const size of k === "bean" ? (compact ? [[26, 26]] : [DECOR_IN.bean, [26, 26]]) : [DECOR_IN[k]]) {   // a smaller beanbag where space is tight
-            // the fridge goes against a wall when it can, like a fridge at home
-            const hit = find(startOf(k), size, b, region, { optional: k === "bean", preferWall: k === "fridge" });
+            // the fridge goes against a wall, or the foot of the bed, when it can
+            const hit = find(startOf(k), size, b, region, { optional: k === "bean", preferWall: k === "fridge", foot: k === "fridge" ? bed : null });
             if (hit) {
               t[k] = [hit.x, hit.y]; t.onWalk = (t.onWalk || 0) + hit.walk;
               if (k === "bean") t.beanD = size[0];
-              if (k === "fridge") t.fridgeWall = hit.wall;
+              if (k === "fridge") { t.fridgeWall = hit.wall; t.fridgeFace = hit.wall === "foot" ? OPP[bed.head] : hit.wall ? OPP[hit.wall] : null; }
               break;
             }
           }
@@ -1061,7 +1124,7 @@
       const b = boundsOf(room, ri), beds = bedsIn(ri);
       zoneId = "room" + ri;
       seen = beds.length ? beds.map(i => centerOf(L.beds[i])).concat(beds.map(i => centerOf(L.desks[i]))).map(p => [p.x, p.y]) : null;
-      putSet(room, room, k => room[k], b, null);
+      putSet(room, room, k => room[k], b, null, beds.length ? L.beds[beds[0]] : null);
     });
     L.bedSpots = L.beds.map(() => null);
     L.rooms.forEach((room, ri) => {
@@ -1098,7 +1161,7 @@
               if (hit) { spot.rug = [hit.x - hit.w / 2, hit.y - hit.h / 2, hit.w, hit.h]; break; }
             }
           }
-          score += putSet(spot, room, () => start, b, mine);
+          score += putSet(spot, room, () => start, b, mine, L.beds[i]);
           spots[i] = spot;
         });
         const added = placed.splice(mark);
@@ -1108,9 +1171,12 @@
       beds.forEach(i => { L.bedSpots[i] = bestRun.spots[i]; });
       // The shared fridge takes one of the students' fridge spots (they already clear everyone's things): one
       // against a wall if there is one, then the one nearest the middle.
-      if (room.fridge) room.shared.fridge = beds.map(i => L.bedSpots[i]).filter(sp => sp.fridge)
-        .sort((p, q) => (!p.fridgeWall - !q.fridgeWall) || Math.hypot(p.fridge[0] - mid[0], p.fridge[1] - mid[1]) - Math.hypot(q.fridge[0] - mid[0], q.fridge[1] - mid[1]))
-        .map(sp => sp.fridge)[0] || null;
+      if (room.fridge) {
+        const sp = beds.map(i => L.bedSpots[i]).filter(sp => sp.fridge)
+          .sort((p, q) => (!p.fridgeWall - !q.fridgeWall) || Math.hypot(p.fridge[0] - mid[0], p.fridge[1] - mid[1]) - Math.hypot(q.fridge[0] - mid[0], q.fridge[1] - mid[1]))[0];
+        room.shared.fridge = sp ? sp.fridge : null;
+        room.shared.fridgeFace = sp ? sp.fridgeFace : null;
+      }
     });
   }
   // Posters are all the standard 11" x 17" size, hung portrait in centered rows along the bed's poster wall:
@@ -1133,8 +1199,8 @@
       const beds = L.bedRoom.map((x, i) => (x === ri ? i : -1)).filter(i => i >= 0);
       if (beds.length > 1 && L.bedSpots && beds.every(i => bedOn[i]) && r.shared) {
         // everyone in the room ordered: one shared rug and fridge, plus each student's own beanbag and add-on
-        sets.push({ rug: r.shared.rug, fridge: r.shared.fridge });
-        beds.forEach(i => { const sp = L.bedSpots[i]; if (sp) sets.push(Object.assign({}, sp, { rug: null, fridge: null })); });
+        sets.push({ rug: r.shared.rug, fridge: r.shared.fridge, fridgeFace: r.shared.fridgeFace });
+        beds.forEach(i => { const sp = L.bedSpots[i]; if (sp) sets.push(Object.assign({}, sp, { rug: null, fridge: null, fridgeFace: null })); });
       } else if (beds.length > 1 && L.bedSpots) beds.forEach(i => { if (bedOn[i] && L.bedSpots[i]) sets.push(L.bedSpots[i]); });
       else sets.push(r);
     });
@@ -1154,7 +1220,7 @@
         if (overlaps(a.r, b.r, tol)) issues.push(a.what + " overlaps " + b.what);
       });
       if (crossesWall(L, a.r, tol)) issues.push(a.what + " crosses a wall");
-      if (/chair|bed|desk|couch|sofa|loveseat|table|coffee|end/.test(a.what) && swings.some(s => overlaps(a.r, s.r, tol))) issues.push(a.what + " is in a door's swing");
+      if (/chair|bed|desk|couch|sofa|loveseat|table|coffee|end|wardrobe|closet|dresser|pantry|fridge|counter|washer|dryer/.test(a.what) && swings.some(s => overlaps(a.r, s.r, tol))) issues.push(a.what + " is in a door's swing");
     });
     // Room to use things: every closet and wardrobe door swings open, and every desk chair can roll back 36".
     use(L).forEach(z => {
@@ -1171,8 +1237,24 @@
 
   // Applied once per layout after scaling: real desk sizes, seating that faces the right way,
   // storage fronts, and decor moved clear of everything else.
+  // Beds traced a little off a wall go right up against it, when nothing is in the gap.
+  function bedsToWalls(L) {
+    const swings = L.doors.filter(d => d.leaf).map(swingRect);
+    L.beds.forEach(b => {
+      [["l", "r"], ["t", "b"]].forEach(pair => {
+        const side = pair.map(sd => ({ sd, g: wallGap(L, b, sd) })).filter(o => o.g > 0.3 * L.U && o.g <= 18 * L.U).sort((p, q) => p.g - q.g)[0];
+        if (!side) return;
+        const moved = { x: b.x + (side.sd === "l" ? -side.g : side.sd === "r" ? side.g : 0), y: b.y + (side.sd === "t" ? -side.g : side.sd === "b" ? side.g : 0), w: b.w, h: b.h };
+        const others = L.beds.filter(o => o !== b).concat(L.desks, L.furn.map(furnRect), swings);
+        if (!rectInside(L, moved) || crossesWall(L, moved, 0.2) || others.some(o => overlaps(moved, o, 0.5 * L.U))) return;
+        if (b.art) { const dx = moved.x - b.x, dy = moved.y - b.y; b.art = [b.art[0] + dx, b.art[1] + dy, b.art[2] + dx, b.art[3] + dy, b.art[4], b.art[5]]; }
+        b.x = moved.x; b.y = moved.y;
+      });
+    });
+  }
   function fitFurniture(L, raw) {
     if (raw.deskIn) L.desks.forEach(d => resizeDesk(d, raw.deskIn[0] * L.U, raw.deskIn[1] * L.U));
+    bedsToWalls(L);
     // Freestanding wardrobes: 48-inch front, 24-inch depth. Built-in closets retain their plan footprint.
     L.furn.filter(f => f.t === "wardrobe").forEach(f => {
       const vertical = f.h >= f.w, old = { ...f };
@@ -1183,6 +1265,7 @@
     });
     separate(L);
     clearInteriorWalls(L);
+    bedsToWalls(L);   // again, in case making room nudged a bed off its wall
     L.beds.forEach(b => chooseArt(L, b));
     const tables = L.furn.filter(f => f.t === "table" || f.t === "round");
     const lounge = L.furn.filter(f => f.t === "coffee" || f.t === "couch" || f.t === "sofa" || f.t === "loveseat");
@@ -1283,24 +1366,15 @@
     if (ws === "r") x = d.x - s / 2 + 2 * L.U;
     return { x, y, s };
   }
-  // Storage doors on the plan: swing arcs for wardrobe doors, a sliding track for wide closets.
+  // Storage doors on the plan: swing arcs for wardrobe doors, a sliding track for built-in closets.
   function storageDoors2D(g, f, IN) {
     const fs = f.front, along = fs === "t" || fs === "b";
     const p0 = fs === "t" ? [f.x, f.y] : fs === "b" ? [f.x, f.y + f.h] : fs === "l" ? [f.x, f.y] : [f.x + f.w, f.y];
     const p1 = along ? [p0[0] + f.w, p0[1]] : [p0[0], p0[1] + f.h];
     const n = { t: [0, -1], b: [0, 1], l: [-1, 0], r: [1, 0] }[fs], len = along ? f.w : f.h;
-    if (f.t === "closet" && len > IN(60)) {
+    if (f.t === "closet") {   // built-in closets: sliding doors on a track
       const off = IN(2.5), q0 = [p0[0] - n[0] * off, p0[1] - n[1] * off], q1 = [p1[0] - n[0] * off, p1[1] - n[1] * off];
       el("line", { x1: q0[0], y1: q0[1], x2: q1[0], y2: q1[1], class: "p-swing2" }, g);
-      return;
-    }
-    if (f.t === "closet" && len >= IN(36)) {
-      // bi-fold: each half folds out from its jamb in two leaves
-      const a = len / 4, u = [(p1[0] - p0[0]) / len, (p1[1] - p0[1]) / len];
-      [[p0, u], [p1, [-u[0], -u[1]]]].forEach(([hp, v]) => {
-        const mid = [hp[0] + v[0] * a / 2 + n[0] * a * 0.87, hp[1] + v[1] * a / 2 + n[1] * a * 0.87], end = [hp[0] + v[0] * a, hp[1] + v[1] * a];
-        el("path", { d: "M" + hp[0] + " " + hp[1] + " L" + mid[0] + " " + mid[1] + " L" + end[0] + " " + end[1], class: "p-swing2" }, g);
-      });
       return;
     }
     const doors = f.t === "dresser" ? 0 : f.t === "pantry" ? 1 : 2, half = len / doors;
@@ -1559,6 +1633,8 @@
           const g = el("g", {}, over);
           const [x, y] = r.fridge;
           rect(g, { x: x - IN(9.5), y: y - IN(9.5), w: IN(19), h: IN(19) }, { rx: 2, class: "p-appl", stroke: pal.deep });
+          const fd = { t: [0, -1], b: [0, 1], l: [-1, 0], r: [1, 0] }[r.fridgeFace || "b"], e = IN(7.5);   // door edge and handle
+          el("line", { x1: x + fd[0] * IN(8) - fd[1] * e, y1: y + fd[1] * IN(8) - fd[0] * e, x2: x + fd[0] * IN(8) + fd[1] * e, y2: y + fd[1] * IN(8) + fd[0] * e, stroke: pal.deep, "stroke-width": 1.2 }, g);
           text(g, x, y, "FRIDGE", "p-appl-label");
         }
         if (lvl >= 3 && r.bean) {
@@ -2461,9 +2537,23 @@
         box(x, y, w, h, 0, IN(0.4), rug, false);
       }
       if (lvl >= 3 && r.fridge) {
-        const [x, y] = r.fridge, s = IN(19);
-        box(x - s / 2, y - s / 2, s, s, 0, IN(33), M("#F1F0F4"));
-        box(x - s / 2 - IN(0.3), y - s / 2 - IN(0.3), s + IN(0.6), s + IN(0.6), IN(24), IN(0.8), M(pal.deep));
+        // Mini-fridge, door facing into the room: feet, body, freezer and fridge doors with a seam, handles,
+        // a door gasket, a badge in the palette color, and the coil grille on the back.
+        const [x, y] = r.fridge, f = { t: [0, -1], b: [0, 1], l: [-1, 0], r: [1, 0] }[r.fridgeFace || "b"], grp = new T.Group();
+        grp.position.set(x, 0, y); grp.rotation.y = Math.atan2(f[0], f[1]); g.add(grp);
+        const part = (geo, mat, px, py, pz) => { geos.push(geo); const m = new T.Mesh(geo, mat); m.position.set(px, py, pz); m.castShadow = true; m.receiveShadow = true; grp.add(m); return m; };
+        const W = IN(19), D = IN(18), H = IN(32), body = M("#ECEDF0", { roughness: 0.35, metalness: 0.15 }), seam = M("#2C2F36"), steel = M("#B9BEC6", { roughness: 0.25, metalness: 0.8 });
+        [[-1, -1], [1, -1], [-1, 1], [1, 1]].forEach(([a, c]) => part(new T.CylinderGeometry(IN(0.6), IN(0.6), IN(1), 10), seam, a * (W / 2 - IN(1.5)), IN(0.5), c * (D / 2 - IN(1.5))));
+        part(new T.BoxGeometry(W, H, D), body, 0, IN(1) + H / 2, 0);
+        const fz = IN(9.5), fr = H - fz - IN(0.4), z = D / 2 + IN(0.45);
+        part(new T.BoxGeometry(W - IN(0.4), fz, IN(0.9)), body, 0, IN(1) + H - fz / 2 - IN(0.2), D / 2);
+        part(new T.BoxGeometry(W - IN(0.4), fr, IN(0.9)), body, 0, IN(1.2) + fr / 2, D / 2);
+        part(new T.BoxGeometry(W - IN(0.2), IN(0.35), IN(1)), seam, 0, IN(1) + H - fz - IN(0.3), D / 2);          // seam between the doors
+        part(new T.BoxGeometry(W - IN(0.6), IN(0.25), IN(0.2)), seam, 0, IN(1.25), D / 2 + IN(0.35));            // gasket line at the bottom
+        part(new T.BoxGeometry(IN(0.7), IN(5), IN(0.9)), steel, W / 2 - IN(2), IN(1) + H - fz / 2 - IN(0.2), z);   // freezer handle
+        part(new T.BoxGeometry(IN(0.7), IN(10), IN(0.9)), steel, W / 2 - IN(2), IN(1.2) + fr - IN(7), z);          // fridge handle
+        part(new T.BoxGeometry(IN(3.5), IN(0.9), IN(0.2)), M(pal.deep), -W / 2 + IN(3.5), IN(1) + H - IN(2.2), D / 2 + IN(0.5));   // badge
+        part(new T.BoxGeometry(W - IN(3), IN(12), IN(0.4)), seam, 0, IN(10), -D / 2 - IN(0.2));                 // coils on the back
       }
       if (lvl >= 3 && r.bean) {
         const [x, y] = r.bean;
